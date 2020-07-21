@@ -15,7 +15,16 @@ def inverse(a, m):
 
 # attacks
 def primesKnown():
-    return 135939986366846837218834286
+    p = int(input('p: '))
+    q = int(input('q: '))
+    e = int(input('e: '))
+    c = int(input('c: '))
+
+    N = p * q
+    phi = (q - 1) * (p - 1)
+    d = inverse(e, phi)
+    m = pow(c, d, N)
+    return m
 
 def factorization():
     return 8111412855914119614708549513070
@@ -46,9 +55,10 @@ def main():
         print 'Error while attempting to attack'
         exit()
 
-    print m
+    print
+    print '-> m(dec): ' + str(m)
     try:
-        print hex(m)[2:-1].decode('hex')
+        print '-> m(str): ' + hex(m)[2:-1].decode('hex')
     except:
         exit()
 

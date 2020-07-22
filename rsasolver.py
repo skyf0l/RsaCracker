@@ -1,5 +1,7 @@
 #!/usr/bin/python2
 
+from sympy.ntheory.modular import crt
+
 # math functions
 def egcd(a, b):
     if a == 0:
@@ -12,6 +14,17 @@ def inverse(a, m):
     if g != 1:
         raise Exception('No modular inverse')
     return x % m
+
+def find_root(n, x):
+    low = 0
+    high = n
+    while low < high:
+        mid = (low + high) // 2
+        if mid ** x < n:
+            low = mid + 1
+        else:
+            high = mid
+    return low
 
 # attacks
 def primesKnown():
@@ -30,7 +43,16 @@ def factorization():
     return 8111412855914119614708549513070
 
 def lowExponent():
-    return 131090371366397862641757812
+    N = [0] * 3
+    c = [0] * 3
+    for id in range(3):
+        N[id] = int(input('n' + str(id + 1) + ': '))
+    for id in range(3):
+        c[id] = int(input('c' + str(id + 1) + ': '))
+
+    x = crt(N, c)[0]
+    m = find_root(x, 3)
+    return m
 
 attacks = [
     ['Primes known (p, q, e, c)', primesKnown],

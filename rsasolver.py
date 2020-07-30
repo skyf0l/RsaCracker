@@ -3,7 +3,7 @@
 from sympy.ntheory.modular import crt
 import requests
 
-# math functions
+# factordb request
 def getPrimes(N, tryToFactorize=False):
     api_url = 'http://factordb.com/api?query='
     web_url = 'http://factordb.com/index.php?query='
@@ -29,6 +29,7 @@ def getPrimes(N, tryToFactorize=False):
 
     return primes
 
+# math functions
 def egcd(a, b):
     if a == 0:
         return (b, 0, 1)
@@ -91,9 +92,12 @@ def lowExponentAttack():
         N[id] = int(input('n' + str(id + 1) + ': '))
     for id in range(3):
         c[id] = int(input('c' + str(id + 1) + ': '))
-
+    
     x = crt(N, c)[0]
     m = find_root(x, 3)
+    if x != m ** 3:
+        print('Can\'t find the cube root...')
+        exit()
     return m
 
 attacks = [

@@ -2,8 +2,9 @@
 
 from sympy.ntheory.modular import crt
 import requests
+import string
 
-# math functions
+# factordb request
 def getPrimes(N, tryToFactorize=False):
     api_url = 'http://factordb.com/api?query='
     web_url = 'http://factordb.com/index.php?query='
@@ -29,6 +30,7 @@ def getPrimes(N, tryToFactorize=False):
 
     return primes
 
+# math functions
 def egcd(a, b):
     if a == 0:
         return (b, 0, 1)
@@ -64,18 +66,18 @@ def solveFromPrimes(primes, e, c):
     return m
 
 def primesKnownAttack():
-    p = int(input('p: '))
-    q = int(input('q: '))
-    e = int(input('e: '))
-    c = int(input('c: '))
+    p = int(raw_input('p: '))
+    q = int(raw_input('q: '))
+    e = int(raw_input('e: '))
+    c = int(raw_input('c: '))
 
     m = solveFromPrimes([p, q], e, c)
     return m
 
 def factorizationAttack():
-    N = int(input('N: '))
-    e = int(input('e: '))
-    c = int(input('c: '))
+    N = int(raw_input('N: '))
+    e = int(raw_input('e: '))
+    c = int(raw_input('c: '))
 
     primes = getPrimes(N)
     if len(primes) < 2:
@@ -88,12 +90,15 @@ def lowExponentAttack():
     N = [0] * 3
     c = [0] * 3
     for id in range(3):
-        N[id] = int(input('n' + str(id + 1) + ': '))
+        N[id] = int(raw_input('n' + str(id + 1) + ': '))
     for id in range(3):
-        c[id] = int(input('c' + str(id + 1) + ': '))
-
+        c[id] = int(raw_input('c' + str(id + 1) + ': '))
+    
     x = crt(N, c)[0]
     m = find_root(x, 3)
+    if x != m ** 3:
+        print('Can\'t find the cube root...')
+        exit()
     return m
 
 attacks = [
@@ -101,6 +106,42 @@ attacks = [
     ['Factorization (n, e, c)', factorizationAttack],
     ['Low exponent (e = 3, n1, n2, n3, c1, c2, c3)', lowExponentAttack]
 ]
+
+def is_printable(plaintext):
+    total = 0
+    printable = 0
+
+    for c in plaintext:
+        if plaintext[total] in string.printable:
+            printable += 1
+        total += 1
+    if total == 0:
+        return 0
+    return printable / total > 0.95
+
+def show_result(m):
+    print
+    print '-> m(dec): ' + str(m)
+
+    # from decimal
+    try:
+        m_hex = hex(m)[2:]
+        if m_hex[len(m_hex) - 1] == 'L':
+            m_hex = m_hex[:-1]
+        plaintext = m_hex.decode('hex')
+        if is_printable(plaintext):
+            print '-> m(from dec): ' + plaintext
+    except:
+        pass
+
+    # from hex
+    try:
+        m_hex = str(m)
+        plaintext = m_hex.decode('hex')
+        if is_printable(plaintext):
+            print '-> m(from hex): ' + plaintext
+    except:
+        pass
 
 def main():
     print 'Chose an attack:'
@@ -120,12 +161,7 @@ def main():
         print 'Error while attempting to attack'
         exit()
 
-    print
-    print '-> m(dec): ' + str(m)
-    try:
-        print '-> m(str): ' + hex(m)[2:-1].decode('hex')
-    except:
-        exit()
+    show_result(m)
 
 if __name__ == '__main__':
     main()

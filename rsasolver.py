@@ -65,18 +65,18 @@ def solveFromPrimes(primes, e, c):
     return m
 
 def primesKnownAttack():
-    p = int(input('p: '))
-    q = int(input('q: '))
-    e = int(input('e: '))
-    c = int(input('c: '))
+    p = int(raw_input('p: '))
+    q = int(raw_input('q: '))
+    e = int(raw_input('e: '))
+    c = int(raw_input('c: '))
 
     m = solveFromPrimes([p, q], e, c)
     return m
 
 def factorizationAttack():
-    N = int(input('N: '))
-    e = int(input('e: '))
-    c = int(input('c: '))
+    N = int(raw_input('N: '))
+    e = int(raw_input('e: '))
+    c = int(raw_input('c: '))
 
     primes = getPrimes(N)
     if len(primes) < 2:
@@ -89,9 +89,9 @@ def lowExponentAttack():
     N = [0] * 3
     c = [0] * 3
     for id in range(3):
-        N[id] = int(input('n' + str(id + 1) + ': '))
+        N[id] = int(raw_input('n' + str(id + 1) + ': '))
     for id in range(3):
-        c[id] = int(input('c' + str(id + 1) + ': '))
+        c[id] = int(raw_input('c' + str(id + 1) + ': '))
     
     x = crt(N, c)[0]
     m = find_root(x, 3)

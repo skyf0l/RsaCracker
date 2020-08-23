@@ -4,6 +4,15 @@ from sympy.ntheory.modular import crt
 import requests
 import string
 
+# input
+def get_num(label):
+    n_str = raw_input(label)
+    if len(n_str) > 2 and (n_str[0:2] == '0x' or n_str[0:2] == '0X'):
+        n = int(n_str, 16)
+    else:
+        n = int(n_str)
+    return n
+
 # factordb request
 def getPrimes(N, tryToFactorize=False):
     api_url = 'http://factordb.com/api?query='
@@ -66,18 +75,18 @@ def solveFromPrimes(primes, e, c):
     return m
 
 def primesKnownAttack():
-    p = int(raw_input('p: '))
-    q = int(raw_input('q: '))
-    e = int(raw_input('e: '))
-    c = int(raw_input('c: '))
+    p = get_num('p: ')
+    q = get_num('q: ')
+    e = get_num('e: ')
+    c = get_num('c: ')
 
     m = solveFromPrimes([p, q], e, c)
     return m
 
 def factorizationAttack():
-    N = int(raw_input('N: '))
-    e = int(raw_input('e: '))
-    c = int(raw_input('c: '))
+    N = get_num('N: ')
+    e = get_num('e: ')
+    c = get_num('c: ')
 
     primes = getPrimes(N)
     if len(primes) < 2:
@@ -90,9 +99,9 @@ def lowExponentAttack():
     N = [0] * 3
     c = [0] * 3
     for id in range(3):
-        N[id] = int(raw_input('n' + str(id + 1) + ': '))
+        N[id] = get_num('n' + str(id + 1) + ': ')
     for id in range(3):
-        c[id] = int(raw_input('c' + str(id + 1) + ': '))
+        c[id] = get_num('c' + str(id + 1) + ': ')
     
     x = crt(N, c)[0]
     m = find_root(x, 3)

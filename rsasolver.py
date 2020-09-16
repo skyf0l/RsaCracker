@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 from sympy.ntheory.modular import crt
 import requests
@@ -6,7 +6,7 @@ import string
 
 # input
 def get_num(label):
-    n_str = raw_input(label)
+    n_str = input(label)
     if len(n_str) > 2 and (n_str[0:2] == '0x' or n_str[0:2] == '0X'):
         n = int(n_str, 16)
     else:
@@ -129,8 +129,8 @@ def is_printable(plaintext):
     return printable / total > 0.95
 
 def show_result(m):
-    print
-    print '-> m(dec): ' + str(m)
+    print()
+    print('-> m(dec): ' + str(m))
 
     # from decimal
     try:
@@ -139,7 +139,7 @@ def show_result(m):
             m_hex = m_hex[:-1]
         plaintext = m_hex.decode('hex')
         if is_printable(plaintext):
-            print '-> m(from dec): ' + plaintext
+            print('-> m(from dec): ' + plaintext)
     except:
         pass
 
@@ -148,15 +148,15 @@ def show_result(m):
         m_hex = str(m)
         plaintext = m_hex.decode('hex')
         if is_printable(plaintext):
-            print '-> m(from hex): ' + plaintext
+            print('-> m(from hex): ' + plaintext)
     except:
         pass
 
 def main():
-    print 'Chose an attack:'
+    print('Chose an attack:')
     for id in range(len(attacks)):
-        print ' ' + str(id + 1) + '/ ' + attacks[id][0]
-    choice = raw_input('> ')
+        print(' ' + str(id + 1) + '/ ' + attacks[id][0])
+    choice = input('> ')
 
     try:
         attackFunction = attacks[int(choice) - 1][1]
@@ -166,8 +166,8 @@ def main():
     try:
         m = attackFunction()
     except Exception as e:
-        print e
-        print 'Error while attempting to attack'
+        print(e)
+        print('Error while attempting to attack')
         exit()
 
     show_result(m)

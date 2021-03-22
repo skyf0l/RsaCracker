@@ -5,6 +5,7 @@ import requests
 import string
 
 # input
+
 def get_num(label):
     n_str = input(label)
     if len(n_str) > 2 and (n_str[0:2] == '0x' or n_str[0:2] == '0X'):
@@ -14,6 +15,7 @@ def get_num(label):
     return n
 
 # factordb request
+
 def getPrimes(N, tryToFactorize=False):
     api_url = 'http://factordb.com/api?query='
     web_url = 'http://factordb.com/index.php?query='
@@ -40,6 +42,7 @@ def getPrimes(N, tryToFactorize=False):
     return primes
 
 # math functions
+
 def egcd(a, b):
     if a == 0:
         return (b, 0, 1)
@@ -63,7 +66,47 @@ def find_root(n, x):
             high = mid
     return low
 
+def rational_to_contfrac(x, y):
+    # https://gist.github.com/mananpal1997/73d07cdc91d58b4eb5c818aaab2d38bd
+    # Converts a rational x/y fraction into a list of partial quotients [a0, ..., an]
+    a = x // y
+    pquotients = [a]
+    while a * y != x:
+        x, y = y, x - a * y
+        a = x // y
+        pquotients.append(a)
+    return pquotients
+
+def convergents_from_contfrac(frac):
+    # https://gist.github.com/mananpal1997/73d07cdc91d58b4eb5c818aaab2d38bd
+    # computes the list of convergents using the list of partial quotients
+    convs = []
+    for i in range(len(frac)):
+        convs.append(contfrac_to_rational(frac[0: i]))
+    return convs
+
+def contfrac_to_rational(frac):
+    # https://gist.github.com/mananpal1997/73d07cdc91d58b4eb5c818aaab2d38bd
+    # Converts a finite continued fraction [a0, ..., an] to an x/y rational.
+    if len(frac) == 0:
+        return (0, 1)
+    num = frac[-1]
+    denom = 1
+    for _ in range(-2, -len(frac) - 1, -1):
+        num, denom = frac[_] * num + denom, num
+    return (num, denom)
+
+def isqrt(n):
+    # https://gist.github.com/mananpal1997/73d07cdc91d58b4eb5c818aaab2d38bd
+    x = n
+    y = (x + 1) // 2
+    while y < x:
+        x = y
+        y = (x + n // x) // 2
+    return x
+
 # attacks
+
 def solveFromPrimes(primes, e, c):
     N = 1
     phi = 1
@@ -102,7 +145,7 @@ def lowExponentAttack():
         N[id] = get_num('n' + str(id + 1) + ': ')
     for id in range(3):
         c[id] = get_num('c' + str(id + 1) + ': ')
-    
+
     x = crt(N, c)[0]
     m = find_root(x, 3)
     if x != m ** 3:
@@ -110,10 +153,33 @@ def lowExponentAttack():
         exit()
     return m
 
+def tooBigExponentAttack():
+    N = get_num('N: ')
+    e = get_num('e: ')
+    c = get_num('c: ')
+
+    frac = rational_to_contfrac(e, N)
+    convergents = convergents_from_contfrac(frac)
+    
+    d = 0
+    for (k, _d) in convergents:
+        if k != 0 and (e * _d - 1) % k == 0:
+            phi = (e * _d - 1) // k
+            s = N - phi + 1
+            # check if x*x - s*x + n = 0 has integer roots
+            D = s * s - 4 * N
+            if D >= 0:
+                sq = isqrt(D)
+                if sq * sq == D and (s + sq) % 2 == 0:
+                    d = _d
+    m = pow(c, d, N)
+    return m
+
 attacks = [
     ['Primes known (p, q, e, c)', primesKnownAttack],
     ['Factorization (n, e, c)', factorizationAttack],
-    ['Low exponent (e = 3, n1, n2, n3, c1, c2, c3)', lowExponentAttack]
+    ['Low exponent (e = 3, n1, n2, n3, c1, c2, c3)', lowExponentAttack],
+    ['Too big exponent, wiener (n, e, c)', tooBigExponentAttack]
 ]
 
 def is_printable(plaintext):
@@ -134,10 +200,7 @@ def show_result(m):
 
     # from decimal
     try:
-        m_hex = hex(m)[2:]
-        if m_hex[len(m_hex) - 1] == 'L':
-            m_hex = m_hex[:-1]
-        plaintext = m_hex.decode('hex')
+        plaintext = print(bytes.fromhex(hex(m).rstrip("L")[2:]).decode('utf-8'))
         if is_printable(plaintext):
             print('-> m(from dec): ' + plaintext)
     except:

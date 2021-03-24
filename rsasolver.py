@@ -16,11 +16,11 @@ def get_num(label):
 
 # factordb request
 
-def getPrimes(N, tryToFactorize=False):
+def getPrimes(n, tryToFactorize=False):
     api_url = 'http://factordb.com/api?query='
     web_url = 'http://factordb.com/index.php?query='
     try:
-        result = requests.get(api_url + str(N))
+        result = requests.get(api_url + str(n))
     except:
         print('Can\'t connect to factordb.com')
         exit()
@@ -33,11 +33,11 @@ def getPrimes(N, tryToFactorize=False):
     if tryToFactorize == False and len(primes) == 1 and result.json().get('status') == 'C':
         # unknow (api not factorize it)
         try:
-            requests.get(web_url + str(N))
+            requests.get(web_url + str(n))
         except:
             print('Can\'t connect to factordb.com')
             exit()
-        return getPrimes(N, tryToFactorize=True)
+        return getPrimes(n, tryToFactorize=True)
 
     return primes
 
@@ -52,7 +52,7 @@ def egcd(a, b):
 def inverse(a, m):
     g, x, y = egcd(a, m)
     if g != 1:
-        raise Exception('No modular inverse')
+        raise Exception('no modular inverse')
     return x % m
 
 def find_root(n, x):
@@ -108,13 +108,13 @@ def isqrt(n):
 # attacks
 
 def solveFromPrimes(primes, e, c):
-    N = 1
+    n = 1
     phi = 1
     for prime in primes:
-        N *= prime
+        n *= prime
         phi *= (prime - 1)
     d = inverse(e, phi)
-    m = pow(c, d, N)
+    m = pow(c, d, n)
     return m
 
 def primesKnownAttack():
@@ -127,59 +127,67 @@ def primesKnownAttack():
     return m
 
 def factorizationAttack():
-    N = get_num('N: ')
+    n = get_num('n: ')
     e = get_num('e: ')
     c = get_num('c: ')
 
-    primes = getPrimes(N)
+    primes = getPrimes(n)
     if len(primes) < 2:
-        print('Can\'t factorize N...')
+        print('Can\'t factorize n...')
         exit()
     m = solveFromPrimes(primes, e, c)
     return m
 
 def lowExponentAttack():
-    N = [0] * 3
+    n = [0] * 3
     c = [0] * 3
     for id in range(3):
-        N[id] = get_num('n' + str(id + 1) + ': ')
+        n[id] = get_num('n' + str(id + 1) + ': ')
     for id in range(3):
         c[id] = get_num('c' + str(id + 1) + ': ')
 
-    x = crt(N, c)[0]
+    x = crt(n, c)[0]
     m = find_root(x, 3)
     if x != m ** 3:
         print('Can\'t find the cube root...')
         exit()
     return m
 
+def lowExponentLowPlaintextAttack():
+    e = get_num('e: ')
+    c = get_num('c: ')
+    m = find_root(c, e)
+
+    return m
+
 def tooBigExponentAttack():
-    N = get_num('N: ')
+    n = get_num('n: ')
     e = get_num('e: ')
     c = get_num('c: ')
 
-    frac = rational_to_contfrac(e, N)
+    frac = rational_to_contfrac(e, n)
     convergents = convergents_from_contfrac(frac)
     
     d = 0
     for (k, _d) in convergents:
         if k != 0 and (e * _d - 1) % k == 0:
             phi = (e * _d - 1) // k
-            s = N - phi + 1
+            s = n - phi + 1
             # check if x*x - s*x + n = 0 has integer roots
-            D = s * s - 4 * N
+            D = s * s - 4 * n
             if D >= 0:
                 sq = isqrt(D)
                 if sq * sq == D and (s + sq) % 2 == 0:
                     d = _d
-    m = pow(c, d, N)
+    m = pow(c, d, n)
     return m
 
 attacks = [
     ['Primes known (p, q, e, c)', primesKnownAttack],
     ['Factorization (n, e, c)', factorizationAttack],
     ['Low exponent (e = 3, n1, n2, n3, c1, c2, c3)', lowExponentAttack],
-    ['Too big exponent, wiener (n, e, c)', tooBigExponentAttack]
+    ['Low exponent (m ** e < n) (e, c)', lowExponentLowPlaintextAttack],
+    ['Too big exponent (n, e, c)', tooBigExponentAttack]
 ]
 
 def is_printable(plaintext):

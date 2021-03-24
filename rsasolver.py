@@ -160,6 +160,20 @@ def lowExponentLowPlaintextAttack():
 
     return m
 
+def lowCipherBruteForceAttack():
+    n = get_num('n: ')
+    e = get_num('e: ')
+    c = get_num('c: ')
+
+    cipher = c
+    while 1:
+        root = find_root(cipher, e)
+        if c == pow(root, e, n):
+            print('')
+            return root
+        cipher += n
+        print('.', end='', flush=True)
+
 def tooBigExponentAttack():
     n = get_num('n: ')
     e = get_num('e: ')
@@ -186,7 +200,8 @@ attacks = [
     ['Primes known (p, q, e, c)', primesKnownAttack],
     ['Factorization (n, e, c)', factorizationAttack],
     ['Low exponent (e = 3, n1, n2, n3, c1, c2, c3)', lowExponentAttack],
-    ['Low exponent (m ** e < n) (e, c)', lowExponentLowPlaintextAttack],
+    ['Low plaintext (m ** e < n) (e, c)', lowExponentLowPlaintextAttack],
+    ['Low cipher (m**e just barely larger than n) (c, e, n)', lowCipherBruteForceAttack],
     ['Too big exponent (n, e, c)', tooBigExponentAttack]
 ]
 

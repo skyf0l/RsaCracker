@@ -2,17 +2,25 @@
 
 Ctf tool to quickly solve RSA cipher
 
+# Config
+
+```bash
+$ pip3 install --user -r requirements.txt
+```
+
 # Attacks
-  - Primes known
-  - Factorization
-  - Low exponent
-  - Low plaintext (m**e < n)
-  - Low cipher (m**e just barely larger than n)
-  - Too big exponent
+
+- Primes known
+- Factorization
+- Low exponent
+- Low plaintext (m\*\*e < n)
+- Low cipher (m\*\*e just barely larger than n)
+- Too big exponent
+
 # Exemple
 
 ```
-$ ./rsasolver.py 
+$ ./rsasolver.py
 Chose an attack:
  1/ Primes known (p, q, e, c)
  2/ Factorization (n, e, c)

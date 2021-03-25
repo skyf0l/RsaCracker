@@ -6,6 +6,9 @@ Ctf tool to quickly solve RSA cipher
   - Primes known
   - Factorization
   - Low exponent
+  - Low plaintext (m**e < n)
+  - Low cipher (m**e just barely larger than n)
+  - Too big exponent
 # Exemple
 
 ```

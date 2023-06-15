@@ -20,4 +20,8 @@ readme = "README.md"
 thiserror = "1"
 clap = { version = "4", features = ["derive", "env"] }
 main_error = "0.1"
-rug = "1"
+
+[dependencies.rug]
+version = "1"
+default-features = false
+features = ["integer"]

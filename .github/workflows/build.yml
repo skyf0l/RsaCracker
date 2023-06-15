@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+
+env:
+  RUST_BACKTRACE: 1
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: |-
+    ${{ github.workflow }}-${{ github.event.pull_request.head.label || github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Build on Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
+
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            pacman-mirrors
+            diffutils
+            m4
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-rust
+        continue-on-error: true
+
+      - shell: msys2 {0}
+        run: |
+          cargo build
+
+      - shell: msys2 {0}
+        run: |
+          cargo nextest run
+
+  mac:
+    name: Build on MacOs
+    runs-on: macos-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
+
+      - name: Build
+        run: cargo build
+
+      - name: Test
+        run: cargo nextest run

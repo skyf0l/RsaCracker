@@ -2,6 +2,8 @@ use rug::Integer;
 
 mod small_prime;
 pub use small_prime::SmallPrimeAttack;
+mod cube_root;
+pub use cube_root::CubeRootAttack;
 
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -14,6 +16,8 @@ pub struct Parameters {
     pub q: Option<Integer>,
     /// Public exponent.
     pub e: Integer,
+    /// Cipher message.
+    pub c: Option<Integer>,
 }
 
 /// RSA private key
@@ -34,13 +38,16 @@ pub struct PrivateKey {
 /// Attack error
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    /// Missing modulus
-    #[error("missing modulus")]
-    MissingModulus,
-    /// Unsuccesful attack
-    #[error("unsuccesful attack")]
+    /// Missing parameters
+    #[error("missing parameters")]
+    MissingParameters,
+    /// Unsuccessful attack
+    #[error("unsuccessful attack")]
     NotFound,
 }
+
+/// Attack result
+pub type AttackResult = Result<(Option<PrivateKey>, Option<Integer>), Error>;
 
 /// Abstract attack trait
 pub trait Attack {
@@ -48,5 +55,5 @@ pub trait Attack {
     fn name() -> &'static str;
 
     /// Run the attack
-    fn run(params: &Parameters) -> Result<PrivateKey, Error>;
+    fn run(params: &Parameters) -> AttackResult;
 }

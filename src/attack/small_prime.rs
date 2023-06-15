@@ -1,7 +1,7 @@
 use primal::Primes;
 use rug::{integer::IntegerExt64, Integer};
 
-use crate::{Attack, Error, Parameters, PrivateKey};
+use crate::{Attack, AttackResult, Error, Parameters, PrivateKey};
 
 /// Small prime attack
 pub struct SmallPrimeAttack;
@@ -11,8 +11,8 @@ impl Attack for SmallPrimeAttack {
         "small_prime"
     }
 
-    fn run(params: &Parameters) -> Result<PrivateKey, Error> {
-        let n = params.n.as_ref().ok_or(Error::MissingModulus)?;
+    fn run(params: &Parameters) -> AttackResult {
+        let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let e = params.e.clone();
 
         for p in Primes::all().take(250000000) {
@@ -29,13 +29,16 @@ impl Attack for SmallPrimeAttack {
                     .invert(&((p.clone() - 1) * (q.clone() - 1)))
                     .map_err(|_| Error::NotFound)?;
 
-                return Ok(PrivateKey {
-                    n: n.clone(),
-                    p,
-                    q,
-                    e,
-                    d,
-                });
+                return Ok((
+                    Some(PrivateKey {
+                        n: n.clone(),
+                        p,
+                        q,
+                        e,
+                        d,
+                    }),
+                    None,
+                ));
             }
         }
 

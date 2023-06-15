@@ -6,6 +6,7 @@ mod attack;
 pub use attack::*;
 
 /// Attack!
-pub fn run_attacks(params: &Parameters) -> Result<PrivateKey, Error> {
-    SmallPrimeAttack::run(params)
+pub fn run_attacks(params: &Parameters) -> AttackResult {
+    // SmallPrimeAttack::run(params)
+    CubeRootAttack::run(params)
 }

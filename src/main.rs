@@ -34,10 +34,15 @@ fn main() -> Result<(), MainError> {
         p: args.p,
         q: args.q,
         e: args.e,
+        c: args.c.clone(),
     };
-    let private_key = run_attacks(&params)?;
+    let (private_key, uncipher) = run_attacks(&params)?;
 
-    if let Some(c) = args.c {
+    if let Some(uncipher) = uncipher {
+        println!("uncipher = {}", uncipher);
+    }
+
+    if let (Some(private_key), Some(c)) = (private_key, args.c) {
         let m = c.pow_mod(&private_key.d, &private_key.n).unwrap();
         println!("m = {}", m);
     }

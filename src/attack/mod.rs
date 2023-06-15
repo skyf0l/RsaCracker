@@ -1,3 +1,4 @@
+use rsa::{pkcs8::DecodePublicKey, traits::PublicKeyParts, RsaPublicKey};
 use rug::Integer;
 
 mod small_prime;
@@ -28,6 +29,19 @@ impl Default for Parameters {
             q: None,
             e: 65537.into(),
             c: None,
+        }
+    }
+}
+
+impl Parameters {
+    /// Create parameters from RSA public key PEM
+    pub fn from_pub_pem(pem: &str) -> Self {
+        let pub_key = RsaPublicKey::from_public_key_pem(pem).unwrap();
+
+        Self {
+            n: Some(pub_key.n().to_string().parse().unwrap()),
+            e: pub_key.e().to_string().parse().unwrap(),
+            ..Default::default()
         }
     }
 }

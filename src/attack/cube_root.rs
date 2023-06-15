@@ -33,3 +33,32 @@ impl Attack for CubeRootAttack {
         Ok((None, Some(low)))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn test_cube_root_attack() {
+        // From hxp CTF 2018 / daring
+        // https://ctftime.org/task/7215
+
+        let params = Parameters {
+            e: 3.into(),
+            c: Some(Integer::from_str("2780321436921227845269766067805604547641764672251687438825498122989499386967784164108893743279610287605669769995594639683212592165536863280639528420328182048065518360606262307313806591343147104009274770408926901136562839153074067955850912830877064811031354484452546219065027914838811744269912371819665118277221").unwrap()),
+            ..Default::default()
+        };
+
+        let (priv_key, m) = CubeRootAttack::run(&params).unwrap();
+
+        assert!(priv_key.is_none());
+        assert_eq!(
+            m.unwrap().to_string(),
+            "14061500589727237715723597570826081039597762758283503070252061800455951899778424597542833650554379318141"
+        );
+    }
+}

@@ -20,6 +20,18 @@ pub struct Parameters {
     pub c: Option<Integer>,
 }
 
+impl Default for Parameters {
+    fn default() -> Self {
+        Self {
+            n: None,
+            p: None,
+            q: None,
+            e: 65537.into(),
+            c: None,
+        }
+    }
+}
+
 /// RSA private key
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PrivateKey {

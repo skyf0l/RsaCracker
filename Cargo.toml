@@ -16,10 +16,15 @@ include = [
 ]
 readme = "README.md"
 
+[profile.release]
+opt-level = 3
+codegen-units = 1
+
 [dependencies]
 thiserror = "1"
 clap = { version = "4", features = ["derive", "env"] }
 main_error = "0.1"
+primal = "0.3"
 
 [dependencies.rug]
 version = "1"

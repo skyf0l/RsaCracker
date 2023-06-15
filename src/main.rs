@@ -3,40 +3,44 @@ use main_error::MainError;
 
 use rug::Integer;
 
+use rsacracker::{run_attacks, Parameters};
+
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 struct Args {
-    #[clap(flatten)]
-    options: Options,
-}
-
-/// Options.
-#[derive(Parser, Debug, Clone)]
-struct Options {
+    /// Modulus.
+    #[clap(short)]
+    n: Option<Integer>,
     /// Prime number p.
     #[clap(short)]
-    p: Integer,
+    p: Option<Integer>,
     /// Prime number q.
     #[clap(short)]
-    q: Integer,
-    /// Public exponent.
-    #[clap(short)]
+    q: Option<Integer>,
+    /// Public exponent. Default: 65537
+    #[clap(short, default_value = "65537")]
     e: Integer,
     /// Cipher message.
     #[clap(short)]
-    c: Integer,
+    c: Option<Integer>,
 }
 
 #[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
-    let _args = Args::parse();
+    let args = Args::parse();
 
-    let n = _args.options.p.clone() * _args.options.q.clone();
-    let e = _args.options.e;
-    let phi = (_args.options.p - 1) * (_args.options.q - 1);
-    let d = e.invert(&phi).unwrap();
-    let m = _args.options.c.pow_mod(&d, &n).unwrap();
-    println!("m = {}", m);
+    let params = Parameters {
+        n: args.n,
+        p: args.p,
+        q: args.q,
+        e: args.e,
+    };
+    let private_key = run_attacks(&params)?;
+
+    if let Some(c) = args.c {
+        let m = c.pow_mod(&private_key.d, &private_key.n).unwrap();
+        println!("m = {}", m);
+    }
 
     Ok(())
 }

@@ -1,0 +1,22 @@
+[package]
+name = "rsacracker"
+version = "0.1.0"
+edition = "2021"
+authors = ["skyf0l <skyf0lmails@proton.me>"]
+description = "A tool to crack RSA keys"
+repository = "https://github.com/skyf0l/RsaCracker"
+license = "MIT OR Apache-2.0"
+categories = ["security", "rsa", "encryption", "crypto", "cryptography"]
+keywords = ["rsa", "cracker", "ctf", "crypto", "cryptography"]
+include = [
+  "src/**/*",
+  "Cargo.toml",
+  "LICENSE*",
+  "README.md",
+]
+readme = "README.md"
+
+[dependencies]
+thiserror = "1"
+clap = { version = "4", features = ["derive", "env"] }
+main_error = "0.1"

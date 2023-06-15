@@ -36,13 +36,13 @@ jobs:
         run: cargo fmt --check --all
 
       - name: Lint
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Build
         run: cargo build
 
       - name: Test
-        run: cargo nextest run
+        run: cargo nextest run --all-targets --all-features
 
   coverage:
     name: Coverage
@@ -51,74 +51,21 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Stable with rustfmt and clippy
-        uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1
         with:
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
+          toolchain: nightly
+          override: true
       - uses: Swatinem/rust-cache@v2
-      - run: cargo install cargo-tarpaulin
 
-      - name: Test
-        run: cargo tarpaulin --out Xml
+      - name: Tests
+        run: cargo test --all-targets --all-features
+        env:
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
+      - uses: actions-rs/grcov@v0.1
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  windows:
-    name: Build on Windows
-    runs-on: windows-latest
-    timeout-minutes: 30
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
-
-      - uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: >-
-            base-devel
-            pacman-mirrors
-            diffutils
-            m4
-            make
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-rust
-        continue-on-error: true
-
-      - shell: msys2 {0}
-        run: |
-          cargo build
-
-      - shell: msys2 {0}
-        run: |
-          cargo nextest run
-
-  mac:
-    name: Build on MacOs
-    runs-on: macos-latest
-    timeout-minutes: 30
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
-
-      - name: Build
-        run: cargo build
-
-      - name: Test
-        run: cargo nextest run

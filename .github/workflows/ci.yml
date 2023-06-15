@@ -82,11 +82,26 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
 
-      - name: Build
-        run: cargo build
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            pacman-mirrors
+            diffutils
+            m4
+            make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-rust
+        continue-on-error: true
 
-      - name: Test
-        run: cargo nextest run
+      - shell: msys2 {0}
+        run: |
+          cargo build
+
+      - shell: msys2 {0}
+        run: |
+          cargo nextest run
 
   mac:
     name: Build on MacOs

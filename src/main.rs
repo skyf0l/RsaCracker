@@ -43,7 +43,7 @@ fn main() -> Result<(), MainError> {
     }
 
     if let (Some(private_key), Some(c)) = (private_key, args.c) {
-        let m = c.pow_mod(&private_key.d, &private_key.n).unwrap();
+        let m = private_key.decrypt(&c);
         println!("m = {}", m);
     }
 

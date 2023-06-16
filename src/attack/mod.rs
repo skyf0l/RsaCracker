@@ -5,10 +5,12 @@ use rug::Integer;
 mod cube_root;
 mod small_e;
 mod small_prime;
+mod wiener;
 
 pub use cube_root::CubeRootAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
+pub use wiener::WienerAttack;
 
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -65,6 +67,24 @@ pub struct PrivateKey {
     pub d: Integer,
 }
 
+impl PrivateKey {
+    /// Create private key from RSA public key PEM
+    pub fn from_p_q_e(p: Integer, q: Integer, e: Integer) -> Self {
+        let n = p.clone() * q.clone();
+        let d = e
+            .clone()
+            .invert(&(&(p.clone() - Integer::from(1)) * (q.clone() - Integer::from(1))))
+            .unwrap();
+
+        Self { n, p, q, e, d }
+    }
+
+    /// Decrypt cipher message
+    pub fn decrypt(&self, c: &Integer) -> Integer {
+        c.clone().pow_mod(&self.d, &self.n).unwrap()
+    }
+}
+
 /// Attack error
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -91,8 +111,9 @@ pub trait Attack {
 lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
-        Box::new(SmallPrimeAttack),
         Box::new(CubeRootAttack),
         Box::new(SmallEAttack),
+        Box::new(SmallPrimeAttack),
+        Box::new(WienerAttack),
     ];
 }

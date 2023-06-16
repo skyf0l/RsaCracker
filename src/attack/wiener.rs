@@ -25,9 +25,10 @@ impl Attack for WienerAttack {
                 if phi.is_even() && q == 0 {
                     let s = n.clone() - phi.clone() + Integer::from(1);
                     let discr = s.clone().pow(2) - Integer::from(n.clone() << 2);
-                    let t = match discr.root_rem(Integer::ZERO, 2) {
-                        (ref r, rem) if rem == Integer::ZERO => r.clone(),
-                        _ => Integer::ZERO,
+                    let t = if discr > 0 && discr.is_perfect_square() {
+                        discr.sqrt()
+                    } else {
+                        Integer::ZERO
                     };
 
                     if (s + t).is_even() {

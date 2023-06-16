@@ -10,7 +10,7 @@ pub struct SmallEAttack;
 
 impl Attack for SmallEAttack {
     fn name(&self) -> &'static str {
-        "small_m_and_e"
+        "small_e"
     }
 
     fn run(&self, params: &Parameters) -> AttackResult {

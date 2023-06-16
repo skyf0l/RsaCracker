@@ -31,7 +31,12 @@ impl Attack for CubeRootAttack {
             }
         }
 
-        Ok((None, Some(low)))
+        // Check if we found the exact cube root
+        if low.clone().pow(e.to_u32().unwrap()) == *c {
+            Ok((None, Some(low)))
+        } else {
+            Err(Error::NotFound)
+        }
     }
 }
 

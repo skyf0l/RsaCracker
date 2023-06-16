@@ -15,7 +15,7 @@ impl Attack for SmallPrimeAttack {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let e = params.e.clone();
 
-        for p in Primes::all().take(250000000) {
+        for p in Primes::all().take(10000000) {
             if p.ge(n) {
                 break;
             }

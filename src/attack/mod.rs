@@ -2,10 +2,13 @@ use lazy_static::lazy_static;
 use rsa::{pkcs8::DecodePublicKey, traits::PublicKeyParts, RsaPublicKey};
 use rug::Integer;
 
-mod small_prime;
-pub use small_prime::SmallPrimeAttack;
 mod cube_root;
+mod small_e;
+mod small_prime;
+
 pub use cube_root::CubeRootAttack;
+pub use small_e::SmallEAttack;
+pub use small_prime::SmallPrimeAttack;
 
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -87,6 +90,9 @@ pub trait Attack {
 
 lazy_static! {
     /// List of attacks
-    pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> =
-        vec![Box::new(SmallPrimeAttack), Box::new(CubeRootAttack)];
+    pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
+        Box::new(SmallPrimeAttack),
+        Box::new(CubeRootAttack),
+        Box::new(SmallEAttack),
+    ];
 }

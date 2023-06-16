@@ -44,7 +44,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_cube_root_attack() {
+    fn hxp_ctf_2018_daring() {
         // From hxp CTF 2018 / daring
         // https://ctftime.org/task/7215
 

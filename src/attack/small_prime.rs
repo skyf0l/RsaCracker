@@ -45,3 +45,25 @@ impl Attack for SmallPrimeAttack {
         Err(Error::NotFound)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn test_small_prime() {
+        let params = Parameters {
+            n: Some(Integer::from(5051846941u64)),
+            ..Default::default()
+        };
+
+        let (priv_key, m) = SmallPrimeAttack.run(&params).unwrap();
+        let priv_key = priv_key.unwrap();
+
+        assert_eq!(priv_key.p, Integer::from(54269));
+        assert_eq!(priv_key.q, Integer::from(93089));
+        assert!(m.is_none());
+    }
+}

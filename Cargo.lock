@@ -514,6 +514,7 @@ name = "rsacracker"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "lazy_static",
  "main_error",
  "primal",
  "rsa",

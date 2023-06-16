@@ -7,7 +7,7 @@ pub use attack::*;
 
 /// Attack!
 pub fn run_attacks(params: &Parameters) -> AttackResult {
-    for attack in attacks() {
+    for attack in ATTACKS.iter() {
         println!("Running attack: {}", attack.name());
         match attack.run(params) {
             Ok((priv_key, m)) => {

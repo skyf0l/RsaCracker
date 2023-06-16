@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use rsa::{pkcs8::DecodePublicKey, traits::PublicKeyParts, RsaPublicKey};
 use rug::Integer;
 
@@ -84,7 +85,8 @@ pub trait Attack {
     fn run(&self, params: &Parameters) -> AttackResult;
 }
 
-/// All attacks
-pub fn attacks() -> Vec<Box<dyn Attack>> {
-    vec![Box::new(SmallPrimeAttack), Box::new(CubeRootAttack)]
+lazy_static! {
+    /// List of attacks
+    pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> =
+        vec![Box::new(SmallPrimeAttack), Box::new(CubeRootAttack)];
 }

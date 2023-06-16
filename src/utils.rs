@@ -16,14 +16,14 @@ pub fn rational_to_contfrac(x: &Integer, y: &Integer) -> Vec<Integer> {
 }
 
 pub fn contfrac_to_rational(frac: &Vec<Integer>) -> (Integer, Integer) {
-    if frac.len() == 0 {
+    if frac.is_empty() {
         (0.into(), 1.into())
     } else if frac.len() == 1 {
         (frac[0].clone(), 1.into())
     } else {
         let remainder = frac[1..frac.len()].to_vec();
         let (num, denom) = contfrac_to_rational(&remainder);
-        (frac[0].clone() * num.clone() + denom.clone(), num)
+        (frac[0].clone() * num.clone() + denom, num)
     }
 }
 

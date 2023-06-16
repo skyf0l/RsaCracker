@@ -18,13 +18,13 @@ impl Attack for WienerAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        let convergents = convergents_from_contfrac(&rational_to_contfrac(&e, &n));
+        let convergents = convergents_from_contfrac(&rational_to_contfrac(e, n));
         for (k, d) in convergents {
             if k != 0 {
-                let (phi, q) = Integer::from(e.clone() * d.clone() - 1).div_rem_floor(k);
+                let (phi, q) = (e.clone() * d.clone() - Integer::from(1)).div_rem_floor(k);
                 if phi.is_even() && q == 0 {
                     let s = n.clone() - phi.clone() + Integer::from(1);
-                    let discr = s.clone().pow(2) - Integer::from(n.clone() << 2);
+                    let discr = s.clone().pow(2) - n.clone() * Integer::from(4);
                     let t = if discr > 0 && discr.is_perfect_square() {
                         discr.sqrt()
                     } else {
@@ -32,7 +32,7 @@ impl Attack for WienerAttack {
                     };
 
                     if (s + t).is_even() {
-                        if let Some((p, q)) = trivial_factorization_with_n_phi(&n, &phi) {
+                        if let Some((p, q)) = trivial_factorization_with_n_phi(n, &phi) {
                             return Ok((Some(PrivateKey::from_p_q_e(p, q, e.clone())), None));
                         }
                     }

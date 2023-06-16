@@ -7,6 +7,22 @@ pub use attack::*;
 
 /// Attack!
 pub fn run_attacks(params: &Parameters) -> AttackResult {
-    // SmallPrimeAttack::run(params)
-    CubeRootAttack::run(params)
+    for attack in attacks() {
+        println!("Running attack: {}", attack.name());
+        match attack.run(params) {
+            Ok((priv_key, m)) => {
+                if let Some(priv_key) = &priv_key {
+                    println!("=> Found private key: {priv_key:?}");
+                }
+                if let Some(m) = &m {
+                    println!("=> Found message: {m:?}");
+                }
+                return Ok((priv_key, m));
+            }
+            Err(e) => {
+                println!("=> Attack failed: {e}");
+            }
+        }
+    }
+    Err(Error::NotFound)
 }

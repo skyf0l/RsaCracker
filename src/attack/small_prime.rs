@@ -7,11 +7,11 @@ use crate::{Attack, AttackResult, Error, Parameters, PrivateKey};
 pub struct SmallPrimeAttack;
 
 impl Attack for SmallPrimeAttack {
-    fn name() -> &'static str {
+    fn name(&self) -> &'static str {
         "small_prime"
     }
 
-    fn run(params: &Parameters) -> AttackResult {
+    fn run(&self, params: &Parameters) -> AttackResult {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let e = params.e.clone();
 

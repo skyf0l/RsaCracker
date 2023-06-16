@@ -78,8 +78,13 @@ pub type AttackResult = Result<(Option<PrivateKey>, Option<Integer>), Error>;
 /// Abstract attack trait
 pub trait Attack {
     /// Get the attack name
-    fn name() -> &'static str;
+    fn name(&self) -> &'static str;
 
     /// Run the attack
-    fn run(params: &Parameters) -> AttackResult;
+    fn run(&self, params: &Parameters) -> AttackResult;
+}
+
+/// All attacks
+pub fn attacks() -> Vec<Box<dyn Attack>> {
+    vec![Box::new(SmallPrimeAttack), Box::new(CubeRootAttack)]
 }

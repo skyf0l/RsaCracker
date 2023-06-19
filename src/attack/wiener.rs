@@ -1,7 +1,7 @@
 use rug::{ops::Pow, Integer};
 
 use crate::{
-    utils::{convergents_from_contfrac, rational_to_contfrac, trivial_factorization_with_n_phi},
+    ntheory::{convergents_from_contfrac, rational_to_contfrac, trivial_factorization_with_n_phi},
     Attack, AttackResult, Error, Parameters, PrivateKey,
 };
 

@@ -3,7 +3,7 @@
 #![warn(missing_docs)]
 
 mod attack;
-mod utils;
+mod ntheory;
 
 pub use attack::*;
 

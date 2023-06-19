@@ -8,6 +8,8 @@ mod small_e;
 mod small_prime;
 mod wiener;
 
+use crate::utils::phi;
+
 pub use self::ecm::EcmAttack;
 pub use cube_root::CubeRootAttack;
 pub use small_e::SmallEAttack;
@@ -70,27 +72,13 @@ pub struct PrivateKey {
 impl PrivateKey {
     /// Create private key from p and q
     pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Self {
-        let n = p.clone() * q.clone();
-        let d = e
-            .clone()
-            .invert(&(&(p.clone() - Integer::from(1)) * (q.clone() - Integer::from(1))))
-            .unwrap();
-
-        Self {
-            n,
-            factors: vec![p, q],
-            e,
-            d,
-        }
+        Self::from_factors(&[p, q], e)
     }
 
     /// Create private key from multiple factors
     pub fn from_factors(factors: &[Integer], e: Integer) -> Self {
         let n: Integer = factors.iter().product();
-        let mut phi = n.clone();
-        for p in factors {
-            phi = phi * (p - Integer::from(1));
-        }
+        let phi = phi(&factors);
         let d = e.clone().invert(&phi).unwrap();
 
         Self {

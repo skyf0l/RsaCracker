@@ -4,6 +4,7 @@
 
 mod attack;
 mod ntheory;
+mod utils;
 
 pub use attack::*;
 

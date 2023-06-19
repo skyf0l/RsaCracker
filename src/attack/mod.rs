@@ -3,6 +3,7 @@ use rug::Integer;
 
 mod cube_root;
 mod ecm;
+mod known_factors;
 mod small_e;
 mod small_prime;
 mod wiener;
@@ -11,6 +12,7 @@ use crate::utils::phi;
 
 pub use self::ecm::EcmAttack;
 pub use cube_root::CubeRootAttack;
+pub use known_factors::KnownFactorsAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
 pub use wiener::WienerAttack;
@@ -144,9 +146,10 @@ lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
         Box::new(CubeRootAttack),
-        Box::new(EcmAttack),
+        Box::new(KnownFactorsAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(WienerAttack),
+        Box::new(EcmAttack),
     ];
 }

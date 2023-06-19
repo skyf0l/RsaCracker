@@ -12,8 +12,8 @@ impl Attack for SmallPrimeAttack {
     }
 
     fn run(&self, params: &Parameters) -> AttackResult {
+        let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
-        let e = params.e.clone();
 
         for p in Primes::all().take(10000000) {
             if p.ge(n) {
@@ -24,21 +24,12 @@ impl Attack for SmallPrimeAttack {
                 let q = n.clone() / p;
                 let p: Integer = p.into();
 
-                let d = e
+                let _d = e
                     .clone()
                     .invert(&((p.clone() - 1) * (q.clone() - 1)))
                     .map_err(|_| Error::NotFound)?;
 
-                return Ok((
-                    Some(PrivateKey {
-                        n: n.clone(),
-                        p,
-                        q,
-                        e,
-                        d,
-                    }),
-                    None,
-                ));
+                return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())), None));
             }
         }
 
@@ -62,8 +53,8 @@ mod tests {
         let (priv_key, m) = SmallPrimeAttack.run(&params).unwrap();
         let priv_key = priv_key.unwrap();
 
-        assert_eq!(priv_key.p, Integer::from(54269));
-        assert_eq!(priv_key.q, Integer::from(93089));
+        assert_eq!(priv_key.factors[0], Integer::from(54269));
+        assert_eq!(priv_key.factors[1], Integer::from(93089));
         assert!(m.is_none());
     }
 }

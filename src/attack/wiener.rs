@@ -21,10 +21,10 @@ impl Attack for WienerAttack {
         let convergents = convergents_from_contfrac(&rational_to_contfrac(e, n));
         for (k, d) in convergents {
             if k != 0 {
-                let (phi, q) = (e.clone() * d.clone() - Integer::from(1)).div_rem_floor(k);
+                let (phi, q) = (e.clone() * &d - Integer::from(1)).div_rem_floor(k);
                 if phi.is_even() && q == 0 {
-                    let s = n.clone() - phi.clone() + Integer::from(1);
-                    let discr = s.clone().pow(2) - n.clone() * Integer::from(4);
+                    let s = Integer::from(1) + n - &phi;
+                    let discr = s.clone().pow(2) - n * Integer::from(4);
                     let t = if discr > 0 && discr.is_perfect_square() {
                         discr.sqrt()
                     } else {
@@ -33,7 +33,7 @@ impl Attack for WienerAttack {
 
                     if (s + t).is_even() {
                         if let Some((p, q)) = trivial_factorization_with_n_phi(n, &phi) {
-                            return Ok((Some(PrivateKey::from_p_q_e(p, q, e.clone())), None));
+                            return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())), None));
                         }
                     }
                 }
@@ -64,8 +64,8 @@ mod tests {
         let (priv_key, m) = WienerAttack.run(&params).unwrap();
 
         let priv_key = priv_key.unwrap();
-        assert_eq!(priv_key.p.to_string(), "9472090416832180505222839110776048392526166787348746842452446085500515696125957623544939387999897705237887376448494288653148060344989742295261565644606969");
-        assert_eq!(priv_key.q.to_string(), "10241415631493888275651396682764104183382306992555324367637459719689109785062731629753925177075296483804475760194443584159595916911022433443178975445964603");
+        assert_eq!(priv_key.factors[0].to_string(), "9472090416832180505222839110776048392526166787348746842452446085500515696125957623544939387999897705237887376448494288653148060344989742295261565644606969");
+        assert_eq!(priv_key.factors[1].to_string(), "10241415631493888275651396682764104183382306992555324367637459719689109785062731629753925177075296483804475760194443584159595916911022433443178975445964603");
         assert!(m.is_none());
     }
 }

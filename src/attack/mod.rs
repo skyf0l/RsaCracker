@@ -78,7 +78,7 @@ impl PrivateKey {
     /// Create private key from multiple factors
     pub fn from_factors(factors: &[Integer], e: Integer) -> Self {
         let n: Integer = factors.iter().product();
-        let phi = phi(&factors);
+        let phi = phi(factors);
         let d = e.clone().invert(&phi).unwrap();
 
         Self {

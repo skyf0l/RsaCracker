@@ -13,7 +13,7 @@ impl Attack for EcmAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        let factors = ecm::ecm(n).iter().map(|f| f.clone()).collect::<Vec<_>>();
+        let factors = ecm::ecm(n).iter().cloned().collect::<Vec<_>>();
         if factors.len() < 2 {
             return Err(Error::NotFound);
         }

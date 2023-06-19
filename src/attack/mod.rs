@@ -1,5 +1,4 @@
 use lazy_static::lazy_static;
-use rsa::{pkcs8::DecodePublicKey, traits::PublicKeyParts, RsaPublicKey};
 use rug::Integer;
 
 mod cube_root;
@@ -44,15 +43,34 @@ impl Default for Parameters {
 }
 
 impl Parameters {
-    /// Create parameters from RSA public key PEM
-    pub fn from_pub_pem(pem: &str) -> Self {
-        let pub_key = RsaPublicKey::from_public_key_pem(pem).unwrap();
+    /// Create parameters from public key
+    pub fn from_publickey(key: &[u8]) -> Option<Self> {
+        Self::from_rsa_public_pem(key).or_else(|| Self::from_x509_public_pem(key))
+    }
 
-        Self {
-            n: Some(pub_key.n().to_string().parse().unwrap()),
-            e: pub_key.e().to_string().parse().unwrap(),
+    /// Create parameters from x509 public key
+    pub fn from_rsa_public_pem(key: &[u8]) -> Option<Self> {
+        let publickey = openssl::rsa::Rsa::public_key_from_pem(key)
+            .or_else(|_| openssl::rsa::Rsa::public_key_from_pem_pkcs1(key))
+            .ok()?;
+
+        Some(Self {
+            n: Some(publickey.n().to_string().parse().unwrap()),
+            e: publickey.e().to_string().parse().unwrap(),
             ..Default::default()
-        }
+        })
+    }
+
+    /// Create parameters from x509 public key
+    pub fn from_x509_public_pem(key: &[u8]) -> Option<Self> {
+        let publickey = openssl::x509::X509::from_pem(key).unwrap();
+        let rsa = publickey.public_key().ok()?.rsa().ok()?;
+
+        Some(Self {
+            n: Some(rsa.n().to_string().parse().unwrap()),
+            e: rsa.e().to_string().parse().unwrap(),
+            ..Default::default()
+        })
     }
 }
 

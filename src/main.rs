@@ -23,18 +23,26 @@ struct Args {
     /// Cipher message.
     #[clap(short)]
     c: Option<Integer>,
+    /// Public key PEM file.
+    #[clap(long)]
+    publickey: Option<String>,
 }
 
 #[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
     let args = Args::parse();
 
-    let params = Parameters {
-        n: args.n,
-        p: args.p,
-        q: args.q,
-        e: args.e,
-        c: args.c.clone(),
+    let params = if let Some(publickey) = args.publickey {
+        let bytes = std::fs::read(publickey)?;
+        Parameters::from_publickey(&bytes).ok_or("Invalid public key")?
+    } else {
+        Parameters {
+            n: args.n,
+            p: args.p,
+            q: args.q,
+            e: args.e,
+            c: args.c.clone(),
+        }
     };
     let (private_key, uncipher) = run_attacks(&params)?;
 

@@ -179,6 +179,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ecm"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d19a2f513ae85f2c1e2341d6f1eadd6cdf7f6c562981cdac89335e2d5f9b9fd5"
+dependencies = [
+ "primal",
+ "rug",
+ "thiserror",
+]
+
+[[package]]
 name = "errno"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -514,6 +525,7 @@ name = "rsacracker"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "ecm",
  "lazy_static",
  "main_error",
  "primal",

@@ -3,10 +3,12 @@ use rsa::{pkcs8::DecodePublicKey, traits::PublicKeyParts, RsaPublicKey};
 use rug::Integer;
 
 mod cube_root;
+mod ecm;
 mod small_e;
 mod small_prime;
 mod wiener;
 
+pub use self::ecm::EcmAttack;
 pub use cube_root::CubeRootAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
@@ -57,10 +59,8 @@ impl Parameters {
 pub struct PrivateKey {
     /// Modulus.
     pub n: Integer,
-    /// Prime number p.
-    pub p: Integer,
-    /// Prime number q.
-    pub q: Integer,
+    /// Prime numbers.
+    pub factors: Vec<Integer>,
     /// Public exponent.
     pub e: Integer,
     /// Private exponent.
@@ -68,15 +68,41 @@ pub struct PrivateKey {
 }
 
 impl PrivateKey {
-    /// Create private key from RSA public key PEM
-    pub fn from_p_q_e(p: Integer, q: Integer, e: Integer) -> Self {
+    /// Create private key from p and q
+    pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Self {
         let n = p.clone() * q.clone();
         let d = e
             .clone()
             .invert(&(&(p.clone() - Integer::from(1)) * (q.clone() - Integer::from(1))))
             .unwrap();
 
-        Self { n, p, q, e, d }
+        Self {
+            n,
+            factors: vec![p, q],
+            e,
+            d,
+        }
+    }
+
+    /// Create private key from multiple factors
+    pub fn from_factors(factors: &[Integer], e: Integer) -> Self {
+        let n: Integer = factors.iter().product();
+        let mut phi = n.clone();
+        for p in factors {
+            phi = phi * (p - Integer::from(1));
+        }
+        let d = e.clone().invert(&phi).unwrap();
+
+        Self {
+            n,
+            factors: {
+                let mut factors = factors.to_vec();
+                factors.sort();
+                factors
+            },
+            e,
+            d,
+        }
     }
 
     /// Decrypt cipher message
@@ -112,6 +138,7 @@ lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
         Box::new(CubeRootAttack),
+        Box::new(EcmAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(WienerAttack),

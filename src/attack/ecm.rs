@@ -14,7 +14,9 @@ impl Attack for EcmAttack {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         let factors = ecm::ecm(n).iter().map(|f| f.clone()).collect::<Vec<_>>();
-        println!("factors = {:?}", factors);
+        if factors.len() < 2 {
+            return Err(Error::NotFound);
+        }
 
         Ok((Some(PrivateKey::from_factors(&factors, e.clone())), None))
     }

@@ -18,6 +18,6 @@ impl Attack for EcmAttack {
             return Err(Error::NotFound);
         }
 
-        Ok((Some(PrivateKey::from_factors(&factors, e.clone())), None))
+        Ok((Some(PrivateKey::from_factors(&factors, e.clone())?), None))
     }
 }

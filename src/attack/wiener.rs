@@ -33,7 +33,7 @@ impl Attack for WienerAttack {
 
                     if (s + t).is_even() {
                         if let Some((p, q)) = trivial_factorization_with_n_phi(n, &phi) {
-                            return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())), None));
+                            return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None));
                         }
                     }
                 }

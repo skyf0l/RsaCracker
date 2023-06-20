@@ -29,7 +29,7 @@ impl Attack for SmallPrimeAttack {
                     .invert(&((p.clone() - 1) * (q.clone() - 1)))
                     .map_err(|_| Error::NotFound)?;
 
-                return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())), None));
+                return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None));
             }
         }
 

@@ -51,6 +51,6 @@ impl Attack for PollardP1Attack {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         let factors = pollard_p_1(n).ok_or(Error::NotFound)?;
-        Ok((Some(PrivateKey::from_factors(&factors, e.clone())), None))
+        Ok((Some(PrivateKey::from_factors(&factors, e.clone())?), None))
     }
 }

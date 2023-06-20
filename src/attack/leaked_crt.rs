@@ -26,6 +26,6 @@ impl Attack for LeakedCrtAttack {
             _ => return Err(Error::NotFound),
         };
 
-        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())), None))
+        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
     }
 }

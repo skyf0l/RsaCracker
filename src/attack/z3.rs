@@ -53,6 +53,6 @@ impl Attack for Z3Attack {
 
         let p = Integer::from_str(&p.to_string()).unwrap();
         let q = Integer::from_str(&q.to_string()).unwrap();
-        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())), None))
+        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
     }
 }

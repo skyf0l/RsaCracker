@@ -71,7 +71,7 @@ impl Attack for KnownFactorsAttack {
             let (q, rem) = n.clone().div_rem(factor.clone());
             if rem == Integer::ZERO {
                 return Ok((
-                    Some(PrivateKey::from_p_q(factor.clone(), q, e.clone())),
+                    Some(PrivateKey::from_p_q(factor.clone(), q, e.clone())?),
                     None,
                 ));
             }

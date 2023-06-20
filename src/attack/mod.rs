@@ -108,17 +108,21 @@ pub struct PrivateKey {
 
 impl PrivateKey {
     /// Create private key from p and q
-    pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Self {
+    pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Result<Self, Error> {
         Self::from_factors(&[p, q], e)
     }
 
     /// Create private key from multiple factors
-    pub fn from_factors(factors: &[Integer], e: Integer) -> Self {
+    pub fn from_factors(factors: &[Integer], e: Integer) -> Result<Self, Error> {
+        println!("factors: {:?}", factors);
         let n: Integer = factors.iter().product();
         let phi = phi(factors);
-        let d = e.clone().invert(&phi).unwrap();
+        let d = e
+            .clone()
+            .invert(&phi)
+            .or(Err(Error::CannotGeneratePrivateKey))?;
 
-        Self {
+        Ok(Self {
             n,
             factors: {
                 let mut factors = factors.to_vec();
@@ -127,7 +131,7 @@ impl PrivateKey {
             },
             e,
             d,
-        }
+        })
     }
 
     /// Decrypt cipher message
@@ -145,6 +149,9 @@ pub enum Error {
     /// Unsuccessful attack
     #[error("unsuccessful attack")]
     NotFound,
+    /// Cannot generate private key
+    #[error("cannot generate private key")]
+    CannotGeneratePrivateKey,
 }
 
 /// Solved RSA (private key, decrypted message)

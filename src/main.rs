@@ -1,4 +1,5 @@
 use clap::{command, Parser};
+use display_bytes::display_bytes;
 use main_error::MainError;
 
 use rug::Integer;
@@ -45,6 +46,8 @@ struct Args {
 
 #[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
+    use rsacracker::{integer_to_bytes, integer_to_string};
+
     let args = Args::parse();
 
     let params = if let Some(publickey) = args.publickey {
@@ -78,7 +81,17 @@ fn main() -> Result<(), MainError> {
     }
 
     if let Some(uncipher) = uncipher {
-        println!("uncipher = {}", uncipher);
+        println!("Unciphered data :");
+        println!("Int = {uncipher}");
+        println!("Hex = 0x{uncipher:02x}");
+        if let Some(str) = integer_to_string(&uncipher) {
+            println!("String = \"{str}\"");
+        } else {
+            println!(
+                "Bytes = b\"{}\"",
+                display_bytes(&integer_to_bytes(&uncipher))
+            );
+        }
     }
 
     Ok(())

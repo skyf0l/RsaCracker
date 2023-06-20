@@ -10,9 +10,14 @@ mod utils;
 
 pub use attack::*;
 
+/// Convert a `rug::Integer` to a byte vector.
+pub fn integer_to_bytes(i: &Integer) -> Vec<u8> {
+    base_x::decode("0123456789", &i.to_string()).unwrap()
+}
+
 /// Convert a `rug::Integer` to a string.
 pub fn integer_to_string(i: &Integer) -> Option<String> {
-    String::from_utf8(base_x::decode("0123456789", &i.to_string()).ok()?).ok()
+    String::from_utf8(integer_to_bytes(i)).ok()
 }
 
 /// Attack!

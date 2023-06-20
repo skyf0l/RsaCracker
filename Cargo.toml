@@ -30,6 +30,7 @@ ecm = "0.1"
 openssl = "0.10"
 base-x = "0.2"
 z3 = "0.11"
+display_bytes = "0.2"
 
 [dependencies.rug]
 version = "1"

@@ -5,6 +5,7 @@ mod cube_root;
 mod ecm;
 mod known_factors;
 mod leaked_crt;
+mod pollard_p_1;
 mod small_e;
 mod small_prime;
 mod sum_pq;
@@ -18,6 +19,7 @@ pub use self::z3::Z3Attack;
 pub use cube_root::CubeRootAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use leaked_crt::LeakedCrtAttack;
+pub use pollard_p_1::PollardP1Attack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
 pub use sum_pq::SumPQAttack;
@@ -163,6 +165,7 @@ lazy_static! {
         Box::new(CubeRootAttack),
         Box::new(KnownFactorsAttack),
         Box::new(LeakedCrtAttack),
+        Box::new(PollardP1Attack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(SumPQAttack),

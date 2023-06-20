@@ -17,6 +17,12 @@ struct Args {
     /// Prime number q.
     #[clap(short)]
     q: Option<Integer>,
+    /// Modulus dP (d mod p-1)
+    #[clap(long)]
+    dp: Option<Integer>,
+    /// Modulus dQ (d mod q-1)
+    #[clap(long)]
+    dq: Option<Integer>,
     /// Public exponent. Default: 65537
     #[clap(short, default_value = "65537")]
     e: Integer,
@@ -40,6 +46,8 @@ fn main() -> Result<(), MainError> {
             n: args.n,
             p: args.p,
             q: args.q,
+            dp: args.dp,
+            dq: args.dq,
             e: args.e,
             c: args.c.clone(),
         }

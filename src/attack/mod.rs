@@ -4,6 +4,7 @@ use rug::Integer;
 mod cube_root;
 mod ecm;
 mod known_factors;
+mod leaked_crt;
 mod small_e;
 mod small_prime;
 mod wiener;
@@ -13,6 +14,7 @@ use crate::utils::phi;
 pub use self::ecm::EcmAttack;
 pub use cube_root::CubeRootAttack;
 pub use known_factors::KnownFactorsAttack;
+pub use leaked_crt::LeakedCrtAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
 pub use wiener::WienerAttack;
@@ -26,6 +28,10 @@ pub struct Parameters {
     pub p: Option<Integer>,
     /// Prime number q.
     pub q: Option<Integer>,
+    /// Modulus dP (d mod p-1)
+    pub dp: Option<Integer>,
+    /// Modulus dQ (d mod q-1)
+    pub dq: Option<Integer>,
     /// Public exponent.
     pub e: Integer,
     /// Cipher message.
@@ -38,6 +44,8 @@ impl Default for Parameters {
             n: None,
             p: None,
             q: None,
+            dp: None,
+            dq: None,
             e: 65537.into(),
             c: None,
         }
@@ -147,6 +155,7 @@ lazy_static! {
     pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
         Box::new(CubeRootAttack),
         Box::new(KnownFactorsAttack),
+        Box::new(LeakedCrtAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(WienerAttack),

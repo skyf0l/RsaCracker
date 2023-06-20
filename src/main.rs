@@ -52,15 +52,10 @@ fn main() -> Result<(), MainError> {
             c: args.c.clone(),
         }
     };
-    let (private_key, uncipher) = run_attacks(&params)?;
+    let (_private_key, uncipher) = run_attacks(&params)?;
 
     if let Some(uncipher) = uncipher {
         println!("uncipher = {}", uncipher);
-    }
-
-    if let (Some(private_key), Some(c)) = (private_key, args.c) {
-        let m = private_key.decrypt(&c);
-        println!("m = {}", m);
     }
 
     Ok(())

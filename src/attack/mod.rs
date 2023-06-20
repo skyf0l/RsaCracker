@@ -138,8 +138,8 @@ pub enum Error {
     NotFound,
 }
 
-/// Attack result
-pub type AttackResult = Result<(Option<PrivateKey>, Option<Integer>), Error>;
+/// Solved RSA (private key, decrypted message)
+pub type SolvedRsa = (Option<PrivateKey>, Option<Integer>);
 
 /// Abstract attack trait
 pub trait Attack {
@@ -147,7 +147,7 @@ pub trait Attack {
     fn name(&self) -> &'static str;
 
     /// Run the attack
-    fn run(&self, params: &Parameters) -> AttackResult;
+    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error>;
 }
 
 lazy_static! {

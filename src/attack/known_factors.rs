@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use rug::Integer;
 
-use crate::{Attack, AttackResult, Error, Parameters, PrivateKey};
+use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
 
 /// Known factors attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -13,7 +13,7 @@ impl Attack for KnownFactorsAttack {
         "known_factors"
     }
 
-    fn run(&self, params: &Parameters) -> AttackResult {
+    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 

@@ -28,6 +28,7 @@ main_error = "0.1"
 primal = "0.3"
 ecm = "0.1"
 openssl = "0.10.54"
+base-x = "0.2.11"
 
 [dependencies.rug]
 version = "1"

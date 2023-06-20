@@ -2,14 +2,21 @@
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
 
+use rug::Integer;
+
 mod attack;
 mod ntheory;
 mod utils;
 
 pub use attack::*;
 
+/// Convert a `rug::Integer` to a string.
+pub fn integer_to_string(i: &Integer) -> Option<String> {
+    String::from_utf8(base_x::decode("0123456789", &i.to_string()).ok()?).ok()
+}
+
 /// Attack!
-pub fn run_attacks(params: &Parameters) -> AttackResult {
+pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
     for attack in ATTACKS.iter() {
         println!("Running attack: {}", attack.name());
         match attack.run(params) {
@@ -22,12 +29,12 @@ pub fn run_attacks(params: &Parameters) -> AttackResult {
                 } else {
                     m
                 };
-                return Ok((private_key, m));
+                return Some((private_key, m));
             }
             Err(e) => {
                 println!("=> Attack failed: {e}");
             }
         }
     }
-    Err(Error::NotFound)
+    None
 }

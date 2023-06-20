@@ -1,7 +1,7 @@
 use primal::Primes;
 use rug::{integer::IntegerExt64, Integer};
 
-use crate::{Attack, AttackResult, Error, Parameters, PrivateKey};
+use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
 
 /// Small prime attack
 pub struct SmallPrimeAttack;
@@ -11,7 +11,7 @@ impl Attack for SmallPrimeAttack {
         "small_prime"
     }
 
-    fn run(&self, params: &Parameters) -> AttackResult {
+    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 

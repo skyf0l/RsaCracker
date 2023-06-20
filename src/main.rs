@@ -52,7 +52,7 @@ fn main() -> Result<(), MainError> {
             c: args.c.clone(),
         }
     };
-    let (_private_key, uncipher) = run_attacks(&params)?;
+    let (_private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
 
     if let Some(uncipher) = uncipher {
         println!("uncipher = {}", uncipher);

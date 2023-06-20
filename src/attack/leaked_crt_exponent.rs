@@ -2,13 +2,13 @@ use rug::{Complete, Integer};
 
 use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
 
-/// Leaked CRT attack
+/// Leaked CRT exponent attack
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LeakedCrtAttack;
+pub struct LeakedCrtExponentAttack;
 
-impl Attack for LeakedCrtAttack {
+impl Attack for LeakedCrtExponentAttack {
     fn name(&self) -> &'static str {
-        "leaked_crt"
+        "leaked_crt_exponent"
     }
 
     fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {

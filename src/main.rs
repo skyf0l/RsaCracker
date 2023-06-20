@@ -18,10 +18,10 @@ struct Args {
     /// Prime number q.
     #[clap(short)]
     q: Option<Integer>,
-    /// Modulus dP (d mod p-1)
+    /// dP or dmp1 CRT exponent. (d mod p-1)
     #[clap(long)]
     dp: Option<Integer>,
-    /// Modulus dQ (d mod q-1)
+    /// dQ or dmq1 CRT exponent. (d mod q-1)
     #[clap(long)]
     dq: Option<Integer>,
     /// The sum of the two primes p and q.

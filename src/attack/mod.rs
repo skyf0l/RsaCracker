@@ -35,9 +35,9 @@ pub struct Parameters {
     pub p: Option<Integer>,
     /// Prime number q.
     pub q: Option<Integer>,
-    /// Modulus dP (d mod p-1)
+    /// dP or dmp1 CRT exponent. (d mod p-1)
     pub dp: Option<Integer>,
-    /// Modulus dQ (d mod q-1)
+    /// dQ or dmq1 CRT exponent. (d mod q-1)
     pub dq: Option<Integer>,
     /// The sum of the two primes p and q.
     pub sum_pq: Option<Integer>,
@@ -105,11 +105,11 @@ pub struct PrivateKey {
     pub e: Integer,
     /// Private exponent.
     pub d: Integer,
-    /// Dmp1 parameter.
+    /// dP or dmp1 CRT exponent. (d mod p-1)
     pub dmp1: Integer,
-    /// Dmq1 parameter.
+    /// dQ or dmq1 CRT exponent. (d mod q-1)
     pub dmq1: Integer,
-    /// Iqmp parameter.
+    /// qInv or iqmp CRT coefficient. (q^-1 mod p)
     pub iqmp: Integer,
 }
 

@@ -9,10 +9,12 @@ mod small_e;
 mod small_prime;
 mod sum_pq;
 mod wiener;
+mod z3;
 
 use crate::utils::phi;
 
 pub use self::ecm::EcmAttack;
+pub use self::z3::Z3Attack;
 pub use cube_root::CubeRootAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use leaked_crt::LeakedCrtAttack;
@@ -166,5 +168,6 @@ lazy_static! {
         Box::new(SumPQAttack),
         Box::new(WienerAttack),
         Box::new(EcmAttack),
+        Box::new(Z3Attack),
     ];
 }

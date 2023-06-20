@@ -4,6 +4,7 @@ use rug::Integer;
 mod cube_root;
 mod ecm;
 mod known_factors;
+mod known_phi;
 mod leaked_crt_exponent;
 mod pollard_p_1;
 mod small_e;
@@ -18,6 +19,7 @@ pub use self::ecm::EcmAttack;
 pub use self::z3::Z3Attack;
 pub use cube_root::CubeRootAttack;
 pub use known_factors::KnownFactorsAttack;
+pub use known_phi::KnownPhiAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
 pub use pollard_p_1::PollardP1Attack;
 pub use small_e::SmallEAttack;
@@ -28,8 +30,12 @@ pub use wiener::WienerAttack;
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Parameters {
+    /// Cipher message.
+    pub c: Option<Integer>,
     /// Modulus.
     pub n: Option<Integer>,
+    /// Public exponent.
+    pub e: Integer,
     /// Prime number p.
     pub p: Option<Integer>,
     /// Prime number q.
@@ -38,25 +44,24 @@ pub struct Parameters {
     pub dp: Option<Integer>,
     /// dQ or dmq1 CRT exponent. (d mod q-1)
     pub dq: Option<Integer>,
+    /// Phi or Euler's totient function of n. (p-1)(q-1)
+    pub phi: Option<Integer>,
     /// The sum of the two primes p and q.
     pub sum_pq: Option<Integer>,
-    /// Public exponent.
-    pub e: Integer,
-    /// Cipher message.
-    pub c: Option<Integer>,
 }
 
 impl Default for Parameters {
     fn default() -> Self {
         Self {
             n: None,
+            e: 65537.into(),
+            c: None,
             p: None,
             q: None,
             dp: None,
             dq: None,
+            phi: None,
             sum_pq: None,
-            e: 65537.into(),
-            c: None,
         }
     }
 }
@@ -124,6 +129,7 @@ lazy_static! {
     pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
         Box::new(CubeRootAttack),
         Box::new(KnownFactorsAttack),
+        Box::new(KnownPhiAttack),
         Box::new(LeakedCrtExponentAttack),
         Box::new(PollardP1Attack),
         Box::new(SmallEAttack),

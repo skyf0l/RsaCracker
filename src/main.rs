@@ -36,15 +36,24 @@ impl std::str::FromStr for IntegerArg {
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 struct Args {
+    /// Cipher message.
+    #[clap(short)]
+    c: Option<IntegerArg>,
     /// Modulus.
     #[clap(short)]
     n: Option<IntegerArg>,
+    /// Public exponent. Default: 65537
+    #[clap(short, default_value = "65537")]
+    e: IntegerArg,
     /// Prime number p.
     #[clap(short)]
     p: Option<IntegerArg>,
     /// Prime number q.
     #[clap(short)]
     q: Option<IntegerArg>,
+    /// Phi or Euler's totient function of n. (p-1)(q-1)
+    #[clap(long)]
+    phi: Option<IntegerArg>,
     /// dP or dmp1 CRT exponent. (d mod p-1)
     #[clap(long)]
     dp: Option<IntegerArg>,
@@ -54,12 +63,6 @@ struct Args {
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
-    /// Public exponent. Default: 65537
-    #[clap(short, default_value = "65537")]
-    e: IntegerArg,
-    /// Cipher message.
-    #[clap(short)]
-    c: Option<IntegerArg>,
     /// Public key PEM file.
     #[clap(long)]
     publickey: Option<String>,
@@ -82,14 +85,15 @@ fn main() -> Result<(), MainError> {
         Parameters::from_publickey(&bytes).ok_or("Invalid public key")?
     } else {
         Parameters {
+            c: args.c.map(|n| n.0),
             n: args.n.map(|n| n.0),
+            e: args.e.0,
             p: args.p.map(|n| n.0),
             q: args.q.map(|n| n.0),
+            phi: args.phi.map(|n| n.0),
             dp: args.dp.map(|n| n.0),
             dq: args.dq.map(|n| n.0),
             sum_pq: args.sum_pq.map(|n| n.0),
-            e: args.e.0,
-            c: args.c.map(|n| n.0),
         }
     };
     let (_private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;

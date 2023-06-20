@@ -16,10 +16,12 @@ pub enum KeyError {
 pub struct PrivateKey {
     /// Modulus.
     pub n: Integer,
-    /// Prime numbers.
-    pub factors: Vec<Integer>,
     /// Public exponent.
     pub e: Integer,
+    /// Prime numbers.
+    pub factors: Vec<Integer>,
+    /// Phi or Euler's totient function of n. (p-1)(q-1)
+    pub phi: Integer,
     /// Private exponent.
     pub d: Integer,
     /// dP or dmp1 CRT exponent. (d mod p-1)
@@ -47,16 +49,17 @@ impl PrivateKey {
 
         Ok(Self {
             n,
+            e,
             factors: {
                 let mut factors = factors.to_vec();
                 factors.sort();
                 factors
             },
-            e,
+            d: d.clone(),
+            phi,
             dmp1: d.clone() % (&factors[0] - Integer::from(1)),
-            dmq1: d.clone() % (&factors[1] - Integer::from(1)),
+            dmq1: d % (&factors[1] - Integer::from(1)),
             iqmp: factors[1].invert_ref(&factors[0]).unwrap().into(),
-            d,
         })
     }
 

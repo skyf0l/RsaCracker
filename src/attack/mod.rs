@@ -1,4 +1,5 @@
 use lazy_static::lazy_static;
+use openssl::bn::BigNum;
 use rug::Integer;
 
 mod cube_root;
@@ -104,6 +105,12 @@ pub struct PrivateKey {
     pub e: Integer,
     /// Private exponent.
     pub d: Integer,
+    /// Dmp1 parameter.
+    pub dmp1: Integer,
+    /// Dmq1 parameter.
+    pub dmq1: Integer,
+    /// Iqmp parameter.
+    pub iqmp: Integer,
 }
 
 impl PrivateKey {
@@ -130,6 +137,9 @@ impl PrivateKey {
                 factors
             },
             e,
+            dmp1: d.clone() % (&factors[0] - Integer::from(1)),
+            dmq1: d.clone() % (&factors[1] - Integer::from(1)),
+            iqmp: factors[1].invert_ref(&factors[0]).unwrap().into(),
             d,
         })
     }
@@ -137,6 +147,36 @@ impl PrivateKey {
     /// Decrypt cipher message
     pub fn decrypt(&self, c: &Integer) -> Integer {
         c.clone().pow_mod(&self.d, &self.n).unwrap()
+    }
+
+    /// Convert to PEM format
+    pub fn to_pem(&self) -> Option<String> {
+        if self.factors.len() != 2 {
+            panic!("Only keys with two factors can be converted to PEM format");
+        }
+
+        let rsa = openssl::rsa::RsaPrivateKeyBuilder::new(
+            BigNum::from_dec_str(&self.n.to_string()).unwrap(),
+            BigNum::from_dec_str(&self.e.to_string()).unwrap(),
+            BigNum::from_dec_str(&self.d.to_string()).unwrap(),
+        )
+        .ok()?
+        .set_factors(
+            BigNum::from_dec_str(&self.factors[0].to_string()).unwrap(),
+            BigNum::from_dec_str(&self.factors[1].to_string()).unwrap(),
+        )
+        .ok()?
+        .set_crt_params(
+            BigNum::from_dec_str(&self.dmp1.to_string()).unwrap(),
+            BigNum::from_dec_str(&self.dmq1.to_string()).unwrap(),
+            BigNum::from_dec_str(&self.iqmp.to_string()).unwrap(),
+        )
+        .ok()?
+        .build();
+
+        rsa.private_key_to_pem()
+            .ok()
+            .map(|pem| String::from_utf8(pem).unwrap())
     }
 }
 

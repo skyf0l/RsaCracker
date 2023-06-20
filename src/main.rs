@@ -35,6 +35,12 @@ struct Args {
     /// Public key PEM file.
     #[clap(long)]
     publickey: Option<String>,
+    /// Print the private key in PEM format.
+    #[clap(long)]
+    printpriv: bool,
+    /// Print the private key variables.
+    #[clap(long)]
+    dumppriv: bool,
 }
 
 #[cfg(not(tarpaulin_include))]
@@ -57,6 +63,19 @@ fn main() -> Result<(), MainError> {
         }
     };
     let (_private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
+
+    if args.printpriv || args.dumppriv {
+        if let Some(private_key) = &_private_key {
+            if args.printpriv {
+                println!("{}", private_key.to_pem().unwrap());
+            }
+            if args.dumppriv {
+                println!("{:#?}", private_key);
+            }
+        } else {
+            eprintln!("No private key found");
+        }
+    }
 
     if let Some(uncipher) = uncipher {
         println!("uncipher = {}", uncipher);

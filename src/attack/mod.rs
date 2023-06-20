@@ -7,6 +7,7 @@ mod known_factors;
 mod leaked_crt;
 mod small_e;
 mod small_prime;
+mod sum_pq;
 mod wiener;
 
 use crate::utils::phi;
@@ -17,6 +18,7 @@ pub use known_factors::KnownFactorsAttack;
 pub use leaked_crt::LeakedCrtAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
+pub use sum_pq::SumPQAttack;
 pub use wiener::WienerAttack;
 
 /// Known parameters
@@ -32,6 +34,8 @@ pub struct Parameters {
     pub dp: Option<Integer>,
     /// Modulus dQ (d mod q-1)
     pub dq: Option<Integer>,
+    /// The sum of the two primes p and q.
+    pub sum_pq: Option<Integer>,
     /// Public exponent.
     pub e: Integer,
     /// Cipher message.
@@ -46,6 +50,7 @@ impl Default for Parameters {
             q: None,
             dp: None,
             dq: None,
+            sum_pq: None,
             e: 65537.into(),
             c: None,
         }
@@ -158,6 +163,7 @@ lazy_static! {
         Box::new(LeakedCrtAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
+        Box::new(SumPQAttack),
         Box::new(WienerAttack),
         Box::new(EcmAttack),
     ];

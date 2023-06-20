@@ -23,6 +23,9 @@ struct Args {
     /// Modulus dQ (d mod q-1)
     #[clap(long)]
     dq: Option<Integer>,
+    /// The sum of the two primes p and q.
+    #[clap(long)]
+    sum_pq: Option<Integer>,
     /// Public exponent. Default: 65537
     #[clap(short, default_value = "65537")]
     e: Integer,
@@ -48,6 +51,7 @@ fn main() -> Result<(), MainError> {
             q: args.q,
             dp: args.dp,
             dq: args.dq,
+            sum_pq: args.sum_pq,
             e: args.e,
             c: args.c.clone(),
         }

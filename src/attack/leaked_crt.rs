@@ -17,7 +17,7 @@ impl Attack for LeakedCrtAttack {
         let dp = params
             .dp
             .as_ref()
-            .or_else(|| params.dq.as_ref())
+            .or(params.dq.as_ref())
             .ok_or(Error::MissingParameters)?;
 
         let p = (Integer::from(2).pow_mod(&(e.clone() * dp), n).unwrap() - Integer::from(2)).gcd(n);

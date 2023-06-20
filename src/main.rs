@@ -13,17 +13,17 @@ impl std::str::FromStr for IntegerArg {
     type Err = String;
 
     fn from_str(n: &str) -> Result<Self, Self::Err> {
-        if n.starts_with("0x") {
+        if let Some(n) = n.strip_prefix("0x") {
             Ok(Self(
-                Integer::from_str_radix(&n[2..], 16).or(Err("Invalid hex number".to_string()))?,
+                Integer::from_str_radix(n, 16).or(Err("Invalid hex number".to_string()))?,
             ))
-        } else if n.starts_with("0b") {
+        } else if let Some(n) = n.strip_prefix("0b") {
             Ok(Self(
-                Integer::from_str_radix(&n[2..], 2).or(Err("Invalid binary number".to_string()))?,
+                Integer::from_str_radix(n, 2).or(Err("Invalid binary number".to_string()))?,
             ))
-        } else if n.starts_with("0o") {
+        } else if let Some(n) = n.strip_prefix("0o") {
             Ok(Self(
-                Integer::from_str_radix(&n[2..], 8).or(Err("Invalid octal number".to_string()))?,
+                Integer::from_str_radix(n, 8).or(Err("Invalid octal number".to_string()))?,
             ))
         } else {
             Ok(Self(

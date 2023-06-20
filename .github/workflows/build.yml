@@ -36,6 +36,9 @@ jobs:
             make
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-rust
+            openssl
+            openssl-devel
+            mingw-w64-x86_64-z3
         continue-on-error: true
 
       - shell: msys2 {0}

@@ -26,7 +26,7 @@ lazy_static = "1"
 clap = { version = "4", features = ["derive", "env"] }
 main_error = "0.1"
 primal = "0.3"
-ecm = "0.1"
+ecm = "0.2"
 openssl = "0.10"
 base-x = "0.2"
 z3 = "0.11"

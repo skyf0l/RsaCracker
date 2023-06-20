@@ -3,15 +3,11 @@ name: Build
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
 
 env:
   RUST_BACKTRACE: 1
-
-# This allows a subsequently queued workflow run to interrupt previous runs
-concurrency:
-  group: |-
-    ${{ github.workflow }}-${{ github.event.pull_request.head.label || github.head_ref || github.ref }}
-  cancel-in-progress: true
 
 jobs:
   windows:
@@ -28,6 +24,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
 
+      # required by rug
       - uses: msys2/setup-msys2@v2
         with:
           update: true

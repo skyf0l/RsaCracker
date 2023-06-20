@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use rug::Integer;
 
-use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
 /// Known factors attack
 #[derive(Debug, Clone, PartialEq, Eq)]

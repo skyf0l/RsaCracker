@@ -1,6 +1,6 @@
 use rug::{integer::IsPrime, Complete, Integer};
 
-use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
 fn pollard_p_1(n: &Integer) -> Option<Vec<Integer>> {
     let mut a = Integer::from(2);

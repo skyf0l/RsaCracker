@@ -3,7 +3,7 @@ use std::str::FromStr;
 use rug::Integer;
 use z3::ast::Ast;
 
-use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
 /// Leaked sum of p and q attack
 #[derive(Debug, Clone, PartialEq, Eq)]

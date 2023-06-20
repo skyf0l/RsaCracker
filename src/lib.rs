@@ -5,6 +5,7 @@
 use rug::Integer;
 
 mod attack;
+mod key;
 mod ntheory;
 mod utils;
 

@@ -1,4 +1,4 @@
-use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
 /// Lenstra's ECM factorization attack
 #[derive(Debug, Clone, PartialEq, Eq)]

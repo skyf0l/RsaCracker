@@ -1,7 +1,7 @@
 use primal::Primes;
 use rug::{integer::IntegerExt64, Integer};
 
-use crate::{Attack, Error, Parameters, PrivateKey, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
 /// Small prime attack
 pub struct SmallPrimeAttack;

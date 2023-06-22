@@ -1,4 +1,7 @@
-use std::ops::{Add, AddAssign};
+use std::{
+    ops::{Add, AddAssign},
+    str::FromStr,
+};
 
 use rug::Integer;
 
@@ -44,7 +47,9 @@ impl Default for Parameters {
 impl Parameters {
     /// Create parameters from public key
     pub fn from_public_key(key: &[u8]) -> Option<Self> {
-        Self::from_rsa_public_pem(key).or_else(|| Self::from_x509_public_pem(key))
+        Self::from_rsa_public_pem(key)
+            .or_else(|| Self::from_x509_public_pem(key))
+            .or_else(|| Self::from_id_rsa(key))
     }
 
     /// Create parameters from rsa public key
@@ -69,6 +74,36 @@ impl Parameters {
         Some(Self {
             n: Some(rsa.n().to_string().parse().unwrap()),
             e: rsa.e().to_string().parse().unwrap(),
+            ..Default::default()
+        })
+    }
+
+    /// Create parameters from id_rsa public key
+    pub fn from_id_rsa(key: &[u8]) -> Option<Self> {
+        let key = openssh_keys::PublicKey::parse(&String::from_utf8(key.to_vec()).ok()?).ok()?;
+        let (e, n) = match key.data {
+            openssh_keys::Data::Rsa { exponent, modulus } => (
+                Integer::from_str(
+                    openssl::bn::BigNum::from_slice(&modulus)
+                        .ok()?
+                        .to_string()
+                        .as_str(),
+                )
+                .ok()?,
+                Integer::from_str(
+                    openssl::bn::BigNum::from_slice(&exponent)
+                        .ok()?
+                        .to_string()
+                        .as_str(),
+                )
+                .ok()?,
+            ),
+            _ => return None,
+        };
+
+        Some(Self {
+            n: Some(n),
+            e,
             ..Default::default()
         })
     }

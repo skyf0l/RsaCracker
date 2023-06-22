@@ -4,7 +4,7 @@ use main_error::MainError;
 
 use rug::Integer;
 
-use rsacracker::{run_attacks, Parameters};
+use rsacracker::{integer_to_bytes, integer_to_string, run_attacks, Parameters};
 
 #[derive(Debug, Clone)]
 struct IntegerArg(Integer);
@@ -63,7 +63,7 @@ struct Args {
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
-    /// Public key PEM/X509 file.
+    /// Public key PEM/X509/id_rsa file.
     #[clap(long)]
     publickey: Option<String>,
     /// Private key PEM file.
@@ -88,8 +88,6 @@ struct Args {
 
 #[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
-    use rsacracker::{integer_to_bytes, integer_to_string};
-
     let args = Args::parse();
 
     let mut params = Parameters {

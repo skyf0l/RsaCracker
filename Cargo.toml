@@ -37,6 +37,7 @@ openssl = "0.10"
 base-x = "0.2"
 z3 = "0.11"
 display_bytes = "0.2"
+openssh-keys = "0.6"
 
 [dependencies.rug]
 version = "1"

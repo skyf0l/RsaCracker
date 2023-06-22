@@ -2,6 +2,7 @@
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
 
+use key::PrivateKey;
 use rug::Integer;
 
 mod attack;
@@ -23,6 +24,18 @@ pub fn integer_to_string(i: &Integer) -> Option<String> {
 
 /// Attack!
 pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
+    if let (Some(p), Some(q)) = (&params.p, &params.q) {
+        // If we have p and q, we can directly compute the private key
+        let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
+        let m = if let Some(c) = &params.c {
+            Some(private_key.decrypt(c))
+        } else {
+            None
+        };
+
+        return Some((Some(private_key), m));
+    }
+
     for attack in ATTACKS.iter() {
         println!("Running attack: {}", attack.name());
         match attack.run(params) {

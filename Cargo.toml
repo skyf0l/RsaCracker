@@ -35,7 +35,7 @@ primal = "0.3"
 ecm = "0.2"
 openssl = "0.10"
 base-x = "0.2"
-z3 = { git = "https://github.com/prove-rs/z3.rs.git", rev = "c2f9488" }
+z3 = "0.11"
 display_bytes = "0.2"
 
 [dependencies.rug]

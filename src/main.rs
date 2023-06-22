@@ -68,10 +68,13 @@ struct Args {
     publickey: Option<String>,
     /// Print the private key in PEM format.
     #[clap(long)]
-    printpriv: bool,
-    /// Print the private key variables.
+    printkey: bool,
+    /// Print the RSA key variables n, e, p, q and d.
     #[clap(long)]
-    dumppriv: bool,
+    dumpkey: bool,
+    /// Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv.
+    #[clap(long)]
+    dumpextkey: bool,
 }
 
 #[cfg(not(tarpaulin_include))]
@@ -96,15 +99,31 @@ fn main() -> Result<(), MainError> {
             sum_pq: args.sum_pq.map(|n| n.0),
         }
     };
-    let (_private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
+    let (private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
 
-    if args.printpriv || args.dumppriv {
-        if let Some(private_key) = &_private_key {
-            if args.printpriv {
+    if args.printkey || args.dumpkey || args.dumpextkey {
+        if let Some(private_key) = &private_key {
+            if args.printkey {
                 println!("{}", private_key.to_pem().unwrap());
             }
-            if args.dumppriv {
-                println!("{:#?}", private_key);
+            if args.dumpkey || args.dumpextkey {
+                println!("Private key :");
+                println!("n = {}", private_key.n);
+                println!("e = {}", private_key.e);
+                println!("p = {}", private_key.p);
+                println!("q = {}", private_key.q);
+                println!("d = {}", private_key.d);
+            }
+            if args.dumpextkey {
+                println!("Extended private key :");
+                let dp = private_key.d.clone() % (&private_key.p - Integer::from(1));
+                println!("dP = {dp}",);
+                let dq = private_key.d.clone() % (&private_key.q - Integer::from(1));
+                println!("dQ = {dq}",);
+                let p_inv = Integer::from(private_key.p.invert_ref(&private_key.q).unwrap());
+                println!("pInv = {p_inv}",);
+                let q_inv = Integer::from(private_key.q.invert_ref(&private_key.p).unwrap());
+                println!("qInv = {q_inv}",);
             }
         } else {
             eprintln!("No private key found");

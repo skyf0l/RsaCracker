@@ -128,10 +128,19 @@ impl Parameters {
                 private_key = private_key
                     .decrypt(passphrase)
                     .expect("Failed to decrypt private key");
+                private_key.key_data().rsa()?
             } else {
                 eprintln!("Warning: Private key is encrypted, but no passphrase was provided, only n and e will be extracted");
+                let public_rsa = private_key.public_key().key_data().rsa()?;
+                return Some(Self {
+                    n: Some(Integer::from_digits(
+                        public_rsa.n.as_bytes(),
+                        rug::integer::Order::Msf,
+                    )),
+                    e: Integer::from_digits(public_rsa.e.as_bytes(), rug::integer::Order::Msf),
+                    ..Default::default()
+                });
             }
-            private_key.key_data().rsa()?
         } else {
             private_key.key_data().rsa()?
         };

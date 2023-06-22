@@ -66,6 +66,9 @@ struct Args {
     /// Public key PEM file.
     #[clap(long)]
     publickey: Option<String>,
+    /// Private key PEM file.
+    #[clap(long)]
+    privatekey: Option<String>,
     /// Print the private key in PEM format.
     #[clap(long)]
     printkey: bool,
@@ -83,21 +86,24 @@ fn main() -> Result<(), MainError> {
 
     let args = Args::parse();
 
-    let params = if let Some(publickey) = args.publickey {
-        let bytes = std::fs::read(publickey)?;
-        Parameters::from_publickey(&bytes).ok_or("Invalid public key")?
-    } else {
-        Parameters {
-            c: args.c.map(|n| n.0),
-            n: args.n.map(|n| n.0),
-            e: args.e.0,
-            p: args.p.map(|n| n.0),
-            q: args.q.map(|n| n.0),
-            phi: args.phi.map(|n| n.0),
-            dp: args.dp.map(|n| n.0),
-            dq: args.dq.map(|n| n.0),
-            sum_pq: args.sum_pq.map(|n| n.0),
-        }
+    let mut params = Parameters {
+        c: args.c.map(|n| n.0),
+        n: args.n.map(|n| n.0),
+        e: args.e.0,
+        p: args.p.map(|n| n.0),
+        q: args.q.map(|n| n.0),
+        phi: args.phi.map(|n| n.0),
+        dp: args.dp.map(|n| n.0),
+        dq: args.dq.map(|n| n.0),
+        sum_pq: args.sum_pq.map(|n| n.0),
+    };
+    if let Some(public_key) = args.publickey {
+        let bytes = std::fs::read(public_key)?;
+        params += Parameters::from_public_key(&bytes).ok_or("Invalid public key")?;
+    };
+    if let Some(private_key) = args.privatekey {
+        let bytes = std::fs::read(private_key)?;
+        params += Parameters::from_private_key(&bytes).ok_or("Invalid private key")?;
     };
     let (private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
 

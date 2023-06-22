@@ -22,32 +22,32 @@ jobs:
           profile: minimal
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
 
-      # required by rug
+      # msys2 required by rug
       - uses: msys2/setup-msys2@v2
         with:
-          update: true
           install: >-
             base-devel
             pacman-mirrors
             diffutils
             m4
             make
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-rust
             openssl
             openssl-devel
-            mingw-w64-x86_64-z3
-        continue-on-error: true
+          pacboy: >-
+            gcc:p
+            rust:p
+
+      - name: Install z3
+        uses: skyf0l/setup-z3@master
+        with:
+          version: 4.12.2
+          architecture: x64
+          distribution: win
 
       - shell: msys2 {0}
         run: |
           cargo build
-
-      - shell: msys2 {0}
-        run: |
-          cargo nextest run
 
   mac:
     name: Build on MacOs
@@ -70,4 +70,4 @@ jobs:
         run: cargo build
 
       - name: Test
-        run: cargo nextest run
+        run: cargo nextest run --all-targets

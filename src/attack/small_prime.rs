@@ -1,5 +1,5 @@
 use primal::Primes;
-use rug::{integer::IntegerExt64, Integer};
+use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
@@ -19,7 +19,7 @@ impl Attack for SmallPrimeAttack {
             if p.ge(n) {
                 break;
             }
-            if n.is_divisible_u64(p as u64) {
+            if n.is_divisible(&Integer::from(p)) {
                 println!("find p = {}", p);
                 let q = n.clone() / p;
                 let p: Integer = p.into();

@@ -63,8 +63,8 @@ impl PrivateKey {
         Ok(Self {
             n,
             e,
-            p: factors.pop().unwrap(),
-            q: factors.pop().unwrap(),
+            p: factors.remove(0),
+            q: factors.remove(0),
             other_factors: factors,
             d,
         })

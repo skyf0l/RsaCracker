@@ -50,11 +50,11 @@ mod tests {
             ..Default::default()
         };
 
-        let (priv_key, m) = SmallPrimeAttack.run(&params).unwrap();
-        let priv_key = priv_key.unwrap();
+        let (private_key, m) = SmallPrimeAttack.run(&params).unwrap();
+        let private_key = private_key.unwrap();
 
-        assert_eq!(priv_key.factors[0], Integer::from(54269));
-        assert_eq!(priv_key.factors[1], Integer::from(93089));
+        assert_eq!(private_key.p, Integer::from(54269));
+        assert_eq!(private_key.q, Integer::from(93089));
         assert!(m.is_none());
     }
 }

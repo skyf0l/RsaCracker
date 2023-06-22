@@ -97,11 +97,11 @@ mod tests {
             ..Default::default()
         };
 
-        let (priv_key, m) = KnownFactorsAttack.run(&params).unwrap();
-        let priv_key = priv_key.unwrap();
+        let (private_key, m) = KnownFactorsAttack.run(&params).unwrap();
+        let private_key = private_key.unwrap();
 
-        assert_eq!(priv_key.factors[0], Integer::from_str("33372027594978156556226010605355114227940760344767554666784520987023841729210037080257448673296881877565718986258036932062711").unwrap());
-        assert_eq!(priv_key.factors[1], Integer::from_str("64135289477071580278790190170577389084825014742943447208116859632024532344630238623598752668347708737661925585694639798853367").unwrap());
+        assert_eq!(private_key.p, Integer::from_str("33372027594978156556226010605355114227940760344767554666784520987023841729210037080257448673296881877565718986258036932062711").unwrap());
+        assert_eq!(private_key.q, Integer::from_str("64135289477071580278790190170577389084825014742943447208116859632024532344630238623598752668347708737661925585694639798853367").unwrap());
         assert!(m.is_none());
     }
 }

@@ -18,30 +18,21 @@ pub struct PrivateKey {
     pub n: Integer,
     /// Public exponent.
     pub e: Integer,
-    /// Prime numbers.
-    pub factors: Vec<Integer>,
-    /// Phi or Euler's totient function of n. (p-1)(q-1)
-    pub phi: Integer,
+    /// Prime number p.
+    pub p: Integer,
+    /// Prime number q.
+    pub q: Integer,
+    /// Other factors. (Used for multi-prime RSA)
+    pub other_factors: Vec<Integer>,
     /// Private exponent.
     pub d: Integer,
-    /// dP or dmp1 CRT exponent. (d mod p-1)
-    pub dmp1: Integer,
-    /// dQ or dmq1 CRT exponent. (d mod q-1)
-    pub dmq1: Integer,
-    /// qInv or iqmp CRT coefficient. (q^-1 mod p)
-    pub iqmp: Integer,
 }
 
 impl PrivateKey {
     /// Create private key from p and q
     pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Result<Self, KeyError> {
-        Self::from_factors(&[p, q], e)
-    }
-
-    /// Create private key from multiple factors
-    pub fn from_factors(factors: &[Integer], e: Integer) -> Result<Self, KeyError> {
-        let n: Integer = factors.iter().product();
-        let phi = phi(factors);
+        let n = Integer::from(&p * &q);
+        let phi = phi(&vec![p.clone(), q.clone()]);
         let d = e
             .clone()
             .invert(&phi)
@@ -50,16 +41,32 @@ impl PrivateKey {
         Ok(Self {
             n,
             e,
-            factors: {
-                let mut factors = factors.to_vec();
-                factors.sort();
-                factors
-            },
-            d: d.clone(),
-            phi,
-            dmp1: d.clone() % (&factors[0] - Integer::from(1)),
-            dmq1: d % (&factors[1] - Integer::from(1)),
-            iqmp: factors[1].invert_ref(&factors[0]).unwrap().into(),
+            p: if p > q { q.clone() } else { p.clone() },
+            q: if p > q { p } else { q },
+            other_factors: vec![],
+            d,
+        })
+    }
+
+    /// Create private key from multiple factors
+    pub fn from_factors(factors: &[Integer], e: Integer) -> Result<Self, KeyError> {
+        let mut factors = factors.to_vec();
+        factors.sort();
+
+        let n: Integer = factors.iter().product();
+        let phi = phi(&factors);
+        let d = e
+            .clone()
+            .invert(&phi)
+            .or(Err(KeyError::PrivateExponentComputationFailed))?;
+
+        Ok(Self {
+            n,
+            e,
+            p: factors.pop().unwrap(),
+            q: factors.pop().unwrap(),
+            other_factors: factors,
+            d,
         })
     }
 
@@ -70,9 +77,13 @@ impl PrivateKey {
 
     /// Convert to PEM format
     pub fn to_pem(&self) -> Option<String> {
-        if self.factors.len() != 2 {
+        if !self.other_factors.is_empty() {
             panic!("Only keys with two factors can be converted to PEM format");
         }
+
+        let dmp1 = self.d.clone() % (&self.p - Integer::from(1));
+        let dmq1 = self.d.clone() % (&self.q - Integer::from(1));
+        let iqmp = Integer::from(self.q.invert_ref(&self.p).unwrap());
 
         let rsa = RsaPrivateKeyBuilder::new(
             BigNum::from_dec_str(&self.n.to_string()).unwrap(),
@@ -81,14 +92,14 @@ impl PrivateKey {
         )
         .ok()?
         .set_factors(
-            BigNum::from_dec_str(&self.factors[0].to_string()).unwrap(),
-            BigNum::from_dec_str(&self.factors[1].to_string()).unwrap(),
+            BigNum::from_dec_str(&self.p.to_string()).unwrap(),
+            BigNum::from_dec_str(&self.q.to_string()).unwrap(),
         )
         .ok()?
         .set_crt_params(
-            BigNum::from_dec_str(&self.dmp1.to_string()).unwrap(),
-            BigNum::from_dec_str(&self.dmq1.to_string()).unwrap(),
-            BigNum::from_dec_str(&self.iqmp.to_string()).unwrap(),
+            BigNum::from_dec_str(&dmp1.to_string()).unwrap(),
+            BigNum::from_dec_str(&dmq1.to_string()).unwrap(),
+            BigNum::from_dec_str(&iqmp.to_string()).unwrap(),
         )
         .ok()?
         .build();

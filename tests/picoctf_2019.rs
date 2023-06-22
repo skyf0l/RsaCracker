@@ -86,9 +86,8 @@ q16/S1WLvzg4PsElmv1f
 
     let (private_key, m) = run_attacks(&params).unwrap();
     let private_key = private_key.unwrap();
-    assert_eq!(
-        private_key.factors,
-        vec![67867967.into(), 73176001.into(),] as Vec<Integer>
-    );
+
+    assert_eq!(private_key.p, Integer::from(67867967));
+    assert_eq!(private_key.q, Integer::from(73176001));
     assert!(m.is_none());
 }

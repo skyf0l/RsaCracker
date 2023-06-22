@@ -43,16 +43,19 @@ impl Default for Parameters {
 impl Parameters {
     /// Create parameters from public key
     pub fn from_public_key(key: &[u8]) -> Option<Self> {
-        Self::from_rsa_public_pem(key)
-            .or_else(|| Self::from_x509_public_pem(key))
-            .or_else(|| Self::from_openssh_public_id_rsa(key))
+        Self::from_rsa_public_key(key)
+            .or_else(|| Self::from_x509_public_key(key))
+            .or_else(|| Self::from_openssh_public_key(key))
     }
 
     /// Create parameters from rsa public key
-    pub fn from_rsa_public_pem(key: &[u8]) -> Option<Self> {
+    pub fn from_rsa_public_key(key: &[u8]) -> Option<Self> {
         let public_key = openssl::rsa::Rsa::public_key_from_pem(key)
+            .or_else(|_| openssl::rsa::Rsa::public_key_from_der(key))
             .or_else(|_| openssl::rsa::Rsa::public_key_from_pem_pkcs1(key))
+            .or_else(|_| openssl::rsa::Rsa::public_key_from_der_pkcs1(key))
             .or_else(|_| openssl::pkey::PKey::public_key_from_pem(key)?.rsa())
+            .or_else(|_| openssl::pkey::PKey::public_key_from_der(key)?.rsa())
             .ok()?;
 
         Some(Self {
@@ -63,8 +66,10 @@ impl Parameters {
     }
 
     /// Create parameters from x509 public key
-    pub fn from_x509_public_pem(key: &[u8]) -> Option<Self> {
-        let public_key = openssl::x509::X509::from_pem(key).ok()?;
+    pub fn from_x509_public_key(key: &[u8]) -> Option<Self> {
+        let public_key = openssl::x509::X509::from_pem(key)
+            .or_else(|_| openssl::x509::X509::from_der(key))
+            .ok()?;
         let rsa = public_key.public_key().ok()?.rsa().ok()?;
 
         Some(Self {
@@ -74,10 +79,11 @@ impl Parameters {
         })
     }
 
-    /// Create parameters from openssh public id_rsa
-    pub fn from_openssh_public_id_rsa(key: &[u8]) -> Option<Self> {
+    /// Create parameters from openssh public key
+    pub fn from_openssh_public_key(key: &[u8]) -> Option<Self> {
         let public_key =
             ssh_key::public::PublicKey::from_openssh(&String::from_utf8(key.to_vec()).ok()?)
+                .or_else(|_| ssh_key::public::PublicKey::from_bytes(key))
                 .ok()?;
         let rsa = public_key.key_data().rsa()?;
 
@@ -93,21 +99,28 @@ impl Parameters {
 
     /// Create parameters from private key
     pub fn from_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
-        Self::from_rsa_private_pem(key, passphrase)
-            .or_else(|| Self::from_openssh_private_pem(key, passphrase))
+        Self::from_rsa_private_key(key, passphrase)
+            .or_else(|| Self::from_openssh_private_key(key, passphrase))
     }
 
     /// Create parameters from rsa private key
-    pub fn from_rsa_private_pem(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
-        let private_key = openssl::rsa::Rsa::private_key_from_pem(key)
-            .ok()
-            .or_else(|| {
-                openssl::rsa::Rsa::private_key_from_pem_passphrase(
-                    key,
-                    passphrase.as_ref()?.as_bytes(),
-                )
-                .ok()
-            })?;
+    pub fn from_rsa_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+        let private_key = openssl::rsa::Rsa::private_key_from_der(key)
+            .or_else(|_| {
+                if let Some(passphrase) = passphrase {
+                    openssl::rsa::Rsa::private_key_from_pem_passphrase(key, passphrase.as_bytes())
+                } else {
+                    openssl::rsa::Rsa::private_key_from_pem(key)
+                }
+            })
+            .map_err(|e| {
+                e.errors().first().map(|e| {
+                    if e.reason() == Some("bad decrypt") {
+                        panic!("Failed to decrypt private key")
+                    }
+                })
+            })
+            .ok()?;
 
         Some(Self {
             n: Some(private_key.n().to_string().parse().unwrap()),
@@ -121,8 +134,10 @@ impl Parameters {
     }
 
     /// Create parameters from openssh private key
-    pub fn from_openssh_private_pem(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
-        let mut private_key = ssh_key::private::PrivateKey::from_openssh(key).ok()?;
+    pub fn from_openssh_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+        let mut private_key = ssh_key::private::PrivateKey::from_openssh(key)
+            .or_else(|_| ssh_key::private::PrivateKey::from_bytes(key))
+            .ok()?;
         let rsa = if private_key.key_data().is_encrypted() {
             if let Some(passphrase) = passphrase {
                 private_key = private_key

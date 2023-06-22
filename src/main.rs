@@ -118,7 +118,7 @@ fn main() -> Result<(), MainError> {
     if let Some(private_key) = args.privatekey {
         let bytes = std::fs::read(private_key)?;
         params +=
-            Parameters::from_private_key(&bytes, &args.password).ok_or("Invalid private key")?;
+            Parameters::from_private_key(&bytes, args.password).ok_or("Invalid private key")?;
     };
     let (private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
 

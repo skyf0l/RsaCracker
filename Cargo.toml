@@ -43,3 +43,6 @@ ssh-key = { version = "0.5", features = ["encryption"] }
 version = "1"
 default-features = false
 features = ["integer", "rand"]
+
+[dev-dependencies]
+base64 = "0.21"

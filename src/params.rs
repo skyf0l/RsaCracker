@@ -96,13 +96,13 @@ impl Parameters {
     }
 
     /// Create parameters from private key
-    pub fn from_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
-        Self::from_rsa_private_key(key, passphrase)
+    pub fn from_private_key(key: &[u8], passphrase: Option<String>) -> Option<Self> {
+        Self::from_rsa_private_key(key, passphrase.clone())
             .or_else(|| Self::from_openssh_private_key(key, passphrase))
     }
 
     /// Create parameters from rsa private key
-    pub fn from_rsa_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+    pub fn from_rsa_private_key(key: &[u8], passphrase: Option<String>) -> Option<Self> {
         let private_key = openssl::pkey::PKey::private_key_from_der(key)
             .or_else(|_| {
                 if let Some(passphrase) = passphrase {
@@ -144,7 +144,7 @@ impl Parameters {
     }
 
     /// Create parameters from openssh private key
-    pub fn from_openssh_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+    pub fn from_openssh_private_key(key: &[u8], passphrase: Option<String>) -> Option<Self> {
         let mut private_key = ssh_key::private::PrivateKey::from_openssh(key)
             .or_else(|_| ssh_key::private::PrivateKey::from_bytes(key))
             .ok()?;

@@ -63,7 +63,7 @@ struct Args {
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
-    /// Public key PEM/X509/id_rsa file.
+    /// Public key PEM/X509/openssh file.
     #[clap(long)]
     publickey: Option<String>,
     /// Private key PEM file.
@@ -72,7 +72,7 @@ struct Args {
     /// Private key password/passphrase if encrypted.
     #[clap(long)]
     password: Option<String>,
-    /// Print the private key in PEM format.
+    /// Print the private key in PEM/openssh format.
     #[clap(long)]
     printkey: bool,
     /// Add a password/passphrase to the private key.

@@ -1,9 +1,5 @@
-use std::{
-    ops::{Add, AddAssign},
-    str::FromStr,
-};
-
 use rug::Integer;
+use std::ops::{Add, AddAssign};
 
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,7 +45,7 @@ impl Parameters {
     pub fn from_public_key(key: &[u8]) -> Option<Self> {
         Self::from_rsa_public_pem(key)
             .or_else(|| Self::from_x509_public_pem(key))
-            .or_else(|| Self::from_id_rsa(key))
+            .or_else(|| Self::from_openssh_public_id_rsa(key))
     }
 
     /// Create parameters from rsa public key
@@ -78,32 +74,19 @@ impl Parameters {
         })
     }
 
-    /// Create parameters from id_rsa public key
-    pub fn from_id_rsa(key: &[u8]) -> Option<Self> {
-        let key = openssh_keys::PublicKey::parse(&String::from_utf8(key.to_vec()).ok()?).ok()?;
-        let (e, n) = match key.data {
-            openssh_keys::Data::Rsa { exponent, modulus } => (
-                Integer::from_str(
-                    openssl::bn::BigNum::from_slice(&modulus)
-                        .ok()?
-                        .to_string()
-                        .as_str(),
-                )
-                .ok()?,
-                Integer::from_str(
-                    openssl::bn::BigNum::from_slice(&exponent)
-                        .ok()?
-                        .to_string()
-                        .as_str(),
-                )
-                .ok()?,
-            ),
-            _ => return None,
-        };
+    /// Create parameters from openssh public id_rsa
+    pub fn from_openssh_public_id_rsa(key: &[u8]) -> Option<Self> {
+        let public_key =
+            ssh_key::public::PublicKey::from_openssh(&String::from_utf8(key.to_vec()).ok()?)
+                .ok()?;
+        let rsa = public_key.key_data().rsa()?;
 
         Some(Self {
-            n: Some(n),
-            e,
+            n: Some(Integer::from_digits(
+                rsa.n.as_bytes(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(rsa.e.as_bytes(), rug::integer::Order::Msf),
             ..Default::default()
         })
     }
@@ -111,6 +94,7 @@ impl Parameters {
     /// Create parameters from private key
     pub fn from_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
         Self::from_rsa_private_pem(key, passphrase)
+            .or_else(|| Self::from_openssh_private_pem(key, passphrase))
     }
 
     /// Create parameters from rsa private key
@@ -132,6 +116,40 @@ impl Parameters {
             q: private_key.q().map(|q| q.to_string().parse().unwrap()),
             dp: private_key.dmp1().map(|dp| dp.to_string().parse().unwrap()),
             dq: private_key.dmq1().map(|dq| dq.to_string().parse().unwrap()),
+            ..Default::default()
+        })
+    }
+
+    /// Create parameters from openssh private key
+    pub fn from_openssh_private_pem(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+        let mut private_key = ssh_key::private::PrivateKey::from_openssh(key).ok()?;
+        let rsa = if private_key.key_data().is_encrypted() {
+            if let Some(passphrase) = passphrase {
+                private_key = private_key
+                    .decrypt(passphrase)
+                    .expect("Failed to decrypt private key");
+            } else {
+                eprintln!("Warning: Private key is encrypted, but no passphrase was provided, only n and e will be extracted");
+            }
+            private_key.key_data().rsa()?
+        } else {
+            private_key.key_data().rsa()?
+        };
+
+        Some(Self {
+            n: Some(Integer::from_digits(
+                rsa.public.n.as_bytes(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(rsa.public.e.as_bytes(), rug::integer::Order::Msf),
+            p: Some(Integer::from_digits(
+                rsa.private.p.as_bytes(),
+                rug::integer::Order::Msf,
+            )),
+            q: Some(Integer::from_digits(
+                rsa.private.q.as_bytes(),
+                rug::integer::Order::Msf,
+            )),
             ..Default::default()
         })
     }

@@ -67,7 +67,7 @@ fn picoctf_2019_john_pollard() {
     // From picoCTF 2019 / john_pollard
     // https://play.picoctf.org/practice/challenge/6
 
-    let params = Parameters::from_publickey(
+    let params = Parameters::from_public_key(
         b"-----BEGIN CERTIFICATE-----
 MIIB6zCB1AICMDkwDQYJKoZIhvcNAQECBQAwEjEQMA4GA1UEAxMHUGljb0NURjAe
 Fw0xOTA3MDgwNzIxMThaFw0xOTA2MjYxNzM0MzhaMGcxEDAOBgNVBAsTB1BpY29D

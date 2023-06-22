@@ -8,9 +8,11 @@ use rug::Integer;
 mod attack;
 mod key;
 mod ntheory;
+mod params;
 mod utils;
 
 pub use attack::*;
+pub use params::*;
 
 /// Convert a `rug::Integer` to a byte vector.
 pub fn integer_to_bytes(i: &Integer) -> Vec<u8> {

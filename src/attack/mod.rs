@@ -14,6 +14,7 @@ mod wiener;
 mod z3;
 
 use crate::key::PrivateKey;
+use crate::Parameters;
 
 pub use self::ecm::EcmAttack;
 pub use self::z3::Z3Attack;
@@ -26,77 +27,6 @@ pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
 pub use sum_pq::SumPQAttack;
 pub use wiener::WienerAttack;
-
-/// Known parameters
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Parameters {
-    /// Cipher message.
-    pub c: Option<Integer>,
-    /// Modulus.
-    pub n: Option<Integer>,
-    /// Public exponent.
-    pub e: Integer,
-    /// Prime number p.
-    pub p: Option<Integer>,
-    /// Prime number q.
-    pub q: Option<Integer>,
-    /// dP or dmp1 CRT exponent. (d mod p-1)
-    pub dp: Option<Integer>,
-    /// dQ or dmq1 CRT exponent. (d mod q-1)
-    pub dq: Option<Integer>,
-    /// Phi or Euler's totient function of n. (p-1)(q-1)
-    pub phi: Option<Integer>,
-    /// The sum of the two primes p and q.
-    pub sum_pq: Option<Integer>,
-}
-
-impl Default for Parameters {
-    fn default() -> Self {
-        Self {
-            n: None,
-            e: 65537.into(),
-            c: None,
-            p: None,
-            q: None,
-            dp: None,
-            dq: None,
-            phi: None,
-            sum_pq: None,
-        }
-    }
-}
-
-impl Parameters {
-    /// Create parameters from public key
-    pub fn from_publickey(key: &[u8]) -> Option<Self> {
-        Self::from_rsa_public_pem(key).or_else(|| Self::from_x509_public_pem(key))
-    }
-
-    /// Create parameters from x509 public key
-    pub fn from_rsa_public_pem(key: &[u8]) -> Option<Self> {
-        let publickey = openssl::rsa::Rsa::public_key_from_pem(key)
-            .or_else(|_| openssl::rsa::Rsa::public_key_from_pem_pkcs1(key))
-            .ok()?;
-
-        Some(Self {
-            n: Some(publickey.n().to_string().parse().unwrap()),
-            e: publickey.e().to_string().parse().unwrap(),
-            ..Default::default()
-        })
-    }
-
-    /// Create parameters from x509 public key
-    pub fn from_x509_public_pem(key: &[u8]) -> Option<Self> {
-        let publickey = openssl::x509::X509::from_pem(key).unwrap();
-        let rsa = publickey.public_key().ok()?.rsa().ok()?;
-
-        Some(Self {
-            n: Some(rsa.n().to_string().parse().unwrap()),
-            e: rsa.e().to_string().parse().unwrap(),
-            ..Default::default()
-        })
-    }
-}
 
 /// Attack error
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]

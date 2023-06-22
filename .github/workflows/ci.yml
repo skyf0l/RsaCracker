@@ -30,13 +30,13 @@ jobs:
         run: cargo fmt --check --all
 
       - name: Lint
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        run: cargo clippy --all-targets -- -D warnings
 
       - name: Build
         run: cargo build
 
       - name: Test
-        run: cargo nextest run --all-targets --all-features
+        run: cargo nextest run --all-targets
 
   coverage:
     name: Coverage
@@ -52,7 +52,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Tests
-        run: cargo test --all-targets --all-features
+        run: cargo test --all-targets
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"

@@ -16,6 +16,12 @@ include = [
 ]
 readme = "README.md"
 
+[features]
+default = []
+# Enable this feature to statically link our own build of Z3, rather than
+# dynamically linking to the system's `libz3.so`.
+static-link-z3 = ["z3/static-link-z3"]
+
 [profile.release]
 opt-level = 3
 codegen-units = 1
@@ -29,7 +35,7 @@ primal = "0.3"
 ecm = "0.2"
 openssl = "0.10"
 base-x = "0.2"
-z3 = "0.11"
+z3 = { git = "https://github.com/prove-rs/z3.rs.git", rev = "c2f9488" }
 display_bytes = "0.2"
 
 [dependencies.rug]

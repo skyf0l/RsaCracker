@@ -4,7 +4,7 @@
 [![Crate.io](https://img.shields.io/crates/v/rsacracker.svg)](https://crates.io/crates/rsacracker)
 [![codecov](https://codecov.io/gh/skyf0l/rsacracker/branch/master/graph/badge.svg)](https://codecov.io/gh/skyf0l/rsacracker)
 
-Ctf tool to quickly solve RSA cipher
+Powerful RSA cracker for CTFs.
 
 ## Installation
 

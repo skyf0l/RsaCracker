@@ -1,35 +1,32 @@
 # RSA Solver
 
-Ctf tool to quickly solve RSA cipher
+[![Build](https://github.com/skyf0l/RsaCracker/actions/workflows/ci.yml/badge.svg)](https://github.com/skyf0l/RsaCracker/actions/workflows/ci.yml)
+[![Crate.io](https://img.shields.io/crates/v/rsacracker.svg)](https://crates.io/crates/rsacracker)
+[![codecov](https://codecov.io/gh/skyf0l/rsacracker/branch/master/graph/badge.svg)](https://codecov.io/gh/skyf0l/rsacracker)
 
-# Config
+Powerful RSA cracker for CTFs.
 
-```bash
-$ pip3 install --user -r requirements.txt
+## Installation
+
+From crates.io:
+
+```console
+cargo install rsacracker
 ```
 
-# Attacks
+## License
 
-- Primes known
-- Factorization
-- Low exponent
-- Low plaintext (m\*\*e < n)
-- Low cipher (m\*\*e just barely larger than n)
-- Too big exponent
+Licensed under either of
 
-# Exemple
+- Apache License, Version 2.0
+  ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license
+  ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
-```
-$ ./rsasolver.py
-Chose an attack:
- 1/ Primes known (p, q, e, c)
- 2/ Factorization (n, e, c)
- 3/ Low exponent (e = 3, n1, n2, n3, c1, c2, c3)
-> 2
-N: 1076464028341992536199809615911537893692586697
-e: 65537
-c: 862369381078327546132185807811079056687202787
+at your option.
 
--> m(dec): 99525074994170507913687585
--> m(from dec): RSA Solver!
-```
+## Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.

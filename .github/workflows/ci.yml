@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Stable with rustfmt and clippy
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
+
+      - name: Check coding style
+        run: cargo fmt --check --all
+
+      - name: Lint
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Build
+        run: cargo build
+
+      - name: Test
+        run: cargo nextest run --all-targets
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Tests
+        run: cargo test --all-targets
+        env:
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+
+      - name: Grcov
+        id: coverage
+        uses: actions-rs/grcov@v0.1
+        with:
+          config: grcov.yml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ${{ steps.coverage.outputs.report }}
+          flags: rust
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -1,0 +1,44 @@
+[package]
+name = "rsacracker"
+version = "0.1.0"
+edition = "2021"
+authors = ["skyf0l <skyf0lmails@proton.me>"]
+description = "Powerful RSA cracker for CTFs"
+repository = "https://github.com/skyf0l/RsaCracker"
+license = "MIT OR Apache-2.0"
+categories = ["security", "rsa", "encryption", "crypto", "cryptography"]
+keywords = ["rsa", "cracker", "ctf", "crypto", "cryptography"]
+include = [
+  "src/**/*",
+  "Cargo.toml",
+  "LICENSE*",
+  "README.md",
+]
+readme = "README.md"
+
+[features]
+default = []
+# Enable this feature to statically link our own build of Z3, rather than
+# dynamically linking to the system's `libz3.so`.
+static-link-z3 = ["z3/static-link-z3"]
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+
+[dependencies]
+thiserror = "1"
+lazy_static = "1"
+clap = { version = "4", features = ["derive", "env"] }
+main_error = "0.1"
+primal = "0.3"
+ecm = "0.2"
+openssl = "0.10"
+base-x = "0.2"
+z3 = "0.11"
+display_bytes = "0.2"
+
+[dependencies.rug]
+version = "1"
+default-features = false
+features = ["integer", "rand"]

@@ -4,8 +4,9 @@
 [![Crate.io](https://img.shields.io/crates/v/rsacracker.svg)](https://crates.io/crates/rsacracker)
 [![codecov](https://codecov.io/gh/skyf0l/rsacracker/branch/master/graph/badge.svg)](https://codecov.io/gh/skyf0l/rsacracker)
 
-Powerful RSA cracker for CTFs.
+Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
 
+RsaCracker provides a simple interface to crack RSA keys and ciphers. With a collection of thousands of attacks, no key <!-- or at least that's what I hope --> can survive against RsaCracker!
 ## Installation
 
 From crates.io:

@@ -66,6 +66,9 @@ struct Args {
     /// Public key PEM/X509/openssh file.
     #[clap(long)]
     publickey: Option<String>,
+    /// Print the RSA public key variables n and e, and exit.
+    #[clap(long, requires("publickey"))]
+    dumppublickey: bool,
     /// Private key PEM file.
     #[clap(long)]
     privatekey: Option<String>,
@@ -103,7 +106,14 @@ fn main() -> Result<(), MainError> {
     };
     if let Some(public_key) = args.publickey {
         let bytes = std::fs::read(public_key)?;
-        params += Parameters::from_public_key(&bytes).ok_or("Invalid public key")?;
+        let public_key_params = Parameters::from_public_key(&bytes).ok_or("Invalid public key")?;
+        if args.dumppublickey {
+            println!("Public key :");
+            println!("n = {}", public_key_params.n.unwrap());
+            println!("e = {}", public_key_params.e);
+            return Ok(());
+        }
+        params += public_key_params;
     };
     if let Some(private_key) = args.privatekey {
         let bytes = std::fs::read(private_key)?;

@@ -50,12 +50,10 @@ impl Parameters {
 
     /// Create parameters from rsa public key
     pub fn from_rsa_public_key(key: &[u8]) -> Option<Self> {
-        let public_key = openssl::rsa::Rsa::public_key_from_pem(key)
-            .or_else(|_| openssl::rsa::Rsa::public_key_from_der(key))
-            .or_else(|_| openssl::rsa::Rsa::public_key_from_pem_pkcs1(key))
-            .or_else(|_| openssl::rsa::Rsa::public_key_from_der_pkcs1(key))
-            .or_else(|_| openssl::pkey::PKey::public_key_from_pem(key)?.rsa())
-            .or_else(|_| openssl::pkey::PKey::public_key_from_der(key)?.rsa())
+        let public_key = openssl::pkey::PKey::public_key_from_pem(key)
+            .or_else(|_| openssl::pkey::PKey::public_key_from_der(key))
+            .ok()?
+            .rsa()
             .ok()?;
 
         Some(Self {
@@ -105,12 +103,22 @@ impl Parameters {
 
     /// Create parameters from rsa private key
     pub fn from_rsa_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
-        let private_key = openssl::rsa::Rsa::private_key_from_der(key)
+        let private_key = openssl::pkey::PKey::private_key_from_der(key)
             .or_else(|_| {
                 if let Some(passphrase) = passphrase {
-                    openssl::rsa::Rsa::private_key_from_pem_passphrase(key, passphrase.as_bytes())
+                    openssl::pkey::PKey::private_key_from_pkcs8_passphrase(
+                        key,
+                        passphrase.as_bytes(),
+                    )
+                    .or_else(|_| {
+                        openssl::pkey::PKey::private_key_from_pem_passphrase(
+                            key,
+                            passphrase.as_bytes(),
+                        )
+                    })
                 } else {
-                    openssl::rsa::Rsa::private_key_from_pem(key)
+                    openssl::pkey::PKey::private_key_from_pkcs8(key)
+                        .or_else(|_| openssl::pkey::PKey::private_key_from_pem(key))
                 }
             })
             .map_err(|e| {
@@ -120,6 +128,8 @@ impl Parameters {
                     }
                 })
             })
+            .ok()?
+            .rsa()
             .ok()?;
 
         Some(Self {

@@ -51,6 +51,7 @@ impl Parameters {
     pub fn from_rsa_public_pem(key: &[u8]) -> Option<Self> {
         let public_key = openssl::rsa::Rsa::public_key_from_pem(key)
             .or_else(|_| openssl::rsa::Rsa::public_key_from_pem_pkcs1(key))
+            .or_else(|_| openssl::pkey::PKey::public_key_from_pem(key)?.rsa())
             .ok()?;
 
         Some(Self {

@@ -66,7 +66,7 @@ struct Args {
     /// Public key PEM/X509 file.
     #[clap(long)]
     publickey: Option<String>,
-    /// Private key PEM/X509 file.
+    /// Private key PEM file.
     #[clap(long)]
     privatekey: Option<String>,
     /// Private key password/passphrase if encrypted.

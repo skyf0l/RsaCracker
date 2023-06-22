@@ -62,7 +62,7 @@ impl Parameters {
 
     /// Create parameters from x509 public key
     pub fn from_x509_public_pem(key: &[u8]) -> Option<Self> {
-        let public_key = openssl::x509::X509::from_pem(key).unwrap();
+        let public_key = openssl::x509::X509::from_pem(key).ok()?;
         let rsa = public_key.public_key().ok()?.rsa().ok()?;
 
         Some(Self {
@@ -74,7 +74,7 @@ impl Parameters {
 
     /// Create parameters from private key
     pub fn from_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
-        Self::from_rsa_private_pem(key, passphrase).or_else(|| Self::from_x509_private_pem(key))
+        Self::from_rsa_private_pem(key, passphrase)
     }
 
     /// Create parameters from rsa private key
@@ -92,18 +92,10 @@ impl Parameters {
         Some(Self {
             n: Some(private_key.n().to_string().parse().unwrap()),
             e: private_key.e().to_string().parse().unwrap(),
-            ..Default::default()
-        })
-    }
-
-    /// Create parameters from x509 private key
-    pub fn from_x509_private_pem(key: &[u8]) -> Option<Self> {
-        let private_key = openssl::x509::X509::from_pem(key).unwrap();
-        let rsa = private_key.public_key().ok()?.rsa().ok()?;
-
-        Some(Self {
-            n: Some(rsa.n().to_string().parse().unwrap()),
-            e: rsa.e().to_string().parse().unwrap(),
+            p: private_key.p().map(|p| p.to_string().parse().unwrap()),
+            q: private_key.q().map(|q| q.to_string().parse().unwrap()),
+            dp: private_key.dmp1().map(|dp| dp.to_string().parse().unwrap()),
+            dq: private_key.dmq1().map(|dq| dq.to_string().parse().unwrap()),
             ..Default::default()
         })
     }

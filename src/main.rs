@@ -79,7 +79,7 @@ struct Args {
     #[clap(long)]
     printkey: bool,
     /// Add a password/passphrase to the private key.
-    #[clap(long)]
+    #[clap(long, requires("printkey"))]
     addpassword: Option<String>,
     /// Print the RSA key variables n, e, p, q and d.
     #[clap(long)]

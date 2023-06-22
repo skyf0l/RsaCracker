@@ -29,11 +29,7 @@ pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
     if let (Some(p), Some(q)) = (&params.p, &params.q) {
         // If we have p and q, we can directly compute the private key
         let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
-        let m = if let Some(c) = &params.c {
-            Some(private_key.decrypt(c))
-        } else {
-            None
-        };
+        let m = params.c.as_ref().map(|c| private_key.decrypt(c));
 
         return Some((Some(private_key), m));
     }

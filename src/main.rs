@@ -63,15 +63,21 @@ struct Args {
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
-    /// Public key PEM file.
+    /// Public key PEM/X509 file.
     #[clap(long)]
     publickey: Option<String>,
-    /// Private key PEM file.
+    /// Private key PEM/X509 file.
     #[clap(long)]
     privatekey: Option<String>,
+    /// Private key password/passphrase if encrypted.
+    #[clap(long)]
+    password: Option<String>,
     /// Print the private key in PEM format.
     #[clap(long)]
     printkey: bool,
+    /// Add a password/passphrase to the private key.
+    #[clap(long)]
+    addpassword: Option<String>,
     /// Print the RSA key variables n, e, p, q and d.
     #[clap(long)]
     dumpkey: bool,
@@ -103,14 +109,15 @@ fn main() -> Result<(), MainError> {
     };
     if let Some(private_key) = args.privatekey {
         let bytes = std::fs::read(private_key)?;
-        params += Parameters::from_private_key(&bytes).ok_or("Invalid private key")?;
+        params +=
+            Parameters::from_private_key(&bytes, &args.password).ok_or("Invalid private key")?;
     };
     let (private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
 
     if args.printkey || args.dumpkey || args.dumpextkey {
         if let Some(private_key) = &private_key {
             if args.printkey {
-                println!("{}", private_key.to_pem().unwrap());
+                println!("{}", private_key.to_pem(&args.addpassword).unwrap());
             }
             if args.dumpkey || args.dumpextkey {
                 println!("Private key :");

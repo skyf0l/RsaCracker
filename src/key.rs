@@ -32,7 +32,7 @@ impl PrivateKey {
     /// Create private key from p and q
     pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Result<Self, KeyError> {
         let n = Integer::from(&p * &q);
-        let phi = phi(&vec![p.clone(), q.clone()]);
+        let phi = phi(&[p.clone(), q.clone()]);
         let d = e
             .clone()
             .invert(&phi)
@@ -76,7 +76,7 @@ impl PrivateKey {
     }
 
     /// Convert to PEM format
-    pub fn to_pem(&self) -> Option<String> {
+    pub fn to_pem(&self, passphrase: &Option<String>) -> Option<String> {
         if !self.other_factors.is_empty() {
             panic!("Only keys with two factors can be converted to PEM format");
         }
@@ -104,8 +104,17 @@ impl PrivateKey {
         .ok()?
         .build();
 
-        rsa.private_key_to_pem()
+        if let Some(passphrase) = passphrase {
+            rsa.private_key_to_pem_passphrase(
+                openssl::symm::Cipher::aes_256_cbc(),
+                passphrase.as_bytes(),
+            )
             .ok()
             .map(|pem| String::from_utf8(pem).unwrap())
+        } else {
+            rsa.private_key_to_pem()
+                .ok()
+                .map(|pem| String::from_utf8(pem).unwrap())
+        }
     }
 }

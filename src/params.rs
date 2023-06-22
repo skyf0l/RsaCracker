@@ -73,13 +73,21 @@ impl Parameters {
     }
 
     /// Create parameters from private key
-    pub fn from_private_key(key: &[u8]) -> Option<Self> {
-        Self::from_rsa_private_pem(key).or_else(|| Self::from_x509_private_pem(key))
+    pub fn from_private_key(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+        Self::from_rsa_private_pem(key, passphrase).or_else(|| Self::from_x509_private_pem(key))
     }
 
     /// Create parameters from rsa private key
-    pub fn from_rsa_private_pem(key: &[u8]) -> Option<Self> {
-        let private_key = openssl::rsa::Rsa::private_key_from_pem(key).ok()?;
+    pub fn from_rsa_private_pem(key: &[u8], passphrase: &Option<String>) -> Option<Self> {
+        let private_key = openssl::rsa::Rsa::private_key_from_pem(key)
+            .ok()
+            .or_else(|| {
+                openssl::rsa::Rsa::private_key_from_pem_passphrase(
+                    key,
+                    passphrase.as_ref()?.as_bytes(),
+                )
+                .ok()
+            })?;
 
         Some(Self {
             n: Some(private_key.n().to_string().parse().unwrap()),
@@ -105,7 +113,7 @@ impl Add for Parameters {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let mut out = self.clone();
+        let mut out = self;
         out += rhs;
         out
     }
@@ -116,7 +124,7 @@ impl AddAssign for Parameters {
         if self.n.is_none() {
             self.n = rhs.n;
         }
-        if self.e == Integer::from(65537) {
+        if self.e == 65537 {
             self.e = rhs.e;
         }
         if self.c.is_none() {

@@ -156,12 +156,6 @@ impl Parameters {
             q: rsa
                 .q()
                 .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
-            dp: rsa
-                .dmp1()
-                .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
-            dq: rsa
-                .dmq1()
-                .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
             ..Default::default()
         })
     }

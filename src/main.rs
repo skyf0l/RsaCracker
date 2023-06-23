@@ -51,6 +51,9 @@ struct Args {
     /// Prime number q.
     #[clap(short)]
     q: Option<IntegerArg>,
+    /// Private exponent.
+    #[clap(short)]
+    d: Option<IntegerArg>,
     /// Phi or Euler's totient function of n. (p-1)(q-1)
     #[clap(long)]
     phi: Option<IntegerArg>,
@@ -99,6 +102,7 @@ fn main() -> Result<(), MainError> {
         e: args.e.0,
         p: args.p.map(|n| n.0),
         q: args.q.map(|n| n.0),
+        d: args.d.map(|n| n.0),
         phi: args.phi.map(|n| n.0),
         dp: args.dp.map(|n| n.0),
         dq: args.dq.map(|n| n.0),

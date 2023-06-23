@@ -14,6 +14,8 @@ pub struct Parameters {
     pub p: Option<Integer>,
     /// Prime number q.
     pub q: Option<Integer>,
+    /// Private exponent.
+    pub d: Option<Integer>,
     /// dP or dmp1 CRT exponent. (d mod p-1)
     pub dp: Option<Integer>,
     /// dQ or dmq1 CRT exponent. (d mod q-1)
@@ -32,6 +34,7 @@ impl Default for Parameters {
             c: None,
             p: None,
             q: None,
+            d: None,
             dp: None,
             dq: None,
             phi: None,
@@ -235,6 +238,9 @@ impl AddAssign for Parameters {
         }
         if self.q.is_none() {
             self.q = rhs.q;
+        }
+        if self.d.is_none() {
+            self.d = rhs.d;
         }
         if self.dp.is_none() {
             self.dp = rhs.dp;

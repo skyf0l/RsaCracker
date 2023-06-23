@@ -3,6 +3,7 @@ use rug::Integer;
 
 mod cube_root;
 mod ecm;
+mod known_d;
 mod known_factors;
 mod known_phi;
 mod leaked_crt_exponent;
@@ -19,6 +20,7 @@ use crate::Parameters;
 pub use self::ecm::EcmAttack;
 pub use self::z3::Z3Attack;
 pub use cube_root::CubeRootAttack;
+pub use known_d::KnownDAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use known_phi::KnownPhiAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
@@ -58,6 +60,7 @@ lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Send + Sync>> = vec![
         Box::new(CubeRootAttack),
+        Box::new(KnownDAttack),
         Box::new(KnownFactorsAttack),
         Box::new(KnownPhiAttack),
         Box::new(LeakedCrtExponentAttack),

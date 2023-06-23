@@ -44,7 +44,7 @@ impl Parameters {
     /// Create parameters from public key
     pub fn from_public_key(key: &[u8]) -> Option<Self> {
         Self::from_rsa_public_key(key)
-            .or_else(|| Self::from_x509_public_key(key))
+            .or_else(|| Self::from_x509_cert(key))
             .or_else(|| Self::from_openssh_public_key(key))
     }
 
@@ -52,37 +52,47 @@ impl Parameters {
     pub fn from_rsa_public_key(key: &[u8]) -> Option<Self> {
         let public_key = openssl::pkey::PKey::public_key_from_pem(key)
             .or_else(|_| openssl::pkey::PKey::public_key_from_der(key))
-            .ok()?
-            .rsa()
             .ok()?;
+        let rsa = public_key.rsa().ok()?;
 
         Some(Self {
-            n: Some(public_key.n().to_string().parse().unwrap()),
-            e: public_key.e().to_string().parse().unwrap(),
+            n: Some(Integer::from_digits(
+                &rsa.n().to_vec(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
             ..Default::default()
         })
     }
 
-    /// Create parameters from x509 public key
-    pub fn from_x509_public_key(key: &[u8]) -> Option<Self> {
-        let public_key = openssl::x509::X509::from_pem(key)
+    /// Create parameters from x509 certificate
+    pub fn from_x509_cert(key: &[u8]) -> Option<Self> {
+        let cert = openssl::x509::X509::from_pem(key)
             .or_else(|_| openssl::x509::X509::from_der(key))
             .ok()?;
-        let rsa = public_key.public_key().ok()?.rsa().ok()?;
+        let rsa = cert.public_key().ok()?.rsa().ok()?;
 
         Some(Self {
-            n: Some(rsa.n().to_string().parse().unwrap()),
-            e: rsa.e().to_string().parse().unwrap(),
+            n: Some(Integer::from_digits(
+                &rsa.n().to_vec(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
             ..Default::default()
         })
     }
 
     /// Create parameters from openssh public key
     pub fn from_openssh_public_key(key: &[u8]) -> Option<Self> {
-        let public_key =
-            ssh_key::public::PublicKey::from_openssh(&String::from_utf8(key.to_vec()).ok()?)
-                .or_else(|_| ssh_key::public::PublicKey::from_bytes(key))
-                .ok()?;
+        let public_key = ssh_key::public::PublicKey::from_bytes(key)
+            .ok()
+            .or_else(|| {
+                if let Ok(key) = String::from_utf8(key.to_vec()) {
+                    ssh_key::public::PublicKey::from_openssh(&key).ok()
+                } else {
+                    None
+                }
+            })?;
         let rsa = public_key.key_data().rsa()?;
 
         Some(Self {
@@ -128,17 +138,27 @@ impl Parameters {
                     }
                 })
             })
-            .ok()?
-            .rsa()
             .ok()?;
+        let rsa = private_key.rsa().ok()?;
 
         Some(Self {
-            n: Some(private_key.n().to_string().parse().unwrap()),
-            e: private_key.e().to_string().parse().unwrap(),
-            p: private_key.p().map(|p| p.to_string().parse().unwrap()),
-            q: private_key.q().map(|q| q.to_string().parse().unwrap()),
-            dp: private_key.dmp1().map(|dp| dp.to_string().parse().unwrap()),
-            dq: private_key.dmq1().map(|dq| dq.to_string().parse().unwrap()),
+            n: Some(Integer::from_digits(
+                &rsa.n().to_vec(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
+            p: rsa
+                .p()
+                .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
+            q: rsa
+                .q()
+                .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
+            dp: rsa
+                .dmp1()
+                .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
+            dq: rsa
+                .dmq1()
+                .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
             ..Default::default()
         })
     }

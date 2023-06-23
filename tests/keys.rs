@@ -8,7 +8,7 @@ use rug::Integer;
 // General keys
 
 #[test]
-fn public_key_pem_pkcs8() {
+fn public_key_pem() {
     let params = Parameters {
         c: Some(320419646801136116600272659448u128.into()),
         ..Default::default()
@@ -42,7 +42,7 @@ fn public_key_der() {
 }
 
 #[test]
-fn private_key_pem_pkcs8() {
+fn private_key_pem() {
     let params = Parameters {
         c: Some(320419646801136116600272659448u128.into()),
         ..Default::default()
@@ -78,7 +78,7 @@ fn private_key_der() {
 }
 
 #[test]
-fn private_key_pem_pkcs8_passphrase() {
+fn private_key_pem_passphrase() {
     let params = Parameters {
         c: Some(320419646801136116600272659448u128.into()),
         ..Default::default()
@@ -118,7 +118,7 @@ fn private_key_der_passphrase() {
 // RSA keys
 
 #[test]
-fn rsa_private_key_pem_pkcs8() {
+fn rsa_private_key_pem() {
     let params = Parameters {
         c: Some(320419646801136116600272659448u128.into()),
         ..Default::default()
@@ -137,7 +137,7 @@ MFECAQACDQTNDY65nXYhccRMMg8CAwEAAQINAfqXHP4rBDzeEjWDiQIHAb+8DAb4
 }
 
 #[test]
-fn rsa_private_key_pem_pkcs8_passphrase() {
+fn rsa_private_key_pem_passphrase() {
     let params = Parameters {
         c: Some(320419646801136116600272659448u128.into()),
         ..Default::default()
@@ -200,6 +200,117 @@ fn x509_certificate_der() {
         ..Default::default()
     } + Parameters::from_public_key(
         &STANDARD.decode("MIIC/zCCAmegAwIBAgIUAwZtlVd7wDprkunkxCzgjEynESUwDQYJKoZIhvcNAQELBQAwgZAxCzAJBgNVBAYTAlhYMRMwEQYDVQQIDApSc2FDcmFja2VyMRMwEQYDVQQHDApSc2FDcmFja2VyMQ8wDQYDVQQKDAZTa3lmMGwxEzARBgNVBAsMClJzYUNyYWNrZXIxDzANBgNVBAMMBlNreWYwbDEgMB4GCSqGSIb3DQEJARYRU2t5ZjBsQFJzYUNyYWNrZXIwHhcNMjMwNjIyMjI0NjM2WhcNMjMwNjIzMjI0NjM2WjCBkDELMAkGA1UEBhMCWFgxEzARBgNVBAgMClJzYUNyYWNrZXIxEzARBgNVBAcMClJzYUNyYWNrZXIxDzANBgNVBAoMBlNreWYwbDETMBEGA1UECwwKUnNhQ3JhY2tlcjEPMA0GA1UEAwwGU2t5ZjBsMSAwHgYJKoZIhvcNAQkBFhFTa3lmMGxAUnNhQ3JhY2tlcjCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEH5hMm5qr4RPPeOvwEguZf2p9ubqVpMKru37cWvBDUWuyibXMkriWvtff9xIiwhQw51DXBhbK5/UVVPF5gx+18Et54MchZbTb8qnQyrl57YnoTTUHRUC0rMp5MUisejlfp51w+9s8pazHrp439Lktj6ihTJDo+5eO7dKDqAbhxR0ECAwEAAaNTMFEwHQYDVR0OBBYEFIT9qTzuZfFUWXrTJddlTaPlugc/MB8GA1UdIwQYMBaAFIT9qTzuZfFUWXrTJddlTaPlugc/MA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADgYIAAIuEwc97pUX3m6N3U9CbsU42Q2DxIzZyh1v7XI9ekOM+yzanOXaNr5GoqIhBz5CA/dRxOdjDZjkCQGUd+nX09YH+zGeg3sWE2w/l5EvlCc4Z4EoetIoYwcAWtuM9HRh6QYQv6HL59CWKMNNPzUtOoUVlhmFxpqC4VsAxcZcKvpEN").unwrap(),
+    )
+    .unwrap();
+
+    let (private_key, m) = run_attacks(&params).unwrap();
+    assert!(private_key.is_some());
+    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+}
+
+// OpenSSH keys
+
+#[test]
+fn openssh_public_key_pem() {
+    let params = Parameters {
+        c: Some(320419646801136116600272659448u128.into()),
+        ..Default::default()
+    } + Parameters::from_public_key(
+        b"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAADQTNDY65nXYhccRMMg8= RsaCracker",
+    )
+    .unwrap();
+
+    let (public_key, m) = run_attacks(&params).unwrap();
+    assert!(public_key.is_some());
+    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+}
+
+#[test]
+fn openssh_public_key_der() {
+    let params = Parameters {
+        c: Some(320419646801136116600272659448u128.into()),
+        ..Default::default()
+    } + Parameters::from_public_key(
+        &STANDARD
+            .decode("AAAAB3NzaC1yc2EAAAADAQABAAAADQTNDY65nXYhccRMMg8=")
+            .unwrap(),
+    )
+    .unwrap();
+
+    let (public_key, m) = run_attacks(&params).unwrap();
+    assert!(public_key.is_some());
+    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+}
+
+#[test]
+fn openssh_private_key_pem() {
+    let params = Parameters {
+        c: Some(320419646801136116600272659448u128.into()),
+        ..Default::default()
+    } + Parameters::from_private_key(
+        b"-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAIwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAA0EzQ2OuZ12IXHETDIPAAAAcCHDpqMhw6ajAAAAB3NzaC1yc2EAAAAN
+BM0NjrmddiFxxEwyDwAAAAMBAAEAAAANAfqXHP4rBDzeEjWDiQAAAAZVW5GPi7wAAAAHAb
++8DAb41QAAAAcCvrt7JfFTAAAAClJzYUNyYWNrZXIBAgMEBQY=
+-----END OPENSSH PRIVATE KEY-----",
+        None,
+    )
+    .unwrap();
+
+    let (private_key, m) = run_attacks(&params).unwrap();
+    assert!(private_key.is_some());
+    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+}
+#[test]
+fn openssh_private_key_der() {
+    let params = Parameters {
+        c: Some(320419646801136116600272659448u128.into()),
+        ..Default::default()
+    } + Parameters::from_private_key(
+        &STANDARD
+        .decode("b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAHQAAAAdzc2gtcnNhAAAAAwEAAQAAAAcBv7wMBvjVAAAAaCHDpqMhw6ajAAAAB3NzaC1yc2EAAAAHAb+8DAb41QAAAAMBAAEAAAANAfqXHP4rBDzeEjWDiQAAAAZVW5GPi7wAAAAHAb+8DAb41QAAAAcCvrt7JfFTAAAAClJzYUNyYWNrZXIBAgME")
+        .unwrap(),
+        None,
+    )
+    .unwrap();
+
+    let (private_key, m) = run_attacks(&params).unwrap();
+    assert!(private_key.is_some());
+    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+}
+
+#[test]
+fn openssh_private_key_pem_passphrase() {
+    let params = Parameters {
+        c: Some(320419646801136116600272659448u128.into()),
+        ..Default::default()
+    } + Parameters::from_private_key(
+        b"-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABD0t+f3YF
+lSvvFRppcxMBocAAAAEAAAAAEAAAAdAAAAB3NzaC1yc2EAAAADAQABAAAABwG/vAwG+NUA
+AABwWL+SSc+BqiMVT2vXWTAYpdG9BjxdOF+Krlt0dz9Fn+G5gO3CRbCLNNHOnhdoFaY6lm
+9i6yc3Zv7nbZ/HmIGC2G13Wsk+HXxFHFP//MvyQmCkS1HinnA88Ps+kj67suw9qeSI6rtp
+JsH1ba3lNceXDg==
+-----END OPENSSH PRIVATE KEY-----",
+        Some("Skyf0l".to_string()),
+    )
+    .unwrap();
+
+    let (private_key, m) = run_attacks(&params).unwrap();
+    assert!(private_key.is_some());
+    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+}
+
+#[test]
+fn openssh_private_key_der_passphrase() {
+    let params = Parameters {
+        c: Some(320419646801136116600272659448u128.into()),
+        ..Default::default()
+    } + Parameters::from_private_key(&STANDARD
+        .decode("b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABC16CcvIhvEjobXOm+u6+OmAAAAEAAAAAEAAAAdAAAAB3NzaC1yc2EAAAADAQABAAAABwG/vAwG+NUAAABw8wKoCvI57zWDL2JpI38f8wxTfj9m+jvcVJwRvixJLFaZM15zM5y5xFFCy0BC7e5EpzkBXN1B7P5ZDvtmD0MuSdsGIs35loSk6gxV9jJ2dA4tVP+lzasqhG7aecdQseIpRCDNs25Nn7lRVCRSRERMCQ==")
+        .unwrap(),
+        Some("Skyf0l".to_string()),
     )
     .unwrap();
 

@@ -1,10 +1,9 @@
 use clap::{command, Parser};
 use display_bytes::display_bytes;
 use main_error::MainError;
-
 use rug::Integer;
 
-use rsacracker::{integer_to_bytes, integer_to_string, run_attacks, Parameters};
+use rsacracker::{integer_to_bytes, integer_to_string, run_parallel_attacks, Parameters};
 
 #[derive(Debug, Clone)]
 struct IntegerArg(Integer);
@@ -90,9 +89,12 @@ struct Args {
     /// Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv.
     #[clap(long)]
     dumpextkey: bool,
+    /// Number of threads to use. Default: number of CPUs
+    #[cfg(feature = "parallel")]
+    #[clap(short, long, default_value_t = num_cpus::get())]
+    threads: usize,
 }
 
-#[cfg(not(tarpaulin_include))]
 fn main() -> Result<(), MainError> {
     let args = Args::parse();
 
@@ -124,8 +126,8 @@ fn main() -> Result<(), MainError> {
         params +=
             Parameters::from_private_key(&bytes, args.password).ok_or("Invalid private key")?;
     };
-    let (private_key, uncipher) = run_attacks(&params).ok_or("No attack succeeded")?;
-
+    let (private_key, uncipher) =
+        run_parallel_attacks(&params, args.threads).ok_or("No attack succeeded")?;
     if args.printkey || args.dumpkey || args.dumpextkey {
         if let Some(private_key) = &private_key {
             if args.printkey {

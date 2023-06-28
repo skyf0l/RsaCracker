@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use rsacracker::{integer_to_string, run_attacks, Parameters};
+use rsacracker::{integer_to_string, run_parallel_attacks, Parameters};
 use rug::Integer;
 
 #[test]
@@ -15,7 +15,7 @@ fn picoctf_2017_weirderrsa() {
             ..Default::default()
         };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
+    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
     assert!(private_key.is_some());
     assert_eq!(
         integer_to_string(&m.unwrap()).unwrap(),
@@ -35,7 +35,7 @@ fn picoctf_2017_smallrsa() {
             ..Default::default()
         };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
+    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
     assert!(private_key.is_some());
     assert_eq!(
         integer_to_string(&m.unwrap()).unwrap(),

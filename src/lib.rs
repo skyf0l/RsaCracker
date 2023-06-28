@@ -1,9 +1,10 @@
 #![doc = include_str!("../README.md")]
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
-
 use key::PrivateKey;
 use rug::Integer;
+use std::sync::mpsc;
+use std::sync::Arc;
 
 mod attack;
 mod key;
@@ -25,6 +26,31 @@ pub fn integer_to_string(i: &Integer) -> Option<String> {
 }
 
 /// Attack!
+#[allow(clippy::borrowed_box)]
+pub fn run_attack(
+    attack: &Box<dyn Attack + Sync>,
+    params: &Parameters,
+) -> Result<SolvedRsa, Error> {
+    match attack.run(params) {
+        Ok((private_key, m)) => {
+            eprintln!("{} attack succeeded", attack.name());
+
+            // If we have a private key and a cipher message, decrypt it
+            let m = if let (Some(private_key), Some(c), None) = (&private_key, &params.c, &m) {
+                Some(private_key.decrypt(c))
+            } else {
+                m
+            };
+            Ok((private_key, m))
+        }
+        Err(e) => {
+            eprintln!("{} attack failed: {e}", attack.name());
+            Err(e)
+        }
+    }
+}
+
+/// Attack!
 pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
     if let (Some(p), Some(q)) = (&params.p, &params.q) {
         // If we have p and q, we can directly compute the private key
@@ -35,23 +61,59 @@ pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
     }
 
     for attack in ATTACKS.iter() {
-        println!("Running attack: {}", attack.name());
-        match attack.run(params) {
-            Ok((private_key, m)) => {
-                println!("=> Attack successful!");
-
-                // If we have a private key and a cipher message, decrypt it
-                let m = if let (Some(private_key), Some(c), None) = (&private_key, &params.c, &m) {
-                    Some(private_key.decrypt(c))
-                } else {
-                    m
-                };
-                return Some((private_key, m));
-            }
-            Err(e) => {
-                println!("=> Attack failed: {e}");
-            }
+        match run_attack(attack, params) {
+            Ok(solved) => return Some(solved),
+            _ => continue,
         }
     }
     None
+}
+
+#[cfg(feature = "parallel")]
+async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<SolvedRsa>) {
+    for attack in ATTACKS.iter() {
+        let params = params.clone();
+        let sender = sender.clone();
+        tokio::task::spawn(async move {
+            if let Ok(solved) = run_attack(attack, &params) {
+                sender.send(solved).expect("Failed to send result");
+            }
+        });
+    }
+}
+
+/// Attack!
+///
+/// This function will spawn a number of threads and run the attacks in parallel.
+#[cfg(feature = "parallel")]
+pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<SolvedRsa> {
+    if let (Some(p), Some(q)) = (&params.p, &params.q) {
+        // If we have p and q, we can directly compute the private key
+        let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
+        let m = params.c.as_ref().map(|c| private_key.decrypt(c));
+
+        return Some((Some(private_key), m));
+    }
+
+    // Create channel for sending result
+    let (sender, receiver) = mpsc::channel();
+
+    // Create runtime
+    let params = Arc::new(params.clone());
+    let r = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(threads)
+        .enable_all()
+        .build()
+        .unwrap();
+
+    // Spawn attacks in background
+    r.spawn(async { _run_parallel_attacks(params, sender).await });
+
+    // Wait for result
+    let res = receiver.recv().unwrap();
+
+    // Shut down runtime
+    r.shutdown_background();
+
+    Some(res)
 }

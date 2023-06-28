@@ -17,7 +17,8 @@ include = [
 readme = "README.md"
 
 [features]
-default = []
+default = ["parallel"]
+parallel = ["tokio", "mpsc", "num_cpus"]
 # Enable this feature to statically link our own build of Z3, rather than
 # dynamically linking to the system's `libz3.so`.
 static-link-z3 = ["z3/static-link-z3"]
@@ -38,6 +39,9 @@ base-x = "0.2"
 z3 = "0.11"
 display_bytes = "0.2"
 ssh-key = { version = "0.5", features = ["encryption"] }
+tokio = { version = "1.29", features = ["rt", "rt-multi-thread"], optional = true }
+mpsc = { version = "0.1", optional = true }
+num_cpus = { version = "1.15", optional = true }
 
 [dependencies.rug]
 version = "1"

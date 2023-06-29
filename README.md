@@ -15,6 +15,8 @@ From crates.io:
 cargo install rsacracker
 ```
 
+Note: To build on windows, you need to use [MSYS2](https://www.msys2.org/). This is required because of the [rug](https://crates.io/crates/rug) dependency. See [building-on-windows](https://gitlab.com/tspiteri/gmp-mpfr-sys#building-on-windows) for more information.
+
 ## License
 
 Licensed under either of

@@ -110,10 +110,37 @@ pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solve
     r.spawn(async { _run_parallel_attacks(params, sender).await });
 
     // Wait for result
-    let res = receiver.recv().unwrap();
+    let res = receiver.recv().ok();
 
     // Shut down runtime
     r.shutdown_background();
 
-    Some(res)
+    res
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn small_n_prime() {
+        let params = Parameters {
+            n: Some(17.into()),
+            ..Default::default()
+        };
+
+        assert!(run_parallel_attacks(&params, num_cpus::get()).is_none());
+    }
+
+    #[test]
+    fn huge_n_prime() {
+        let params = Parameters {
+            n: Some(Integer::from_str("150950816111585055950436869236123284160990231413373647521828062928627753386032919782972055383166559635310664285162066372523610577993375279955113527486550958102770506832902500192425306025328135063076003572633672638348517524292873178557112480133897718407035981216896328771653270839246863855405457570499").unwrap()),  
+            ..Default::default()
+        };
+
+        assert!(run_parallel_attacks(&params, num_cpus::get()).is_none());
+    }
 }

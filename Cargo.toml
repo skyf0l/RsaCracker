@@ -1,6 +1,6 @@
 [package]
 name = "rsacracker"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["skyf0l <skyf0lmails@proton.me>"]
 description = "Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats."

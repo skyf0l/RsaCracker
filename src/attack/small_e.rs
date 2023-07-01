@@ -12,7 +12,10 @@ impl Attack for SmallEAttack {
     }
 
     fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
-        let e = params.e.to_u32().unwrap();
+        let e = match params.e.to_u32() {
+            Some(e) => e,
+            None => return Err(Error::NotFound),
+        };
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
 

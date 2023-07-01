@@ -3,6 +3,7 @@ use rug::Integer;
 
 mod cube_root;
 mod ecm;
+mod fermat;
 mod known_d;
 mod known_factors;
 mod known_phi;
@@ -18,6 +19,7 @@ use crate::Parameters;
 
 pub use self::ecm::EcmAttack;
 pub use cube_root::CubeRootAttack;
+pub use fermat::FermatAttack;
 pub use known_d::KnownDAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use known_phi::KnownPhiAttack;
@@ -58,6 +60,7 @@ lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Sync>> = vec![
         Box::new(CubeRootAttack),
+        Box::new(FermatAttack),
         Box::new(KnownDAttack),
         Box::new(KnownFactorsAttack),
         Box::new(KnownPhiAttack),

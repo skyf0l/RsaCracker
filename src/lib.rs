@@ -2,6 +2,7 @@
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
 use key::PrivateKey;
+use rug::integer::IsPrime;
 use rug::Integer;
 #[cfg(feature = "parallel")]
 use std::sync::mpsc;
@@ -63,8 +64,23 @@ pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
     run_sequence_attacks(params)
 }
 
-/// Run all attacks in sequence (single-threaded)
-pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
+fn check_n_prime(n: &Option<Integer>) -> Option<()> {
+    if let Some(n) = &n {
+        match n.is_probably_prime(30) {
+            IsPrime::Yes => {
+                eprintln!("N is prime, no attacks possible");
+                return None;
+            }
+            IsPrime::Probably => {
+                eprintln!("Warning: n is probably prime, but not certain");
+            }
+            _ => {}
+        }
+    }
+    Some(())
+}
+
+fn given_p_q(params: &Parameters) -> Option<SolvedRsa> {
     if let (Some(p), Some(q)) = (&params.p, &params.q) {
         // If we have p and q, we can directly compute the private key
         let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
@@ -72,6 +88,15 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
 
         return Some((Some(private_key), m));
     }
+    None
+}
+
+/// Run all attacks in sequence (single-threaded)
+pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
+    if let Some(solve) = given_p_q(params) {
+        return Some(solve);
+    }
+    check_n_prime(&params.n)?;
 
     for attack in ATTACKS.iter() {
         match run_attack(attack, params) {
@@ -98,17 +123,14 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
 /// Run all attacks in parallel (multi-threaded)
 #[cfg(feature = "parallel")]
 pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<SolvedRsa> {
-    if let (Some(p), Some(q)) = (&params.p, &params.q) {
-        // If we have p and q, we can directly compute the private key
-        let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
-        let m = params.c.as_ref().map(|c| private_key.decrypt(c));
-
-        return Some((Some(private_key), m));
-    }
-
     if threads <= 1 {
         return run_sequence_attacks(params);
     }
+
+    if let Some(solve) = given_p_q(params) {
+        return Some(solve);
+    }
+    check_n_prime(&params.n)?;
 
     // Create channel for sending result
     let (sender, receiver) = mpsc::channel();

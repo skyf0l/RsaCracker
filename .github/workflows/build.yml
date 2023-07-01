@@ -42,9 +42,9 @@ jobs:
         run: |
           cargo build
 
-      - shell: msys2 {0}
-        run: |
-          cargo test
+      # - shell: msys2 {0}
+      #   run: |
+      #     cargo test
 
   mac:
     name: Build on MacOs

@@ -50,9 +50,10 @@ jobs:
           toolchain: nightly
           override: true
       - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
 
       - name: Tests
-        run: cargo test --all-targets
+        run: cargo nextest run --all-targets
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"

@@ -54,7 +54,7 @@ fn brent(n: &Integer) -> Option<Integer> {
     }
 
     if &g == n {
-        let start_ys = ys.clone();
+        let start_ys = Integer::from(&ys);
         loop {
             ys = (Integer::from(ys.pow_mod_ref(&two, n).unwrap()) + &c) % n;
             g = Integer::from((x.clone() - &ys).abs().gcd_ref(n));

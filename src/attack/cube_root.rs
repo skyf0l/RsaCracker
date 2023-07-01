@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use rug::Integer;
 
 use crate::{Attack, Error, Parameters, SolvedRsa};
@@ -11,7 +12,7 @@ impl Attack for CubeRootAttack {
         "cube_root"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = match params.e.to_u32() {
             Some(e) => e,
             None => return Err(Error::NotFound),

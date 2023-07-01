@@ -1,3 +1,5 @@
+use indicatif::ProgressBar;
+
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
 /// Lenstra's ECM factorization attack
@@ -9,7 +11,7 @@ impl Attack for EcmAttack {
         "ecm"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 

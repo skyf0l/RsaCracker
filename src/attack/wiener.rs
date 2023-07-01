@@ -1,8 +1,9 @@
+use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
 use crate::{
     key::PrivateKey,
-    ntheory::{convergents_from_contfrac, rational_to_contfrac, trivial_factorization_with_n_phi},
+    ntheory::{contfrac_to_rational, rational_to_contfrac, trivial_factorization_with_n_phi},
     Attack, Error, Parameters, SolvedRsa,
 };
 
@@ -15,11 +16,21 @@ impl Attack for WienerAttack {
         "wiener"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        let convergents = convergents_from_contfrac(&rational_to_contfrac(e, n));
+        let frac = rational_to_contfrac(e, n);
+        if let Some(pb) = pb {
+            pb.set_length(frac.len() as u64);
+        }
+        let mut convergents = Vec::new();
+        for i in 0..frac.len() {
+            convergents.push(contfrac_to_rational(&frac[0..i].to_vec()));
+            if let Some(pb) = pb {
+                pb.inc(1);
+            }
+        }
         for (k, d) in convergents {
             if k != 0 {
                 let (phi, q) = (e.clone() * &d - Integer::from(1)).div_rem_floor(k);

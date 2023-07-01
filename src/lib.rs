@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use key::PrivateKey;
 use rug::integer::IsPrime;
 use rug::Integer;
@@ -8,6 +9,8 @@ use rug::Integer;
 use std::sync::mpsc;
 #[cfg(feature = "parallel")]
 use std::sync::Arc;
+use std::thread::sleep;
+use std::time::Duration;
 
 mod attack;
 mod key;
@@ -33,24 +36,28 @@ pub fn integer_to_string(i: &Integer) -> Option<String> {
 pub fn run_attack(
     attack: &Box<dyn Attack + Sync>,
     params: &Parameters,
+    pb: Option<&ProgressBar>,
 ) -> Result<SolvedRsa, Error> {
-    match attack.run(params) {
-        Ok((private_key, m)) => {
-            eprintln!("{} attack succeeded", attack.name());
-
-            // If we have a private key and a cipher message, decrypt it
-            let m = if let (Some(private_key), Some(c), None) = (&private_key, &params.c, &m) {
-                Some(private_key.decrypt(c))
-            } else {
-                m
-            };
-            Ok((private_key, m))
-        }
-        Err(e) => {
-            eprintln!("{} attack failed: {e}", attack.name());
-            Err(e)
-        }
+    if let Some(pb) = pb {
+        pb.set_style(
+            ProgressStyle::with_template(
+                "{prefix:>12.bold} [{elapsed_precise}] [{wide_bar}] {percent:>3}% ({eta:^4}) ",
+            )
+            .unwrap(),
+        );
+        pb.set_prefix(attack.name());
     }
+    let res = attack.run(params, pb);
+    // pb.finish_and_clear();
+
+    let (private_key, m) = res?;
+    // If we have a private key and a cipher message, decrypt it
+    let m = if let (Some(private_key), Some(c), None) = (&private_key, &params.c, &m) {
+        Some(private_key.decrypt(c))
+    } else {
+        m
+    };
+    Ok((private_key, m))
 }
 
 /// Run all attacks.
@@ -99,7 +106,7 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
     check_n_prime(&params.n)?;
 
     for attack in ATTACKS.iter() {
-        match run_attack(attack, params) {
+        match run_attack(attack, params, None) {
             Ok(solved) => return Some(solved),
             _ => continue,
         }
@@ -109,12 +116,31 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
 
 #[cfg(feature = "parallel")]
 async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<SolvedRsa>) {
+    let mp = Arc::new(MultiProgress::new());
+    let pb_main = Arc::new(mp.add(ProgressBar::new(ATTACKS.len() as u64)));
+    pb_main.set_style(
+        ProgressStyle::with_template(
+            "{prefix:>12.green.bold} [{elapsed_precise}] [{wide_bar}] {pos}/{len}",
+        )
+        .unwrap()
+        .progress_chars("=> "),
+    );
+    pb_main.set_prefix("Running");
+
     for attack in ATTACKS.iter() {
-        let params = params.clone();
+        let params = Arc::clone(&params);
         let sender = sender.clone();
+        let mp = Arc::clone(&mp);
+        let pb_main = Arc::clone(&pb_main);
+        let pb = Arc::new(mp.insert(0, ProgressBar::new(1)));
         tokio::task::spawn(async move {
-            if let Ok(solved) = run_attack(attack, &params) {
-                sender.send(solved).expect("Failed to send result");
+            let res = run_attack(attack, &params, Some(&pb));
+            pb_main.inc(1);
+            if let Ok(solved) = res {
+                mp.suspend(|| {
+                    sender.send(solved).expect("Failed to send result");
+                    sleep(Duration::from_millis(100));
+                });
             }
         });
     }

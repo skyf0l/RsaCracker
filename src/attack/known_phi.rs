@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use rug::{integer::IsPrime, ops::Pow, rand::RandState, Integer};
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
@@ -78,7 +79,7 @@ impl Attack for KnownPhiAttack {
         "known_phi"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = params.e.clone();
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let phi = params.phi.as_ref().ok_or(Error::MissingParameters)?;
@@ -110,7 +111,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownPhiAttack.run(&params).unwrap();
+        let (private_key, m) = KnownPhiAttack.run(&params, None).unwrap();
         let private_key = private_key.unwrap();
 
         assert_eq!(private_key.p, Integer::from_str("119569912348019973808690648749233130234147905846600013235049261329629970511527761524945847616965313961538713539339797361044473682137188967689436399275622598823807683697187768076793066267578400065793399498609464820787702834758072187460388248841109767616650659184902691855492090063216897253934411433653188209273").unwrap());
@@ -126,7 +127,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownPhiAttack.run(&params).unwrap();
+        let (private_key, m) = KnownPhiAttack.run(&params, None).unwrap();
         let private_key = private_key.unwrap();
 
         assert_eq!(private_key.p, Integer::from(8973591997u64));

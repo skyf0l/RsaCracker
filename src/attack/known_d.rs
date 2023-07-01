@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use rug::{ops::Pow, rand::RandState, Integer};
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
@@ -11,7 +12,7 @@ impl Attack for KnownDAttack {
         "known_d"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let d = params.d.as_ref().ok_or(Error::MissingParameters)?;
@@ -53,7 +54,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownDAttack.run(&params).unwrap();
+        let (private_key, m) = KnownDAttack.run(&params, None).unwrap();
         let private_key = private_key.unwrap();
 
         assert_eq!(private_key.p, Integer::from_str("619725990001524703456465713279465625846752832414168572011466066232082436863841189586501588353354943054775532335900016320501197905886582011529076059068049302722289071314361386097002051734252322740808308805710458547662135247973085180484778717957169307399128511564888941495042113300382369335995877815563").unwrap());

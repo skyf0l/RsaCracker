@@ -1,8 +1,8 @@
-use rug::{ops::Pow, Integer};
+use rug::Integer;
 
 use crate::{Attack, Error, Parameters, SolvedRsa};
 
-/// Cube root attack (m < n/e and small e)
+/// Cube root attack (m^e < n and small e)
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CubeRootAttack;
 
@@ -12,30 +12,15 @@ impl Attack for CubeRootAttack {
     }
 
     fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
-        if params.e != 3 && params.e != 5 {
-            return Err(Error::NotFound);
-        }
-
-        let e = params.e.clone();
+        let e = &params.e;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
-        let mut low = Integer::ZERO;
-        let mut high = c.clone();
 
-        while low < high {
-            let mid: Integer = (low.clone() + high.clone()) >> 1;
-
-            if mid.clone().pow(e.to_u32().unwrap()) < *c {
-                low = mid + 1;
-            } else {
-                high = mid;
+        if let Some(e) = e.to_u32() {
+            let (root, rem) = c.root_rem_ref(e).into();
+            if rem == Integer::ZERO {
+                return Ok((None, Some(root)));
             }
         }
-
-        // Check if we found the exact cube root
-        if low.clone().pow(e.to_u32().unwrap()) == *c {
-            Ok((None, Some(low)))
-        } else {
-            Err(Error::NotFound)
-        }
+        Err(Error::NotFound)
     }
 }

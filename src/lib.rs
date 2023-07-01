@@ -3,7 +3,9 @@
 #![warn(missing_docs)]
 use key::PrivateKey;
 use rug::Integer;
+#[cfg(feature = "parallel")]
 use std::sync::mpsc;
+#[cfg(feature = "parallel")]
 use std::sync::Arc;
 
 mod attack;
@@ -25,7 +27,7 @@ pub fn integer_to_string(i: &Integer) -> Option<String> {
     String::from_utf8(integer_to_bytes(i)).ok()
 }
 
-/// Attack!
+/// Run a single attack.
 #[allow(clippy::borrowed_box)]
 pub fn run_attack(
     attack: &Box<dyn Attack + Sync>,
@@ -50,8 +52,19 @@ pub fn run_attack(
     }
 }
 
-/// Attack!
+/// Run all attacks.
+///
+/// When the `parallel` feature is enabled, this function will run all attacks in parallel using all available CPU cores.
+/// Else, it will run all attacks in sequence (single-threaded).
 pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
+    #[cfg(feature = "parallel")]
+    return run_parallel_attacks(params, num_cpus::get());
+    #[cfg(not(feature = "parallel"))]
+    run_sequence_attacks(params)
+}
+
+/// Run all attacks in sequence (single-threaded)
+pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
     if let (Some(p), Some(q)) = (&params.p, &params.q) {
         // If we have p and q, we can directly compute the private key
         let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
@@ -82,9 +95,7 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
     }
 }
 
-/// Attack!
-///
-/// This function will spawn a number of threads and run the attacks in parallel.
+/// Run all attacks in parallel (multi-threaded)
 #[cfg(feature = "parallel")]
 pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<SolvedRsa> {
     if let (Some(p), Some(q)) = (&params.p, &params.q) {
@@ -93,6 +104,10 @@ pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solve
         let m = params.c.as_ref().map(|c| private_key.decrypt(c));
 
         return Some((Some(private_key), m));
+    }
+
+    if threads <= 1 {
+        return run_attacks(params);
     }
 
     // Create channel for sending result
@@ -131,7 +146,7 @@ mod tests {
             ..Default::default()
         };
 
-        assert!(run_parallel_attacks(&params, num_cpus::get()).is_none());
+        assert!(run_attacks(&params).is_none());
     }
 
     #[test]
@@ -141,6 +156,6 @@ mod tests {
             ..Default::default()
         };
 
-        assert!(run_parallel_attacks(&params, num_cpus::get()).is_none());
+        assert!(run_attacks(&params).is_none());
     }
 }

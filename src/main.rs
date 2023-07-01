@@ -3,7 +3,7 @@ use display_bytes::display_bytes;
 use main_error::MainError;
 use rug::Integer;
 
-use rsacracker::{integer_to_bytes, integer_to_string, run_parallel_attacks, Parameters};
+use rsacracker::{integer_to_bytes, integer_to_string, Parameters};
 
 #[derive(Debug, Clone)]
 struct IntegerArg(Integer);
@@ -126,8 +126,13 @@ fn main() -> Result<(), MainError> {
         params +=
             Parameters::from_private_key(&bytes, args.password).ok_or("Invalid private key")?;
     };
+    #[cfg(feature = "parallel")]
     let (private_key, uncipher) =
-        run_parallel_attacks(&params, args.threads).ok_or("No attack succeeded")?;
+        rsacracker::run_parallel_attacks(&params, args.threads).ok_or("No attack succeeded")?;
+    #[cfg(not(feature = "parallel"))]
+    let (private_key, uncipher) =
+        rsacracker::run_sequence_attacks(&params).ok_or("No attack succeeded")?;
+
     if args.printkey || args.dumpkey || args.dumpextkey {
         if let Some(private_key) = &private_key {
             if args.printkey {

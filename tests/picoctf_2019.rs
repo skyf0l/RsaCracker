@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use rsacracker::{integer_to_string, run_parallel_attacks, Parameters};
+use rsacracker::{integer_to_string, run_attacks, Parameters};
 use rug::Integer;
 
 #[test]
@@ -15,7 +15,7 @@ fn picoctf_2019_mini_rsa() {
             ..Default::default()
         };
 
-    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
+    let (private_key, m) = run_attacks(&params).unwrap();
     assert!(private_key.is_none());
     assert_eq!(
         integer_to_string(&m.unwrap()).unwrap(),
@@ -35,7 +35,7 @@ fn picoctf_2019_b00tl3grsa2() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
+    let (private_key, m) = run_attacks(&params).unwrap();
     assert!(private_key.is_some());
     assert_eq!(
         integer_to_string(&m.unwrap()).unwrap(),
@@ -54,7 +54,7 @@ fn picoctf_2019_b00tl3grsa3() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
+    let (private_key, m) = run_attacks(&params).unwrap();
     assert!(private_key.is_some());
     assert_eq!(
         integer_to_string(&m.unwrap()).unwrap(),
@@ -84,7 +84,7 @@ q16/S1WLvzg4PsElmv1f
     )
     .unwrap();
 
-    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
+    let (private_key, m) = run_attacks(&params).unwrap();
     let private_key = private_key.unwrap();
 
     assert_eq!(private_key.p, Integer::from(67867967));

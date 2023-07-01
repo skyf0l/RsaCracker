@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use rsacracker::{integer_to_string, run_parallel_attacks, Parameters};
+use rsacracker::{integer_to_string, run_attacks, Parameters};
 use rug::Integer;
 
 #[test]
@@ -15,7 +15,7 @@ fn picoctf_2021_mini_rsa() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_parallel_attacks(&params, num_cpus::get()).unwrap();
+    let (private_key, m) = run_attacks(&params).unwrap();
     assert!(private_key.is_none());
     assert_eq!(
         integer_to_string(&m.unwrap()).unwrap().trim(),

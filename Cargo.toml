@@ -38,6 +38,7 @@ ssh-key = { version = "0.5", features = ["encryption"] }
 tokio = { version = "1.29", features = ["rt", "rt-multi-thread"], optional = true }
 mpsc = { version = "0.1", optional = true }
 num_cpus = { version = "1.15", optional = true }
+update-informer = "1"
 
 [dependencies.rug]
 version = "1"

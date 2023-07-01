@@ -1,9 +1,12 @@
+use std::time::Duration;
+
 use clap::{command, Parser};
 use display_bytes::display_bytes;
 use main_error::MainError;
 use rug::Integer;
 
 use rsacracker::{integer_to_bytes, integer_to_string, Parameters};
+use update_informer::{registry, Check};
 
 #[derive(Debug, Clone)]
 struct IntegerArg(Integer);
@@ -96,6 +99,15 @@ struct Args {
 }
 
 fn main() -> Result<(), MainError> {
+    let pkg_name = env!("CARGO_PKG_NAME");
+    let current_version = env!("CARGO_PKG_VERSION");
+    let informer = update_informer::new(registry::Crates, pkg_name, current_version)
+        .interval(Duration::from_secs(60 * 60));
+    if let Ok(Some(new_version)) = informer.check_version() {
+        eprintln!("A new release of {pkg_name} is available: v{current_version} -> {new_version}");
+        eprintln!("You can update by running: cargo install {pkg_name}\n");
+    }
+
     let args = Args::parse();
 
     let mut params = Parameters {

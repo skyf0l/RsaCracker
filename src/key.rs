@@ -1,11 +1,14 @@
 use openssl::{bn::BigNum, rsa::RsaPrivateKeyBuilder};
-use rug::Integer;
+use rug::{integer::IsPrime, Integer};
 
 use crate::utils::phi;
 
 /// Attack error
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum KeyError {
+    /// Factors are not prime numbers
+    #[error("factors are not prime numbers")]
+    FactorsAreNotPrimeNumbers,
     /// Private exponent computation failed
     #[error("private exponent computation failed")]
     PrivateExponentComputationFailed,
@@ -31,6 +34,10 @@ pub struct PrivateKey {
 impl PrivateKey {
     /// Create private key from p and q
     pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Result<Self, KeyError> {
+        if p.is_probably_prime(30) == IsPrime::No || q.is_probably_prime(30) == IsPrime::No {
+            return Err(KeyError::FactorsAreNotPrimeNumbers);
+        }
+
         let n = Integer::from(&p * &q);
         let phi = phi(&[p.clone(), q.clone()]);
         let d = e

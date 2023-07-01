@@ -107,7 +107,7 @@ pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solve
     }
 
     if threads <= 1 {
-        return run_attacks(params);
+        return run_sequence_attacks(params);
     }
 
     // Create channel for sending result

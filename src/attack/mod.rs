@@ -61,7 +61,6 @@ pub trait Attack {
 lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Sync>> = vec![
-        Box::new(BrentAttack),
         Box::new(CubeRootAttack),
         Box::new(FermatAttack),
         Box::new(KnownDAttack),
@@ -74,5 +73,6 @@ lazy_static! {
         Box::new(SumPQAttack),
         Box::new(WienerAttack),
         Box::new(EcmAttack),
+        Box::new(BrentAttack),
     ];
 }

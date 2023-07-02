@@ -10,6 +10,7 @@ mod known_d;
 mod known_factors;
 mod known_phi;
 mod leaked_crt_exponent;
+mod leaked_pq;
 mod pollard_p_1;
 mod small_e;
 mod small_prime;
@@ -27,6 +28,7 @@ pub use known_d::KnownDAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use known_phi::KnownPhiAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
+pub use leaked_pq::LeakedPQAttack;
 pub use pollard_p_1::PollardP1Attack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
@@ -68,6 +70,7 @@ lazy_static! {
         Box::new(KnownFactorsAttack),
         Box::new(KnownPhiAttack),
         Box::new(LeakedCrtExponentAttack),
+        Box::new(LeakedPQAttack),
         Box::new(PollardP1Attack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),

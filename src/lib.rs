@@ -2,7 +2,6 @@
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use key::PrivateKey;
 use rug::integer::IsPrime;
 use rug::Integer;
 #[cfg(feature = "parallel")]
@@ -48,7 +47,6 @@ pub fn run_attack(
         pb.set_prefix(attack.name());
     }
     let res = attack.run(params, pb);
-    // pb.finish_and_clear();
 
     let (private_key, m) = res?;
     // If we have a private key and a cipher message, decrypt it
@@ -75,7 +73,7 @@ fn check_n_prime(n: &Option<Integer>) -> Option<()> {
     if let Some(n) = &n {
         match n.is_probably_prime(30) {
             IsPrime::Yes => {
-                eprintln!("N is prime, no attacks possible");
+                eprintln!("Error: N is prime, no attacks possible");
                 return None;
             }
             IsPrime::Probably => {
@@ -87,22 +85,8 @@ fn check_n_prime(n: &Option<Integer>) -> Option<()> {
     Some(())
 }
 
-fn given_p_q(params: &Parameters) -> Option<SolvedRsa> {
-    if let (Some(p), Some(q)) = (&params.p, &params.q) {
-        // If we have p and q, we can directly compute the private key
-        let private_key = PrivateKey::from_p_q(p.clone(), q.clone(), params.e.clone()).ok()?;
-        let m = params.c.as_ref().map(|c| private_key.decrypt(c));
-
-        return Some((Some(private_key), m));
-    }
-    None
-}
-
 /// Run all attacks in sequence (single-threaded)
 pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
-    if let Some(solve) = given_p_q(params) {
-        return Some(solve);
-    }
     check_n_prime(&params.n)?;
 
     for attack in ATTACKS.iter() {
@@ -132,8 +116,8 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
         let sender = sender.clone();
         let mp = Arc::clone(&mp);
         let pb_main = Arc::clone(&pb_main);
-        let pb = Arc::new(mp.insert(0, ProgressBar::new(1)));
         tokio::task::spawn(async move {
+            let pb = mp.insert(0, ProgressBar::new(1));
             let res = run_attack(attack, &params, Some(&pb));
             pb_main.inc(1);
             if let Ok(solved) = res {
@@ -153,9 +137,6 @@ pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solve
         return run_sequence_attacks(params);
     }
 
-    if let Some(solve) = given_p_q(params) {
-        return Some(solve);
-    }
     check_n_prime(&params.n)?;
 
     // Create channel for sending result

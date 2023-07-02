@@ -151,7 +151,7 @@ fn main() -> Result<(), MainError> {
                 println!("{}", private_key.to_pem(&args.addpassword).unwrap());
             }
             if args.dumpkey || args.dumpextkey {
-                println!("Private key :");
+                println!("Private key:");
                 println!("n = {}", private_key.n);
                 println!("e = {}", private_key.e);
                 println!("p = {}", private_key.p);
@@ -159,7 +159,7 @@ fn main() -> Result<(), MainError> {
                 println!("d = {}", private_key.d);
             }
             if args.dumpextkey {
-                println!("Extended private key :");
+                println!("Extended private key:");
                 let dp = private_key.d.clone() % (&private_key.p - Integer::from(1));
                 println!("dP = {dp}",);
                 let dq = private_key.d.clone() % (&private_key.q - Integer::from(1));

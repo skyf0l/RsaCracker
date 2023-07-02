@@ -1,8 +1,13 @@
+use indicatif::ProgressBar;
 use rug::{rand::RandState, Integer};
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
-fn brent(n: &Integer) -> Option<Integer> {
+fn brent(n: &Integer, pb: Option<&ProgressBar>) -> Option<Integer> {
+    if let Some(pb) = pb {
+        pb.set_length(21)
+    }
+
     // Implementation inspired by https://gist.github.com/ssanin82/18582bf4a1849dfb8afd
     let mut rgen = RandState::new();
     let two = Integer::from(2);
@@ -43,6 +48,9 @@ fn brent(n: &Integer) -> Option<Integer> {
         }
 
         r <<= 1;
+        if let Some(pb) = pb {
+            pb.inc(1);
+        }
         // Limit to 20 iterations
         if r > 1 << 20 {
             return None;
@@ -81,11 +89,11 @@ impl Attack for BrentAttack {
         "brent"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        if let Some(p) = brent(n) {
+        if let Some(p) = brent(n, pb) {
             let q = Integer::from(n / &p);
             Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
         } else {
@@ -107,7 +115,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = BrentAttack.run(&params).unwrap();
+        let (private_key, m) = BrentAttack.run(&params, None).unwrap();
         let private_key = private_key.unwrap();
 
         assert_eq!(private_key.p, Integer::from(1779681653));

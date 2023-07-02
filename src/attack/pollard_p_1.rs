@@ -1,11 +1,16 @@
+use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Complete, Integer};
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
 
-fn pollard_p_1(n: &Integer) -> Option<Vec<Integer>> {
+fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
     let mut a = Integer::from(2);
     let mut b = Integer::from(2);
 
+    if let Some(pb) = pb {
+        pb.set_position(0);
+        pb.set_length(100000);
+    }
     loop {
         a = a.pow_mod_ref(&b, n).unwrap().into();
         let p = Integer::from(&a - 1).gcd_ref(n).complete();
@@ -17,12 +22,12 @@ fn pollard_p_1(n: &Integer) -> Option<Vec<Integer>> {
 
             let mut res = vec![];
             if p.is_probably_prime(30) == IsPrime::No {
-                res.extend(pollard_p_1(&p)?);
+                res.extend(pollard_p_1(&p, pb)?);
             } else {
                 res.push(p);
             }
             if q.is_probably_prime(30) == IsPrime::No {
-                res.extend(pollard_p_1(&q)?);
+                res.extend(pollard_p_1(&q, pb)?);
             } else {
                 res.push(q);
             }
@@ -30,6 +35,11 @@ fn pollard_p_1(n: &Integer) -> Option<Vec<Integer>> {
         }
         b += 1;
 
+        if b.is_divisible_u(1000) {
+            if let Some(pb) = pb {
+                pb.inc(1000);
+            }
+        }
         if b > 100000 {
             break;
         }
@@ -46,11 +56,11 @@ impl Attack for PollardP1Attack {
         "pollard_p_1"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        let factors = pollard_p_1(n).ok_or(Error::NotFound)?;
+        let factors = pollard_p_1(n, pb).ok_or(Error::NotFound)?;
         Ok((Some(PrivateKey::from_factors(&factors, e.clone())?), None))
     }
 }

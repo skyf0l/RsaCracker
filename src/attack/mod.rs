@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use lazy_static::lazy_static;
 use rug::Integer;
 
@@ -55,7 +56,7 @@ pub trait Attack {
     fn name(&self) -> &'static str;
 
     /// Run the attack
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error>;
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error>;
 }
 
 lazy_static! {

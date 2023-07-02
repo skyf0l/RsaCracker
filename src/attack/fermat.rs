@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
@@ -11,12 +12,16 @@ impl Attack for FermatAttack {
         "fermat"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         if n.is_congruent(&Integer::from(2), &Integer::from(4)) {
             return Err(Error::NotFound);
+        }
+
+        if let Some(pb) = pb {
+            pb.set_length(10000000);
         }
 
         let (a, rem) = n.sqrt_rem_ref().into();
@@ -28,7 +33,12 @@ impl Attack for FermatAttack {
             c += 2;
 
             tries += 1;
-            if tries > 100000 {
+            if tries % 10000 == 0 {
+                if let Some(pb) = pb {
+                    pb.inc(10000);
+                }
+            }
+            if tries > 10000000 {
                 return Err(Error::NotFound);
             }
         }

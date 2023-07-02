@@ -1,3 +1,4 @@
+use indicatif::ProgressBar;
 use primal::Primes;
 use rug::Integer;
 
@@ -11,11 +12,14 @@ impl Attack for SmallPrimeAttack {
         "small_prime"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        for p in Primes::all().take(1000000) {
+        if let Some(pb) = pb {
+            pb.set_length(1000000);
+        }
+        for (i, p) in Primes::all().take(1000000).enumerate() {
             if p.ge(n) {
                 break;
             }
@@ -30,6 +34,11 @@ impl Attack for SmallPrimeAttack {
                     .map_err(|_| Error::NotFound)?;
 
                 return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None));
+            }
+            if i % 10000 == 0 {
+                if let Some(pb) = pb {
+                    pb.inc(10000);
+                }
             }
         }
 
@@ -50,7 +59,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = SmallPrimeAttack.run(&params).unwrap();
+        let (private_key, m) = SmallPrimeAttack.run(&params, None).unwrap();
         let private_key = private_key.unwrap();
 
         assert_eq!(private_key.p, Integer::from(54269));

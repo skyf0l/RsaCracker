@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use indicatif::ProgressBar;
 use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
@@ -13,7 +14,7 @@ impl Attack for KnownFactorsAttack {
         "known_factors"
     }
 
-    fn run(&self, params: &Parameters) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
@@ -97,7 +98,7 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownFactorsAttack.run(&params).unwrap();
+        let (private_key, m) = KnownFactorsAttack.run(&params, None).unwrap();
         let private_key = private_key.unwrap();
 
         assert_eq!(private_key.p, Integer::from_str("33372027594978156556226010605355114227940760344767554666784520987023841729210037080257448673296881877565718986258036932062711").unwrap());

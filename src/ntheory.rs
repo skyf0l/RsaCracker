@@ -27,6 +27,7 @@ pub fn contfrac_to_rational(frac: &Vec<Integer>) -> (Integer, Integer) {
     }
 }
 
+#[allow(dead_code)]
 pub fn convergents_from_contfrac(frac: &Vec<Integer>) -> Vec<(Integer, Integer)> {
     let mut convs = Vec::new();
 

@@ -38,23 +38,21 @@ pub fn run_attack(
     pb: Option<&ProgressBar>,
 ) -> Result<SolvedRsa, Error> {
     if let Some(pb) = pb {
-        pb.set_style(
-            ProgressStyle::with_template(
-                "{prefix:>12.bold} [{elapsed_precise}] [{wide_bar}] {percent:>3}% ({eta:^4}) ",
-            )
-            .unwrap(),
-        );
         pb.set_prefix(attack.name());
     }
-    let res = attack.run(params, pb);
 
+    let res = attack.run(params, pb);
     let (private_key, m) = res?;
-    // If we have a private key and a cipher message, decrypt it
-    let m = if let (Some(private_key), Some(c), None) = (&private_key, &params.c, &m) {
+    let m = if let Some(m) = m {
+        // Cipher message already decrypted
+        Some(m)
+    } else if let (Some(private_key), Some(c)) = (&private_key, &params.c) {
+        // If we have a private key and a cipher message, decrypt it
         Some(private_key.decrypt(c))
     } else {
-        m
+        None
     };
+
     Ok((private_key, m))
 }
 
@@ -85,31 +83,50 @@ fn check_n_prime(n: &Option<Integer>) -> Option<()> {
     Some(())
 }
 
+fn create_multi_progress() -> (Arc<MultiProgress>, Arc<ProgressBar>) {
+    let mp = Arc::new(MultiProgress::new());
+    let pb_main = Arc::new(mp.add(ProgressBar::new(ATTACKS.len() as u64)));
+
+    pb_main.set_style(
+        ProgressStyle::with_template(
+            "{prefix:>12.bold} [{elapsed_precise}] [{wide_bar}] {pos}/{len:<4}",
+        )
+        .unwrap()
+        .progress_chars("=> "),
+    );
+    pb_main.set_prefix("Running");
+    (mp, pb_main)
+}
+
+fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
+    let pb = mp.insert(0, ProgressBar::new(1));
+    pb.set_style(
+        ProgressStyle::with_template(
+            "{prefix:>12.bold} [{elapsed_precise}] [{wide_bar}] {percent:>3}% ({eta:^4}) ",
+        )
+        .unwrap(),
+    );
+    pb
+}
+
 /// Run all attacks in sequence (single-threaded)
 pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
     check_n_prime(&params.n)?;
 
+    let (mp, pb_main) = create_multi_progress();
     for attack in ATTACKS.iter() {
-        match run_attack(attack, params, None) {
-            Ok(solved) => return Some(solved),
-            _ => continue,
+        let pb = create_progress_bar(&mp);
+        if let Ok(solved) = run_attack(attack, params, Some(&pb)) {
+            return Some(solved);
         }
+        pb_main.inc(1);
     }
     None
 }
 
 #[cfg(feature = "parallel")]
 async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<SolvedRsa>) {
-    let mp = Arc::new(MultiProgress::new());
-    let pb_main = Arc::new(mp.add(ProgressBar::new(ATTACKS.len() as u64)));
-    pb_main.set_style(
-        ProgressStyle::with_template(
-            "{prefix:>12.green.bold} [{elapsed_precise}] [{wide_bar}] {pos}/{len}",
-        )
-        .unwrap()
-        .progress_chars("=> "),
-    );
-    pb_main.set_prefix("Running");
+    let (mp, pb_main) = create_multi_progress();
 
     for attack in ATTACKS.iter() {
         let params = Arc::clone(&params);
@@ -117,15 +134,15 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
         let mp = Arc::clone(&mp);
         let pb_main = Arc::clone(&pb_main);
         tokio::task::spawn(async move {
-            let pb = mp.insert(0, ProgressBar::new(1));
-            let res = run_attack(attack, &params, Some(&pb));
-            pb_main.inc(1);
-            if let Ok(solved) = res {
+            let pb = create_progress_bar(&mp);
+            if let Ok(solved) = run_attack(attack, &params, Some(&pb)) {
                 mp.suspend(|| {
                     sender.send(solved).expect("Failed to send result");
-                    sleep(Duration::from_millis(100));
+                    // This is a hack to make sure the progress bar is not displayed after the attack is done
+                    sleep(Duration::from_millis(1000));
                 });
             }
+            pb_main.inc(1);
         });
     }
 }

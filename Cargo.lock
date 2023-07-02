@@ -448,10 +448,11 @@ dependencies = [
 
 [[package]]
 name = "ecm"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a968a77e52914ba8affc673058fb1a2bbd802a1c972ed088a9232d926076f36f"
+checksum = "4b8b6550b766c1a59a32cb57314f3247ae0df81f27f6d766e59f4475cf8e5c8c"
 dependencies = [
+ "indicatif",
  "primal",
  "rug",
  "thiserror",

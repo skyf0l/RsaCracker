@@ -3,6 +3,7 @@ use lazy_static::lazy_static;
 use rug::Integer;
 
 mod brent;
+mod cipolla;
 mod cube_root;
 mod ecm;
 mod fermat;
@@ -22,6 +23,7 @@ use crate::Parameters;
 
 pub use self::ecm::EcmAttack;
 pub use brent::BrentAttack;
+pub use cipolla::CipollaAttack;
 pub use cube_root::CubeRootAttack;
 pub use fermat::FermatAttack;
 pub use known_d::KnownDAttack;
@@ -64,6 +66,7 @@ pub trait Attack {
 lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Sync>> = vec![
+        Box::new(CipollaAttack),
         Box::new(CubeRootAttack),
         Box::new(FermatAttack),
         Box::new(KnownDAttack),

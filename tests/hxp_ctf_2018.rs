@@ -22,10 +22,10 @@ FQr8/gZPzYYTRWMYcwIBAw==
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_none());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_none());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap(),
+        integer_to_string(&solution.m.unwrap()).unwrap(),
         "dsc{t0-m355-w1th-m4th-t4k35-4-l0t-0f-sp1n3}"
     );
 }

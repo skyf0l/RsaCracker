@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, ops::Pow, rand::RandState, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 /// See https://github.com/jvdsn/crypto-attacks/blob/master/attacks/factorization/known_phi.py
 fn factorize(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {
@@ -79,16 +79,16 @@ impl Attack for KnownPhiAttack {
         "known_phi"
     }
 
-    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = params.e.clone();
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let phi = params.phi.as_ref().ok_or(Error::MissingParameters)?;
 
         if let Some((p, q)) = factorize(n, phi) {
-            return Ok((Some(PrivateKey::from_p_q(p, q, e)?), None));
+            return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e)?));
         }
         if let Some(factors) = factorize_multi_factors(n, phi) {
-            return Ok((Some(PrivateKey::from_factors(&factors, e)?), None));
+            return Ok(Solution::new_pk(PrivateKey::from_factors(&factors, e)?));
         }
 
         Err(Error::NotFound)
@@ -111,12 +111,11 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownPhiAttack.run(&params, None).unwrap();
-        let private_key = private_key.unwrap();
+        let solution = KnownPhiAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
 
-        assert_eq!(private_key.p, Integer::from_str("119569912348019973808690648749233130234147905846600013235049261329629970511527761524945847616965313961538713539339797361044473682137188967689436399275622598823807683697187768076793066267578400065793399498609464820787702834758072187460388248841109767616650659184902691855492090063216897253934411433653188209273").unwrap());
-        assert_eq!(private_key.q, Integer::from_str("163878850764915422483981859745444212722239786863013177512288243925115067928584457671822966318511433648800054833973100107499888490740673843681679946017109383206395115582461040491817953385276745680081596226714070613457018921708592656990254385150774779681262565789230098265299312143978832885242439190257255425823").unwrap());
-        assert!(m.is_none());
+        assert_eq!(pk.p, Integer::from_str("119569912348019973808690648749233130234147905846600013235049261329629970511527761524945847616965313961538713539339797361044473682137188967689436399275622598823807683697187768076793066267578400065793399498609464820787702834758072187460388248841109767616650659184902691855492090063216897253934411433653188209273").unwrap());
+        assert_eq!(pk.q, Integer::from_str("163878850764915422483981859745444212722239786863013177512288243925115067928584457671822966318511433648800054833973100107499888490740673843681679946017109383206395115582461040491817953385276745680081596226714070613457018921708592656990254385150774779681262565789230098265299312143978832885242439190257255425823").unwrap());
     }
 
     #[test]
@@ -127,13 +126,13 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownPhiAttack.run(&params, None).unwrap();
-        let private_key = private_key.unwrap();
+        let solution = KnownPhiAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
 
-        assert_eq!(private_key.p, Integer::from(8973591997u64));
-        assert_eq!(private_key.q, Integer::from(9448712249u64));
+        assert_eq!(pk.p, Integer::from(8973591997u64));
+        assert_eq!(pk.q, Integer::from(9448712249u64));
         assert_eq!(
-            private_key.other_factors,
+            pk.other_factors,
             vec![
                 9548549893u64.into(),
                 10714663247u64.into(),
@@ -166,6 +165,5 @@ mod tests {
                 17142507589u64.into(),
             ] as Vec<Integer>
         );
-        assert!(m.is_none());
     }
 }

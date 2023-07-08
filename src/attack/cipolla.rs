@@ -2,7 +2,7 @@ use indicatif::ProgressBar;
 use rug::Integer;
 use std::rc::Rc;
 
-use crate::{Attack, Error, Parameters, SolvedRsa};
+use crate::{Attack, Error, Parameters, Solution};
 
 // Inspired by https://github.com/TheAlgorithms/Rust/blob/master/src/math/quadratic_residue.rs
 
@@ -120,7 +120,7 @@ impl Attack for CipollaAttack {
         "cipolla"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
@@ -129,13 +129,17 @@ impl Attack for CipollaAttack {
             .invert(&(Integer::from(n - 1) / 2))
             .or(Err(Error::NotFound))?;
         let m = c.clone().pow_mod(&d, n).unwrap();
-        let (_m1, m2) = cipolla(&m, n, pb).ok_or(Error::NotFound)?;
-        // TODO: return multiple solutions
-        Ok((None, Some(m2)))
+        let (m1, m2) = cipolla(&m, n, pb).ok_or(Error::NotFound)?;
+
+        Ok(Solution::new_ms(vec![m1, m2]))
     }
 }
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
+    use crate::{string_to_integer, Attack, Parameters};
+
     use super::*;
 
     #[test]
@@ -181,5 +185,21 @@ mod tests {
     #[test]
     fn no_answer() {
         assert_eq!(cipolla(&650927.into(), &852167.into(), None), None);
+    }
+
+    #[test]
+    fn attack() {
+        let params = Parameters {
+            e: 431136.into(),
+            n: Some(Integer::from_str("20028075057119606470997653328367575574842932705433449252891751944512035408804821820769873249430620354064275333718899596327278738196065005682300472920563941347200970934154410074604218203986244135394019582138878032844785909718979603177656730281162130579832439207882805843512306359302587171301376824965170980858074723907").unwrap()),
+            c: Some(Integer::from_str("2245426349205654220539251015376782389314381152940107065372050897628671922457608107732424988351371982603851427850123889275005370926571389796382801114705487071098812860917032260154888382308599420517334190150286342507371074105835709370331606232947681012019061355215611390935668580235727108722400967264420585384526616626").unwrap()),
+            ..Default::default()
+        };
+
+        let solution = CipollaAttack.run(&params, None).unwrap();
+        assert!(solution
+            .ms
+            .iter()
+            .any(|m| *m == string_to_integer("RsaCracker")));
     }
 }

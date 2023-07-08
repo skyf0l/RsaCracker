@@ -15,10 +15,10 @@ fn picoctf_2019_mini_rsa() {
             ..Default::default()
         };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_none());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_none());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap(),
+        integer_to_string(&solution.m.unwrap()).unwrap(),
         "picoCTF{n33d_a_lArg3r_e_ccaa7776}"
     );
 }
@@ -35,10 +35,10 @@ fn picoctf_2019_b00tl3grsa2() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap(),
+        integer_to_string(&solution.m.unwrap()).unwrap(),
         "picoCTF{bad_1d3a5_2438125}"
     );
 }
@@ -54,10 +54,10 @@ fn picoctf_2019_b00tl3grsa3() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap(),
+        integer_to_string(&solution.m.unwrap()).unwrap(),
         "picoCTF{too_many_fact0rs_4025135}"
     );
 }
@@ -84,10 +84,10 @@ q16/S1WLvzg4PsElmv1f
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    let private_key = private_key.unwrap();
+    let solution = run_attacks(&params).unwrap();
+    let pk = solution.pk.unwrap();
 
-    assert_eq!(private_key.p, Integer::from(67867967));
-    assert_eq!(private_key.q, Integer::from(73176001));
-    assert!(m.is_none());
+    assert_eq!(pk.p, Integer::from(67867967));
+    assert_eq!(pk.q, Integer::from(73176001));
+    assert!(solution.m.is_none());
 }

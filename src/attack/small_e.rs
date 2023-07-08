@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{Attack, Error, Parameters, SolvedRsa};
+use crate::{Attack, Error, Parameters, Solution};
 
 /// Small e attack (m^e = c + k * n, with k small)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,7 +12,7 @@ impl Attack for SmallEAttack {
         "small_e"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = match params.e.to_u32() {
             Some(e) => e,
             None => return Err(Error::NotFound),
@@ -29,7 +29,7 @@ impl Attack for SmallEAttack {
 
             // If the root is perfect, we found the plaintext
             if rem == Integer::ZERO {
-                return Ok((None, Some(root)));
+                return Ok(Solution::new_m(root));
             }
 
             if i % 10000 == 0 {

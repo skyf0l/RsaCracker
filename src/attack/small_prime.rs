@@ -2,7 +2,7 @@ use indicatif::ProgressBar;
 use primal::Primes;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 /// Small prime attack
 pub struct SmallPrimeAttack;
@@ -12,7 +12,7 @@ impl Attack for SmallPrimeAttack {
         "small_prime"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
@@ -33,7 +33,7 @@ impl Attack for SmallPrimeAttack {
                     .invert(&((p.clone() - 1) * (q.clone() - 1)))
                     .map_err(|_| Error::NotFound)?;
 
-                return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None));
+                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
             }
             if i % 10000 == 0 {
                 if let Some(pb) = pb {
@@ -59,11 +59,10 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = SmallPrimeAttack.run(&params, None).unwrap();
-        let private_key = private_key.unwrap();
+        let solution = SmallPrimeAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
 
-        assert_eq!(private_key.p, Integer::from(54269));
-        assert_eq!(private_key.q, Integer::from(93089));
-        assert!(m.is_none());
+        assert_eq!(pk.p, Integer::from(54269));
+        assert_eq!(pk.q, Integer::from(93089));
     }
 }

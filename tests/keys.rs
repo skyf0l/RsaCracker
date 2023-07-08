@@ -19,9 +19,12 @@ MCgwDQYJKoZIhvcNAQEBBQADFwAwFAINBM0NjrmddiFxxEwyDwIDAQAB
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -36,9 +39,12 @@ fn public_key_der() {
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -56,9 +62,12 @@ hwIGVVuRj4u8
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -72,9 +81,12 @@ fn private_key_der() {
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -94,9 +106,12 @@ VAHTx+AM4d6wU8Iudog=
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -110,9 +125,12 @@ fn private_key_der_passphrase() {
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 // RSA keys
@@ -131,9 +149,12 @@ MFECAQACDQTNDY65nXYhccRMMg8CAwEAAQINAfqXHP4rBDzeEjWDiQIHAb+8DAb4
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -153,9 +174,12 @@ DEK-Info: AES-256-CBC,15BEC590B09D0F715E5657786E5611BC
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 // X509 certificates
@@ -188,9 +212,12 @@ vpEN
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -203,9 +230,12 @@ fn x509_certificate_der() {
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 // OpenSSH keys
@@ -220,9 +250,12 @@ fn openssh_public_key_pem() {
     )
     .unwrap();
 
-    let (public_key, m) = run_attacks(&params).unwrap();
-    assert!(public_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -237,9 +270,12 @@ fn openssh_public_key_der() {
     )
     .unwrap();
 
-    let (public_key, m) = run_attacks(&params).unwrap();
-    assert!(public_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -258,9 +294,12 @@ BM0NjrmddiFxxEwyDwAAAAMBAAEAAAANAfqXHP4rBDzeEjWDiQAAAAZVW5GPi7wAAAAHAb
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 #[test]
 fn openssh_private_key_der() {
@@ -275,9 +314,12 @@ fn openssh_private_key_der() {
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -296,9 +338,12 @@ BM0NjrmddiFxxEwyDwAAAAMBAAEAAAANAfqXHP4rBDzeEjWDiQAAAAZVW5GPi7wAAAAHAb
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }
 
 #[test]
@@ -313,7 +358,10 @@ fn openssh_private_key_der_passphrase() {
     )
     .unwrap();
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
-    assert_eq!(integer_to_string(&m.unwrap()).unwrap(), "RsaCracker");
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
+    assert_eq!(
+        integer_to_string(&solution.m.unwrap()).unwrap(),
+        "RsaCracker"
+    );
 }

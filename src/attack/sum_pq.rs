@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 /// Leaked sum of p and q attack (0 = x^2 - xsum + n)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,7 +12,7 @@ impl Attack for SumPQAttack {
         "sum_pq"
     }
 
-    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let sum_pq = params.sum_pq.as_ref().ok_or(Error::MissingParameters)?;
@@ -24,6 +24,6 @@ impl Attack for SumPQAttack {
             };
         let p = (Integer::from(sum_pq) + &theta) / Integer::from(2);
         let q = (Integer::from(sum_pq) - theta) / Integer::from(2);
-        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
+        Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?))
     }
 }

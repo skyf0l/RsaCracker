@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{rand::RandState, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 fn brent(n: &Integer, pb: Option<&ProgressBar>) -> Option<Integer> {
     if let Some(pb) = pb {
@@ -89,13 +89,13 @@ impl Attack for BrentAttack {
         "brent"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         if let Some(p) = brent(n, pb) {
             let q = Integer::from(n / &p);
-            Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
+            Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?))
         } else {
             Err(Error::NotFound)
         }
@@ -115,11 +115,10 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = BrentAttack.run(&params, None).unwrap();
-        let private_key = private_key.unwrap();
+        let solution = BrentAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
 
-        assert_eq!(private_key.p, Integer::from(1779681653));
-        assert_eq!(private_key.q, Integer::from(1903643191));
-        assert!(m.is_none());
+        assert_eq!(pk.p, Integer::from(1779681653));
+        assert_eq!(pk.q, Integer::from(1903643191));
     }
 }

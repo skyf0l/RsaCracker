@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{Complete, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 /// Leaked CRT exponent attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,7 +12,7 @@ impl Attack for LeakedCrtExponentAttack {
         "leaked_crt_exponent"
     }
 
-    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let dp = params
@@ -27,6 +27,6 @@ impl Attack for LeakedCrtExponentAttack {
             _ => return Err(Error::NotFound),
         };
 
-        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
+        Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?))
     }
 }

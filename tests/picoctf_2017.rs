@@ -15,10 +15,10 @@ fn picoctf_2017_weirderrsa() {
             ..Default::default()
         };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap(),
+        integer_to_string(&solution.m.unwrap()).unwrap(),
         "flag{wow_leaking_dp_breaks_rsa?_47689841281}"
     );
 }
@@ -35,10 +35,10 @@ fn picoctf_2017_smallrsa() {
             ..Default::default()
         };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap(),
+        integer_to_string(&solution.m.unwrap()).unwrap(),
         "flag{Are_any_RSA_vals_good_15878570577}"
     );
 }

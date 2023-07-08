@@ -139,14 +139,13 @@ fn main() -> Result<(), MainError> {
             Parameters::from_private_key(&bytes, args.password).ok_or("Invalid private key")?;
     };
     #[cfg(feature = "parallel")]
-    let (private_key, uncipher) =
+    let solution =
         rsacracker::run_parallel_attacks(&params, args.threads).ok_or("No attack succeeded")?;
     #[cfg(not(feature = "parallel"))]
-    let (private_key, uncipher) =
-        rsacracker::run_sequence_attacks(&params).ok_or("No attack succeeded")?;
+    let solution = rsacracker::run_sequence_attacks(&params).ok_or("No attack succeeded")?;
 
     if args.printkey || args.dumpkey || args.dumpextkey {
-        if let Some(private_key) = &private_key {
+        if let Some(private_key) = &solution.pk {
             if args.printkey {
                 println!("{}", private_key.to_pem(&args.addpassword).unwrap());
             }
@@ -174,8 +173,8 @@ fn main() -> Result<(), MainError> {
         }
     }
 
-    if let Some(uncipher) = uncipher {
-        println!("Unciphered data :");
+    if let Some(uncipher) = solution.m {
+        println!("Unciphered data:");
         println!("Int = {uncipher}");
         println!("Hex = 0x{uncipher:02x}");
         if let Some(str) = integer_to_string(&uncipher) {
@@ -185,6 +184,22 @@ fn main() -> Result<(), MainError> {
                 "Bytes = b\"{}\"",
                 display_bytes(&integer_to_bytes(&uncipher))
             );
+        }
+    }
+
+    if !solution.ms.is_empty() {
+        println!("Multiple unciphered data found:");
+        for uncipher in solution.ms {
+            println!("\nInt = {uncipher}");
+            println!("Hex = 0x{uncipher:02x}");
+            if let Some(str) = integer_to_string(&uncipher) {
+                println!("String = \"{str}\"");
+            } else {
+                println!(
+                    "Bytes = b\"{}\"",
+                    display_bytes(&integer_to_bytes(&uncipher))
+                );
+            }
         }
     }
 

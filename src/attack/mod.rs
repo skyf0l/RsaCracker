@@ -1,6 +1,5 @@
 use indicatif::ProgressBar;
 use lazy_static::lazy_static;
-use rug::Integer;
 
 mod brent;
 mod cipolla;
@@ -18,8 +17,7 @@ mod small_prime;
 mod sum_pq;
 mod wiener;
 
-use crate::key::PrivateKey;
-use crate::Parameters;
+use crate::{Parameters, Solution};
 
 pub use self::ecm::EcmAttack;
 pub use brent::BrentAttack;
@@ -46,13 +44,10 @@ pub enum Error {
     /// Unsuccessful attack
     #[error("unsuccessful attack")]
     NotFound,
-    /// Ket error
+    /// Key error
     #[error(transparent)]
     Key(#[from] crate::key::KeyError),
 }
-
-/// Solved RSA (private key, decrypted message)
-pub type SolvedRsa = (Option<PrivateKey>, Option<Integer>);
 
 /// Abstract attack trait
 pub trait Attack {
@@ -60,7 +55,7 @@ pub trait Attack {
     fn name(&self) -> &'static str;
 
     /// Run the attack
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error>;
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error>;
 }
 
 lazy_static! {

@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Complete, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
     let mut a = Integer::from(2);
@@ -56,11 +56,14 @@ impl Attack for PollardP1Attack {
         "pollard_p_1"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         let factors = pollard_p_1(n, pb).ok_or(Error::NotFound)?;
-        Ok((Some(PrivateKey::from_factors(&factors, e.clone())?), None))
+        Ok(Solution::new_pk(PrivateKey::from_factors(
+            &factors,
+            e.clone(),
+        )?))
     }
 }

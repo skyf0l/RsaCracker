@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 /// Fermat factorization attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,7 +12,7 @@ impl Attack for FermatAttack {
         "fermat"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
@@ -47,6 +47,6 @@ impl Attack for FermatAttack {
         let b = Integer::from(b2.sqrt_ref());
         let p = Integer::from(&a - &b);
         let q = a + b;
-        Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None))
+        Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?))
     }
 }

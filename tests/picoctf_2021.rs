@@ -15,10 +15,10 @@ fn picoctf_2021_mini_rsa() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_none());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_none());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap().trim(),
+        integer_to_string(&solution.m.unwrap()).unwrap().trim(),
         "picoCTF{e_sh0u1d_b3_lArg3r_a166c1e3}"
     );
 }

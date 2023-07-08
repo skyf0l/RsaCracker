@@ -15,10 +15,10 @@ fn picoctf_2022_sum_o_primes() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap().trim(),
+        integer_to_string(&solution.m.unwrap()).unwrap().trim(),
         "picoCTF{24929c45}"
     );
 }
@@ -34,10 +34,10 @@ fn picoctf_2022_very_smooth() {
         ..Default::default()
     };
 
-    let (private_key, m) = run_attacks(&params).unwrap();
-    assert!(private_key.is_some());
+    let solution = run_attacks(&params).unwrap();
+    assert!(solution.pk.is_some());
     assert_eq!(
-        integer_to_string(&m.unwrap()).unwrap().trim(),
+        integer_to_string(&solution.m.unwrap()).unwrap().trim(),
         "picoCTF{7c8625a1}"
     );
 }

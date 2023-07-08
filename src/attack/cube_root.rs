@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{Attack, Error, Parameters, SolvedRsa};
+use crate::{Attack, Error, Parameters, Solution};
 
 /// Cube root attack (m^e < n and small e)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,7 +12,7 @@ impl Attack for CubeRootAttack {
         "cube_root"
     }
 
-    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = match params.e.to_u32() {
             Some(e) => e,
             None => return Err(Error::NotFound),
@@ -21,7 +21,7 @@ impl Attack for CubeRootAttack {
 
         let (root, rem) = c.root_rem_ref(e).into();
         if rem == Integer::ZERO {
-            return Ok((None, Some(root)));
+            return Ok(Solution::new_m(root));
         }
         Err(Error::NotFound)
     }

@@ -15,10 +15,12 @@ mod attack;
 mod key;
 mod ntheory;
 mod params;
+mod solution;
 mod utils;
 
 pub use attack::*;
 pub use params::*;
+pub use solution::*;
 
 /// Convert a `rug::Integer` to a byte vector.
 pub fn integer_to_bytes(i: &Integer) -> Vec<u8> {
@@ -30,37 +32,41 @@ pub fn integer_to_string(i: &Integer) -> Option<String> {
     String::from_utf8(integer_to_bytes(i)).ok()
 }
 
+/// Convert a byte vector to a `rug::Integer`.
+pub fn bytes_to_integer(bytes: &[u8]) -> Integer {
+    Integer::from_str_radix(&base_x::encode("0123456789", bytes), 10).unwrap()
+}
+
+/// Convert a string to a `rug::Integer`.
+pub fn string_to_integer(s: &str) -> Integer {
+    bytes_to_integer(s.as_bytes())
+}
+
 /// Run a single attack.
 #[allow(clippy::borrowed_box)]
 pub fn run_attack(
     attack: &Box<dyn Attack + Sync>,
     params: &Parameters,
     pb: Option<&ProgressBar>,
-) -> Result<SolvedRsa, Error> {
+) -> Result<Solution, Error> {
     if let Some(pb) = pb {
         pb.set_prefix(attack.name());
     }
 
-    let res = attack.run(params, pb);
-    let (private_key, m) = res?;
-    let m = if let Some(m) = m {
-        // Cipher message already decrypted
-        Some(m)
-    } else if let (Some(private_key), Some(c)) = (&private_key, &params.c) {
-        // If we have a private key and a cipher message, decrypt it
-        Some(private_key.decrypt(c))
-    } else {
-        None
-    };
+    let mut solution = attack.run(params, pb)?;
+    // Try to decrypt the cipher if no message was found
+    if let (Some(pk), None, Some(c)) = (&solution.pk, &solution.m, &params.c) {
+        solution.m = Some(pk.decrypt(c))
+    }
 
-    Ok((private_key, m))
+    Ok(solution)
 }
 
 /// Run all attacks.
 ///
 /// When the `parallel` feature is enabled, this function will run all attacks in parallel using all available CPU cores.
 /// Else, it will run all attacks in sequence (single-threaded).
-pub fn run_attacks(params: &Parameters) -> Option<SolvedRsa> {
+pub fn run_attacks(params: &Parameters) -> Option<Solution> {
     #[cfg(feature = "parallel")]
     return run_parallel_attacks(params, num_cpus::get());
     #[cfg(not(feature = "parallel"))]
@@ -110,7 +116,7 @@ fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
 }
 
 /// Run all attacks in sequence (single-threaded)
-pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
+pub fn run_sequence_attacks(params: &Parameters) -> Option<Solution> {
     check_n_prime(&params.n)?;
 
     let (mp, pb_main) = create_multi_progress();
@@ -125,7 +131,7 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<SolvedRsa> {
 }
 
 #[cfg(feature = "parallel")]
-async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<SolvedRsa>) {
+async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Solution>) {
     let (mp, pb_main) = create_multi_progress();
 
     for attack in ATTACKS.iter() {
@@ -149,7 +155,7 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
 
 /// Run all attacks in parallel (multi-threaded)
 #[cfg(feature = "parallel")]
-pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<SolvedRsa> {
+pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solution> {
     if threads <= 1 {
         return run_sequence_attacks(params);
     }
@@ -198,7 +204,7 @@ mod tests {
     #[test]
     fn huge_n_prime() {
         let params = Parameters {
-            n: Some(Integer::from_str("150950816111585055950436869236123284160990231413373647521828062928627753386032919782972055383166559635310664285162066372523610577993375279955113527486550958102770506832902500192425306025328135063076003572633672638348517524292873178557112480133897718407035981216896328771653270839246863855405457570499").unwrap()),  
+            n: Some(Integer::from_str("3422439879021862741231658874852020811369429686198702457924807491341988797025050611590032128268794011").unwrap()),  
             ..Default::default()
         };
 

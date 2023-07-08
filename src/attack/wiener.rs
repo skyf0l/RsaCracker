@@ -4,7 +4,7 @@ use rug::{ops::Pow, Integer};
 use crate::{
     key::PrivateKey,
     ntheory::{contfrac_to_rational, rational_to_contfrac, trivial_factorization_with_n_phi},
-    Attack, Error, Parameters, SolvedRsa,
+    Attack, Error, Parameters, Solution,
 };
 
 /// Wiener's attack
@@ -16,7 +16,7 @@ impl Attack for WienerAttack {
         "wiener"
     }
 
-    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
@@ -45,7 +45,7 @@ impl Attack for WienerAttack {
 
                     if (s + t).is_even() {
                         if let Some((p, q)) = trivial_factorization_with_n_phi(n, &phi) {
-                            return Ok((Some(PrivateKey::from_p_q(p, q, e.clone())?), None));
+                            return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
                         }
                     }
                 }

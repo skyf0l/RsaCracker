@@ -3,7 +3,7 @@ use std::str::FromStr;
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, SolvedRsa};
+use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 /// Known factors attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -14,7 +14,7 @@ impl Attack for KnownFactorsAttack {
         "known_factors"
     }
 
-    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<SolvedRsa, Error> {
+    fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
@@ -71,10 +71,11 @@ impl Attack for KnownFactorsAttack {
         for factor in rsa_numbers_challenge_factors.iter() {
             let (q, rem) = n.clone().div_rem(factor.clone());
             if rem == Integer::ZERO {
-                return Ok((
-                    Some(PrivateKey::from_p_q(factor.clone(), q, e.clone())?),
-                    None,
-                ));
+                return Ok(Solution::new_pk(PrivateKey::from_p_q(
+                    factor.clone(),
+                    q,
+                    e.clone(),
+                )?));
             }
         }
         Err(Error::NotFound)
@@ -98,11 +99,10 @@ mod tests {
             ..Default::default()
         };
 
-        let (private_key, m) = KnownFactorsAttack.run(&params, None).unwrap();
-        let private_key = private_key.unwrap();
+        let solution = KnownFactorsAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
 
-        assert_eq!(private_key.p, Integer::from_str("33372027594978156556226010605355114227940760344767554666784520987023841729210037080257448673296881877565718986258036932062711").unwrap());
-        assert_eq!(private_key.q, Integer::from_str("64135289477071580278790190170577389084825014742943447208116859632024532344630238623598752668347708737661925585694639798853367").unwrap());
-        assert!(m.is_none());
+        assert_eq!(pk.p, Integer::from_str("33372027594978156556226010605355114227940760344767554666784520987023841729210037080257448673296881877565718986258036932062711").unwrap());
+        assert_eq!(pk.q, Integer::from_str("64135289477071580278790190170577389084825014742943447208116859632024532344630238623598752668347708737661925585694639798853367").unwrap());
     }
 }

@@ -1,5 +1,5 @@
 use indicatif::ProgressBar;
-use rug::Integer;
+use rug::{integer::IsPrime, Integer};
 use std::rc::Rc;
 
 use crate::{Attack, Error, Parameters, Solution};
@@ -124,9 +124,14 @@ impl Attack for CipollaAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
+        if n.is_probably_prime(100) == IsPrime::No {
+            // N should be prime
+            return Err(Error::NotFound);
+        }
 
+        let phi = Integer::from(n - 1);
         let d = Integer::from(e / 2)
-            .invert(&(Integer::from(n - 1) / 2))
+            .invert(&(phi / 2))
             .or(Err(Error::NotFound))?;
         let m = c.clone().pow_mod(&d, n).unwrap();
         let (m1, m2) = cipolla(&m, n, pb).ok_or(Error::NotFound)?;

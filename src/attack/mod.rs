@@ -13,6 +13,7 @@ mod leaked_crt_coefficient;
 mod leaked_crt_exponent;
 mod leaked_pq;
 mod pollard_p_1;
+mod pollard_rho;
 mod small_e;
 mod small_prime;
 mod sum_pq;
@@ -32,6 +33,7 @@ pub use leaked_crt_coefficient::LeakedCrtCoefficientAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
 pub use leaked_pq::LeakedPQAttack;
 pub use pollard_p_1::PollardP1Attack;
+pub use pollard_rho::PollardRhoAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
 pub use sum_pq::SumPQAttack;
@@ -73,6 +75,7 @@ lazy_static! {
         Box::new(LeakedCrtExponentAttack),
         Box::new(LeakedPQAttack),
         Box::new(PollardP1Attack),
+        Box::new(PollardRhoAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(SumPQAttack),

@@ -5,7 +5,7 @@ use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
 fn brent(n: &Integer, pb: Option<&ProgressBar>) -> Option<Integer> {
     if let Some(pb) = pb {
-        pb.set_length(21)
+        pb.set_length(23)
     }
 
     // Implementation inspired by https://gist.github.com/ssanin82/18582bf4a1849dfb8afd
@@ -51,8 +51,8 @@ fn brent(n: &Integer, pb: Option<&ProgressBar>) -> Option<Integer> {
         if let Some(pb) = pb {
             pb.inc(1);
         }
-        // Limit to 20 iterations
-        if r > 1 << 20 {
+        // Limit to 22 iterations
+        if r > 1 << 22 {
             return None;
         }
 

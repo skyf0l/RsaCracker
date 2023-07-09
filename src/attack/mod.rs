@@ -12,6 +12,7 @@ mod known_phi;
 mod leaked_crt_coefficient;
 mod leaked_crt_exponent;
 mod leaked_pq;
+mod mersenne_prime;
 mod pollard_p_1;
 mod pollard_rho;
 mod small_e;
@@ -32,6 +33,7 @@ pub use known_phi::KnownPhiAttack;
 pub use leaked_crt_coefficient::LeakedCrtCoefficientAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
 pub use leaked_pq::LeakedPQAttack;
+pub use mersenne_prime::MersennePrimeAttack;
 pub use pollard_p_1::PollardP1Attack;
 pub use pollard_rho::PollardRhoAttack;
 pub use small_e::SmallEAttack;
@@ -74,6 +76,7 @@ lazy_static! {
         Box::new(LeakedCrtCoefficientAttack),
         Box::new(LeakedCrtExponentAttack),
         Box::new(LeakedPQAttack),
+        Box::new(MersennePrimeAttack),
         Box::new(PollardP1Attack),
         Box::new(PollardRhoAttack),
         Box::new(SmallEAttack),

@@ -60,17 +60,17 @@ struct Args {
     #[clap(long)]
     phi: Option<IntegerArg>,
     /// dP or dmp1 CRT exponent. (d mod p-1)
-    #[clap(long)]
+    #[clap(long, alias = "dmp1")]
     dp: Option<IntegerArg>,
     /// dQ or dmq1 CRT exponent. (d mod q-1)
-    #[clap(long)]
+    #[clap(long, alias = "dmq1")]
     dq: Option<IntegerArg>,
-    /// iqmp CRT coefficient. (q^-1 mod p)
-    #[clap(long)]
-    iqmp: Option<IntegerArg>,
-    /// ipmq CRT coefficient. (p^-1 mod q)
-    #[clap(long)]
-    ipmq: Option<IntegerArg>,
+    /// qInv or iqmp CRT coefficient. (q^-1 mod p)
+    #[clap(long, alias = "iqmp")]
+    qinv: Option<IntegerArg>,
+    /// pInv or ipmq CRT coefficient. (p^-1 mod q)
+    #[clap(long, alias = "ipmq")]
+    pinv: Option<IntegerArg>,
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
@@ -126,8 +126,8 @@ fn main() -> Result<(), MainError> {
         phi: args.phi.map(|n| n.0),
         dp: args.dp.map(|n| n.0),
         dq: args.dq.map(|n| n.0),
-        iqmp: args.iqmp.map(|n| n.0),
-        ipmq: args.ipmq.map(|n| n.0),
+        qinv: args.qinv.map(|n| n.0),
+        pinv: args.pinv.map(|n| n.0),
         sum_pq: args.sum_pq.map(|n| n.0),
     };
     if let Some(public_key) = args.publickey {
@@ -167,14 +167,11 @@ fn main() -> Result<(), MainError> {
             }
             if args.dumpextkey {
                 println!("Extended private key:");
-                let dp = private_key.d.clone() % (&private_key.p - Integer::from(1));
-                println!("dP = {dp}",);
-                let dq = private_key.d.clone() % (&private_key.q - Integer::from(1));
-                println!("dQ = {dq}",);
-                let p_inv = Integer::from(private_key.p.invert_ref(&private_key.q).unwrap());
-                println!("pInv = {p_inv}",);
-                let q_inv = Integer::from(private_key.q.invert_ref(&private_key.p).unwrap());
-                println!("qInv = {q_inv}",);
+                println!("phi = {}", private_key.phi);
+                println!("dP = {}", private_key.dp());
+                println!("dQ = {}", private_key.dq());
+                println!("pInv = {}", private_key.pinv());
+                println!("qInv = {}", private_key.qinv());
             }
         } else {
             eprintln!("No private key found");

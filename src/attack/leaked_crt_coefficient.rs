@@ -20,10 +20,10 @@ fn find_phi(e: &Integer, d: &Integer) -> impl Iterator<Item = Integer> {
     })
 }
 
-fn find_p_q_from_phi(phi: &Integer, iqmp: &Integer, ipmq: &Integer) -> Option<(Integer, Integer)> {
-    let a: Integer = iqmp.clone() - 1;
-    let b: Integer = ipmq.clone() + iqmp - 2 - phi;
-    let c: Integer = ipmq.clone() * phi - phi;
+fn find_p_q_from_phi(phi: &Integer, qinv: &Integer, pinv: &Integer) -> Option<(Integer, Integer)> {
+    let a: Integer = qinv.clone() - 1;
+    let b: Integer = pinv.clone() + qinv - 2 - phi;
+    let c: Integer = pinv.clone() * phi - phi;
     let delta: Integer = b.clone() * &b - Integer::from(4) * &a * &c;
 
     if delta > 0 {
@@ -57,15 +57,15 @@ impl Attack for LeakedCrtCoefficientAttack {
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
-        let iqmp = params.iqmp.as_ref().ok_or(Error::MissingParameters)?;
-        let ipmq = params.ipmq.as_ref().ok_or(Error::MissingParameters)?;
+        let qinv = params.qinv.as_ref().ok_or(Error::MissingParameters)?;
+        let pinv = params.pinv.as_ref().ok_or(Error::MissingParameters)?;
 
         if let Some(phi) = params.phi.as_ref() {
-            let (p, q) = find_p_q_from_phi(phi, iqmp, ipmq).ok_or(Error::NotFound)?;
+            let (p, q) = find_p_q_from_phi(phi, qinv, pinv).ok_or(Error::NotFound)?;
             return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
         } else if let Some(d) = params.d.as_ref() {
             for phi in find_phi(e, d) {
-                if let Some((p, q)) = find_p_q_from_phi(&phi, iqmp, ipmq) {
+                if let Some((p, q)) = find_p_q_from_phi(&phi, qinv, pinv) {
                     return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
                 }
             }

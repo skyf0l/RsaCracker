@@ -29,6 +29,8 @@ pub struct PrivateKey {
     pub other_factors: Vec<Integer>,
     /// Private exponent.
     pub d: Integer,
+    /// Phi or Euler's totient function of n. (p-1)(q-1)
+    pub phi: Integer,
 }
 
 impl PrivateKey {
@@ -52,6 +54,7 @@ impl PrivateKey {
             q: if p > q { p } else { q },
             other_factors: vec![],
             d,
+            phi,
         })
     }
 
@@ -74,6 +77,7 @@ impl PrivateKey {
             q: factors.remove(0),
             other_factors: factors,
             d,
+            phi,
         })
     }
 
@@ -82,15 +86,31 @@ impl PrivateKey {
         c.clone().pow_mod(&self.d, &self.n).unwrap()
     }
 
+    /// Returns dP or dmp1 CRT exponent. (d mod p-1)
+    pub fn dp(&self) -> Integer {
+        self.d.clone() % (&self.p - Integer::from(1))
+    }
+
+    /// Returns dQ or dmq1 CRT exponent. (d mod q-1)
+    pub fn dq(&self) -> Integer {
+        self.d.clone() % (&self.q - Integer::from(1))
+    }
+
+    /// Returns qInv or iqmp CRT exponent. (q^-1 mod p)
+    pub fn qinv(&self) -> Integer {
+        Integer::from(self.q.invert_ref(&self.p).unwrap())
+    }
+
+    /// Returns pInv or ipmq CRT exponent. (p^-1 mod q)
+    pub fn pinv(&self) -> Integer {
+        Integer::from(self.p.invert_ref(&self.q).unwrap())
+    }
+
     /// Convert to PEM format
     pub fn to_pem(&self, passphrase: &Option<String>) -> Option<String> {
         if !self.other_factors.is_empty() {
             panic!("Only keys with two factors can be converted to PEM format");
         }
-
-        let dmp1 = self.d.clone() % (&self.p - Integer::from(1));
-        let dmq1 = self.d.clone() % (&self.q - Integer::from(1));
-        let iqmp = Integer::from(self.q.invert_ref(&self.p).unwrap());
 
         let rsa = RsaPrivateKeyBuilder::new(
             BigNum::from_dec_str(&self.n.to_string()).unwrap(),
@@ -104,9 +124,9 @@ impl PrivateKey {
         )
         .ok()?
         .set_crt_params(
-            BigNum::from_dec_str(&dmp1.to_string()).unwrap(),
-            BigNum::from_dec_str(&dmq1.to_string()).unwrap(),
-            BigNum::from_dec_str(&iqmp.to_string()).unwrap(),
+            BigNum::from_dec_str(&self.dp().to_string()).unwrap(),
+            BigNum::from_dec_str(&self.dq().to_string()).unwrap(),
+            BigNum::from_dec_str(&self.qinv().to_string()).unwrap(),
         )
         .ok()?
         .build();

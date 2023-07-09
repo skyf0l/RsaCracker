@@ -22,10 +22,10 @@ pub struct Parameters {
     pub dp: Option<Integer>,
     /// dQ or dmq1 CRT exponent. (d mod q-1)
     pub dq: Option<Integer>,
-    /// iqmp CRT coefficient. (q^-1 mod p)
-    pub iqmp: Option<Integer>,
-    /// ipmq CRT coefficient. (p^-1 mod q)
-    pub ipmq: Option<Integer>,
+    /// qInv or iqmp CRT coefficient. (q^-1 mod p)
+    pub qinv: Option<Integer>,
+    /// pInv or ipmq CRT coefficient. (p^-1 mod q)
+    pub pinv: Option<Integer>,
     /// The sum of the two primes p and q.
     pub sum_pq: Option<Integer>,
 }
@@ -42,8 +42,8 @@ impl Default for Parameters {
             phi: None,
             dp: None,
             dq: None,
-            iqmp: None,
-            ipmq: None,
+            qinv: None,
+            pinv: None,
             sum_pq: None,
         }
     }
@@ -251,11 +251,11 @@ impl AddAssign for Parameters {
         if self.dq.is_none() {
             self.dq = rhs.dq;
         }
-        if self.iqmp.is_none() {
-            self.iqmp = rhs.iqmp;
+        if self.qinv.is_none() {
+            self.qinv = rhs.qinv;
         }
-        if self.ipmq.is_none() {
-            self.ipmq = rhs.ipmq;
+        if self.pinv.is_none() {
+            self.pinv = rhs.pinv;
         }
         if self.sum_pq.is_none() {
             self.sum_pq = rhs.sum_pq;

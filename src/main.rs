@@ -65,6 +65,12 @@ struct Args {
     /// dQ or dmq1 CRT exponent. (d mod q-1)
     #[clap(long)]
     dq: Option<IntegerArg>,
+    /// iqmp CRT coefficient. (q^-1 mod p)
+    #[clap(long)]
+    iqmp: Option<IntegerArg>,
+    /// ipmq CRT coefficient. (p^-1 mod q)
+    #[clap(long)]
+    ipmq: Option<IntegerArg>,
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
@@ -120,6 +126,8 @@ fn main() -> Result<(), MainError> {
         phi: args.phi.map(|n| n.0),
         dp: args.dp.map(|n| n.0),
         dq: args.dq.map(|n| n.0),
+        iqmp: args.iqmp.map(|n| n.0),
+        ipmq: args.ipmq.map(|n| n.0),
         sum_pq: args.sum_pq.map(|n| n.0),
     };
     if let Some(public_key) = args.publickey {

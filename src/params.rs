@@ -16,12 +16,16 @@ pub struct Parameters {
     pub q: Option<Integer>,
     /// Private exponent.
     pub d: Option<Integer>,
+    /// Phi or Euler's totient function of n. (p-1)(q-1)
+    pub phi: Option<Integer>,
     /// dP or dmp1 CRT exponent. (d mod p-1)
     pub dp: Option<Integer>,
     /// dQ or dmq1 CRT exponent. (d mod q-1)
     pub dq: Option<Integer>,
-    /// Phi or Euler's totient function of n. (p-1)(q-1)
-    pub phi: Option<Integer>,
+    /// iqmp CRT coefficient. (q^-1 mod p)
+    pub iqmp: Option<Integer>,
+    /// ipmq CRT coefficient. (p^-1 mod q)
+    pub ipmq: Option<Integer>,
     /// The sum of the two primes p and q.
     pub sum_pq: Option<Integer>,
 }
@@ -35,9 +39,11 @@ impl Default for Parameters {
             p: None,
             q: None,
             d: None,
+            phi: None,
             dp: None,
             dq: None,
-            phi: None,
+            iqmp: None,
+            ipmq: None,
             sum_pq: None,
         }
     }
@@ -236,14 +242,20 @@ impl AddAssign for Parameters {
         if self.d.is_none() {
             self.d = rhs.d;
         }
+        if self.phi.is_none() {
+            self.phi = rhs.phi;
+        }
         if self.dp.is_none() {
             self.dp = rhs.dp;
         }
         if self.dq.is_none() {
             self.dq = rhs.dq;
         }
-        if self.phi.is_none() {
-            self.phi = rhs.phi;
+        if self.iqmp.is_none() {
+            self.iqmp = rhs.iqmp;
+        }
+        if self.ipmq.is_none() {
+            self.ipmq = rhs.ipmq;
         }
         if self.sum_pq.is_none() {
             self.sum_pq = rhs.sum_pq;

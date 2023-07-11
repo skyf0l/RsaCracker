@@ -24,9 +24,9 @@ impl Attack for EcmAttack {
             return Err(Error::NotFound);
         }
 
-        Ok(Solution::new_pk(PrivateKey::from_factors(
-            &factors,
-            e.clone(),
-        )?))
+        Ok(Solution::new_pk(
+            self.name(),
+            PrivateKey::from_factors(&factors, e.clone())?,
+        ))
     }
 }

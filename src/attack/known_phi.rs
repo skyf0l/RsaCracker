@@ -85,10 +85,16 @@ impl Attack for KnownPhiAttack {
         let phi = params.phi.as_ref().ok_or(Error::MissingParameters)?;
 
         if let Some((p, q)) = factorize(n, phi) {
-            return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e)?));
+            return Ok(Solution::new_pk(
+                self.name(),
+                PrivateKey::from_p_q(p, q, e)?,
+            ));
         }
         if let Some(factors) = factorize_multi_factors(n, phi) {
-            return Ok(Solution::new_pk(PrivateKey::from_factors(&factors, e)?));
+            return Ok(Solution::new_pk(
+                self.name(),
+                PrivateKey::from_factors(&factors, e)?,
+            ));
         }
 
         Err(Error::NotFound)

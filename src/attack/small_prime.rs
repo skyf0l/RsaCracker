@@ -33,7 +33,7 @@ impl Attack for SmallPrimeAttack {
                     .invert(&((p.clone() - 1) * (q.clone() - 1)))
                     .map_err(|_| Error::NotFound)?;
 
-                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
+                return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?));
             }
             if i % 10000 == 0 {
                 if let Some(pb) = pb {

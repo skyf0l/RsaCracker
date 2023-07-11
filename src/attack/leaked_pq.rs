@@ -19,7 +19,7 @@ impl Attack for LeakedPQAttack {
         let n = params.n.as_ref();
 
         if let (Some(p), Some(q)) = (p, q) {
-            Ok(Solution::new_pk(PrivateKey::from_p_q(
+            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
                 p.clone(),
                 q.clone(),
                 e.clone(),
@@ -29,7 +29,7 @@ impl Attack for LeakedPQAttack {
                 (q, rem) if (rem) == Integer::ZERO => q,
                 _ => return Err(Error::NotFound),
             };
-            Ok(Solution::new_pk(PrivateKey::from_p_q(
+            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
                 p.clone(),
                 q,
                 e.clone(),
@@ -39,7 +39,7 @@ impl Attack for LeakedPQAttack {
                 (p, rem) if (rem) == Integer::ZERO => p,
                 _ => return Err(Error::NotFound),
             };
-            Ok(Solution::new_pk(PrivateKey::from_p_q(
+            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
                 p,
                 q.clone(),
                 e.clone(),

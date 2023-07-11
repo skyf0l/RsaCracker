@@ -21,7 +21,7 @@ impl Attack for CubeRootAttack {
 
         let (root, rem) = c.root_rem_ref(e).into();
         if rem == Integer::ZERO {
-            return Ok(Solution::new_m(root));
+            return Ok(Solution::new_m(self.name(), root));
         }
         Err(Error::NotFound)
     }

@@ -396,10 +396,10 @@ impl Attack for CunninghamChainAttack {
                 }
                 if n.is_divisible(&p) {
                     let q = n.clone() / &p;
-                    return Ok(Solution::new_pk(PrivateKey::from_factors(
-                        &[p, q],
-                        e.clone(),
-                    )?));
+                    return Ok(Solution::new_pk(
+                        self.name(),
+                        PrivateKey::from_factors(&[p, q], e.clone())?,
+                    ));
                 }
             }
             if let Some(pb) = pb {

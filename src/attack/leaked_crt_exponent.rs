@@ -27,6 +27,6 @@ impl Attack for LeakedCrtExponentAttack {
             _ => return Err(Error::NotFound),
         };
 
-        Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?))
+        Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?))
     }
 }

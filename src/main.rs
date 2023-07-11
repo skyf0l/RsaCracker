@@ -152,6 +152,8 @@ fn main() -> Result<(), MainError> {
     #[cfg(not(feature = "parallel"))]
     let solution = rsacracker::run_sequence_attacks(&params).ok_or("No attack succeeded")?;
 
+    println!("Succeeded with attack: {}", solution.attack);
+
     if args.printkey || args.dumpkey || args.dumpextkey {
         if let Some(private_key) = &solution.pk {
             if args.printkey {

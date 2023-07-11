@@ -136,7 +136,7 @@ impl Attack for CipollaAttack {
         let m = c.clone().pow_mod(&d, n).unwrap();
         let (m1, m2) = cipolla(&m, n, pb).ok_or(Error::NotFound)?;
 
-        Ok(Solution::new_ms(vec![m1, m2]))
+        Ok(Solution::new_ms(self.name(), vec![m1, m2]))
     }
 }
 #[cfg(test)]

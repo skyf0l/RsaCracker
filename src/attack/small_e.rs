@@ -29,7 +29,7 @@ impl Attack for SmallEAttack {
 
             // If the root is perfect, we found the plaintext
             if rem == Integer::ZERO {
-                return Ok(Solution::new_m(root));
+                return Ok(Solution::new_m(self.name(), root));
             }
 
             if i % 10000 == 0 {

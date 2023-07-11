@@ -31,7 +31,7 @@ impl Attack for LucasGcdAttack {
             let p = Integer::from(n3.gcd_ref(n));
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);
-                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
+                return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?));
             }
 
             n1 = n2;

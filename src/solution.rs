@@ -5,6 +5,8 @@ use crate::key::PrivateKey;
 /// Attack's result
 #[derive(Debug, Clone)]
 pub struct Solution {
+    /// Attack's name
+    pub attack: &'static str,
     /// The private key
     pub pk: Option<PrivateKey>,
     /// The decrypted message
@@ -15,8 +17,9 @@ pub struct Solution {
 
 impl Solution {
     /// Create a new solution
-    pub fn new(pk: PrivateKey, m: Integer) -> Self {
+    pub fn new(attack: &'static str, pk: PrivateKey, m: Integer) -> Self {
         Self {
+            attack,
             pk: Some(pk),
             m: Some(m),
             ms: vec![],
@@ -24,8 +27,9 @@ impl Solution {
     }
 
     /// Create a new solution with only the private key
-    pub fn new_pk(pk: PrivateKey) -> Self {
+    pub fn new_pk(attack: &'static str, pk: PrivateKey) -> Self {
         Self {
+            attack,
             pk: Some(pk),
             m: None,
             ms: vec![],
@@ -33,8 +37,9 @@ impl Solution {
     }
 
     /// Create a new solution with only the decrypted message
-    pub fn new_m(m: Integer) -> Self {
+    pub fn new_m(attack: &'static str, m: Integer) -> Self {
         Self {
+            attack,
             pk: None,
             m: Some(m),
             ms: vec![],
@@ -42,8 +47,9 @@ impl Solution {
     }
 
     /// Create a new solution with only the possible decrypted messages
-    pub fn new_ms(ms: Vec<Integer>) -> Self {
+    pub fn new_ms(attack: &'static str, ms: Vec<Integer>) -> Self {
         Self {
+            attack,
             pk: None,
             m: None,
             ms,

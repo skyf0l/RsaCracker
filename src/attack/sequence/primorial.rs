@@ -35,14 +35,14 @@ impl Attack for PrimorialGcdAttack {
             let p = Integer::from(&primorial - 1).gcd(n);
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);
-                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
+                return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?));
             }
 
             // Primorial + 1
             let p = Integer::from(&primorial + 1).gcd(n);
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);
-                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
+                return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?));
             }
 
             if i as u64 % TICK_SIZE == 0 {

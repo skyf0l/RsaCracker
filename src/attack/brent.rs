@@ -95,7 +95,7 @@ impl Attack for BrentAttack {
 
         if let Some(p) = brent(n, pb) {
             let q = Integer::from(n / &p);
-            Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?))
+            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?))
         } else {
             Err(Error::NotFound)
         }

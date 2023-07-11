@@ -3,13 +3,17 @@ use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
-/// Lucas GCD attack
+const MAX_ITERATIONS: u64 = 100000;
+const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
+
+/// Lucas GCD attack (try to find a common factor with Lucas numbers)
+/// E.g. 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, 322, 521, 843, 1364, ...
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LucasGcdAttack;
 
 impl Attack for LucasGcdAttack {
     fn name(&self) -> &'static str {
-        "lucas"
+        "lucas_gcd"
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
@@ -17,25 +21,25 @@ impl Attack for LucasGcdAttack {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         if let Some(pb) = pb {
-            pb.set_length(100000)
+            pb.set_length(MAX_ITERATIONS)
         }
 
         let mut n1 = Integer::from(1);
         let mut n2 = Integer::from(3);
-        for i in 1..100000 {
+        for i in 1..MAX_ITERATIONS {
             let n3 = Integer::from(&n1 + &n2);
-            let f = Integer::from(n3.gcd_ref(n));
-            if 1 < f && &f < n {
-                let p = Integer::from(n / &f);
-                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, f, e.clone())?));
+            let p = Integer::from(n3.gcd_ref(n));
+            if 1 < p && &p < n {
+                let q = Integer::from(n / &p);
+                return Ok(Solution::new_pk(PrivateKey::from_p_q(p, q, e.clone())?));
             }
 
             n1 = n2;
             n2 = n3;
 
-            if i % 1000 == 0 {
+            if i % TICK_SIZE == 0 {
                 if let Some(pb) = pb {
-                    pb.inc(1000);
+                    pb.inc(TICK_SIZE);
                 }
             }
         }

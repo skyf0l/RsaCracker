@@ -19,31 +19,28 @@ impl Attack for LeakedPQAttack {
         let n = params.n.as_ref();
 
         if let (Some(p), Some(q)) = (p, q) {
-            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
-                p.clone(),
-                q.clone(),
-                e.clone(),
-            )?))
+            Ok(Solution::new_pk(
+                self.name(),
+                PrivateKey::from_p_q(p.clone(), q.clone(), e.clone())?,
+            ))
         } else if let (Some(p), Some(n)) = (p, n) {
             let q = match n.div_rem_ref(p).complete() {
                 (q, rem) if (rem) == Integer::ZERO => q,
                 _ => return Err(Error::NotFound),
             };
-            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
-                p.clone(),
-                q,
-                e.clone(),
-            )?))
+            Ok(Solution::new_pk(
+                self.name(),
+                PrivateKey::from_p_q(p.clone(), q, e.clone())?,
+            ))
         } else if let (Some(q), Some(n)) = (q, n) {
             let p = match n.div_rem_ref(q).complete() {
                 (p, rem) if (rem) == Integer::ZERO => p,
                 _ => return Err(Error::NotFound),
             };
-            Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
-                p,
-                q.clone(),
-                e.clone(),
-            )?))
+            Ok(Solution::new_pk(
+                self.name(),
+                PrivateKey::from_p_q(p, q.clone(), e.clone())?,
+            ))
         } else {
             Err(Error::MissingParameters)
         }

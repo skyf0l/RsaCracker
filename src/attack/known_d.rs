@@ -31,7 +31,10 @@ impl Attack for KnownDAttack {
                 let p = Integer::from(n.gcd_ref(&(x - Integer::from(1))));
                 if p > 1 && p < *n && n.is_divisible(&p) {
                     let q = Integer::from(n / &p);
-                    return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?));
+                    return Ok(Solution::new_pk(
+                        self.name(),
+                        PrivateKey::from_p_q(p, q, e.clone())?,
+                    ));
                 }
             }
         }

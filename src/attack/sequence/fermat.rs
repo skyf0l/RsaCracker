@@ -26,7 +26,10 @@ impl Attack for FermatGcdAttack {
             let p = f.gcd(n);
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);
-                return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?));
+                return Ok(Solution::new_pk(
+                    self.name(),
+                    PrivateKey::from_p_q(p, q, e.clone())?,
+                ));
             }
 
             if let Some(pb) = pb {

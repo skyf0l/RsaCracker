@@ -45,6 +45,9 @@ impl Attack for PollardRhoAttack {
             (q, rem) if (rem) == Integer::ZERO => q,
             _ => return Err(Error::NotFound),
         };
-        Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?))
+        Ok(Solution::new_pk(
+            self.name(),
+            PrivateKey::from_p_q(p, q, e.clone())?,
+        ))
     }
 }

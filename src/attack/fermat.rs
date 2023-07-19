@@ -47,6 +47,9 @@ impl Attack for FermatAttack {
         let b = Integer::from(b2.sqrt_ref());
         let p = Integer::from(&a - &b);
         let q = a + b;
-        Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?))
+        Ok(Solution::new_pk(
+            self.name(),
+            PrivateKey::from_p_q(p, q, e.clone())?,
+        ))
     }
 }

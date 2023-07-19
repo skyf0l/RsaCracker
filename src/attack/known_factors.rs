@@ -71,11 +71,10 @@ impl Attack for KnownFactorsAttack {
         for factor in rsa_numbers_challenge_factors.iter() {
             let (q, rem) = n.clone().div_rem(factor.clone());
             if rem == Integer::ZERO {
-                return Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(
-                    factor.clone(),
-                    q,
-                    e.clone(),
-                )?));
+                return Ok(Solution::new_pk(
+                    self.name(),
+                    PrivateKey::from_p_q(factor.clone(), q, e.clone())?,
+                ));
             }
         }
         Err(Error::NotFound)

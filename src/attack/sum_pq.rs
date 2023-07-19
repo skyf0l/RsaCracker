@@ -24,6 +24,9 @@ impl Attack for SumPQAttack {
             };
         let p = (Integer::from(sum_pq) + &theta) / Integer::from(2);
         let q = (Integer::from(sum_pq) - theta) / Integer::from(2);
-        Ok(Solution::new_pk(self.name(), PrivateKey::from_p_q(p, q, e.clone())?))
+        Ok(Solution::new_pk(
+            self.name(),
+            PrivateKey::from_p_q(p, q, e.clone())?,
+        ))
     }
 }

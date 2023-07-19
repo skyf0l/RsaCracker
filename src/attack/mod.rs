@@ -7,6 +7,7 @@ mod cube_root;
 mod cunningham_chain;
 mod ecm;
 mod fermat;
+mod gaa;
 mod known_d;
 mod known_factors;
 mod known_phi;
@@ -30,6 +31,7 @@ pub use cipolla::CipollaAttack;
 pub use cube_root::CubeRootAttack;
 pub use cunningham_chain::CunninghamChainAttack;
 pub use fermat::FermatAttack;
+pub use gaa::GaaAttack;
 pub use known_d::KnownDAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use known_phi::KnownPhiAttack;
@@ -76,6 +78,7 @@ lazy_static! {
         Box::new(CubeRootAttack),
         Box::new(CunninghamChainAttack),
         Box::new(FermatAttack),
+        Box::new(GaaAttack),
         Box::new(KnownDAttack),
         Box::new(KnownFactorsAttack),
         Box::new(KnownPhiAttack),

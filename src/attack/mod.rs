@@ -21,6 +21,7 @@ mod sequence;
 mod small_e;
 mod small_prime;
 mod sum_pq;
+mod twin_prime;
 mod wiener;
 
 use crate::{Parameters, Solution};
@@ -46,6 +47,7 @@ pub use sequence::LucasGcdAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
 pub use sum_pq::SumPQAttack;
+pub use twin_prime::TwinPrimeAttack;
 pub use wiener::WienerAttack;
 
 /// Attack error
@@ -98,6 +100,7 @@ lazy_static! {
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(SumPQAttack),
+        Box::new(TwinPrimeAttack),
         Box::new(WienerAttack),
         Box::new(EcmAttack),
         Box::new(BrentAttack),

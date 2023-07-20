@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 /// Mersenne prime factorization attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,6 +17,10 @@ const MERSENNE_PRIMES: [u32; 51] = [
 impl Attack for MersennePrimeAttack {
     fn name(&self) -> &'static str {
         "mersenne_prime"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

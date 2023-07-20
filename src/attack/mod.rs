@@ -64,10 +64,47 @@ pub enum Error {
     Key(#[from] crate::key::KeyError),
 }
 
+/// Attack speed
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AttackSpeed {
+    /// Fast attack (less than 1s)
+    Fast,
+    /// Medium attack (few seconds)
+    Medium,
+    /// Slow attack (more than 30 seconds)
+    Slow,
+}
+
+impl PartialOrd for AttackSpeed {
+    fn partial_cmp(&self, other: &AttackSpeed) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for AttackSpeed {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        use crate::AttackSpeed::{Fast, Medium, Slow};
+        use std::cmp::Ordering::*;
+
+        match (self, other) {
+            (Fast, Fast) | (Medium, Medium) | (Slow, Slow) => Equal,
+            (Fast, _) => Less,
+            (_, Fast) => Greater,
+            (Medium, _) => Less,
+            (_, Medium) => Greater,
+        }
+    }
+}
+
 /// Abstract attack trait
 pub trait Attack {
     /// Get the attack name
     fn name(&self) -> &'static str;
+
+    /// Get the attack speed
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Medium
+    }
 
     /// Run the attack
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error>;
@@ -76,9 +113,11 @@ pub trait Attack {
 lazy_static! {
     /// List of attacks
     pub static ref ATTACKS: Vec<Box<dyn Attack + Sync>> = vec![
+        Box::new(BrentAttack),
         Box::new(CipollaAttack),
         Box::new(CubeRootAttack),
         Box::new(CunninghamChainAttack),
+        Box::new(EcmAttack),
         Box::new(FermatAttack),
         Box::new(GaaAttack),
         Box::new(KnownDAttack),
@@ -102,7 +141,5 @@ lazy_static! {
         Box::new(SumPQAttack),
         Box::new(TwinPrimeAttack),
         Box::new(WienerAttack),
-        Box::new(EcmAttack),
-        Box::new(BrentAttack),
     ];
 }

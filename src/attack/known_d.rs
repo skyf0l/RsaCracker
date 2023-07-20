@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{ops::Pow, rand::RandState, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 /// Known phi attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -10,6 +10,10 @@ pub struct KnownDAttack;
 impl Attack for KnownDAttack {
     fn name(&self) -> &'static str {
         "known_d"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

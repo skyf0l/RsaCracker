@@ -3,7 +3,7 @@ use std::str::FromStr;
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 /// Known factors attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,6 +12,10 @@ pub struct KnownFactorsAttack;
 impl Attack for KnownFactorsAttack {
     fn name(&self) -> &'static str {
         "known_factors"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

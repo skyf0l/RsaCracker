@@ -1,6 +1,6 @@
 use indicatif::ProgressBar;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 /// Lenstra's ECM factorization attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -9,6 +9,10 @@ pub struct EcmAttack;
 impl Attack for EcmAttack {
     fn name(&self) -> &'static str {
         "ecm"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Slow
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

@@ -3,16 +3,19 @@ use rug::{integer::IsPrime, Complete, Integer};
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
+const MAX_ITERATIONS: u64 = 100_000;
+const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
+
 fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
     let mut a = Integer::from(2);
-    let mut b = Integer::from(2);
+    let mut b = 2;
 
     if let Some(pb) = pb {
         pb.set_position(0);
-        pb.set_length(100000);
+        pb.set_length(MAX_ITERATIONS);
     }
     loop {
-        a = a.pow_mod_ref(&b, n).unwrap().into();
+        a = a.pow_mod_ref(&b.into(), n).unwrap().into();
         let p = Integer::from(&a - 1).gcd_ref(n).complete();
         if p > 1 && &p < n {
             let (q, rem) = n.div_rem_ref(&p).complete();
@@ -35,12 +38,12 @@ fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
         }
         b += 1;
 
-        if b.is_divisible_u(1000) {
+        if b % TICK_SIZE == 0 {
             if let Some(pb) = pb {
-                pb.inc(1000);
+                pb.inc(TICK_SIZE);
             }
         }
-        if b > 100000 {
+        if b > MAX_ITERATIONS {
             break;
         }
     }

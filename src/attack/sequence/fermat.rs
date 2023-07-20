@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 /// Fermat GCD attack (try to find a common factor with Fermat numbers)
 /// E.g. 3, 5, 17, 257, 65537, 4294967297, 18446744073709551617, ...
@@ -11,6 +11,10 @@ pub struct FermatGcdAttack;
 impl Attack for FermatGcdAttack {
     fn name(&self) -> &'static str {
         "fermat_gcd"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

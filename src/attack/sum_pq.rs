@@ -1,7 +1,9 @@
 use indicatif::ProgressBar;
-use rug::{ops::Pow, Integer};
+use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{
+    key::PrivateKey, utils::solve_quadratic, Attack, AttackSpeed, Error, Parameters, Solution,
+};
 
 /// Leaked sum of p and q attack (0 = x^2 - xsum + n)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -12,18 +14,23 @@ impl Attack for SumPQAttack {
         "sum_pq"
     }
 
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
+    }
+
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let sum_pq = params.sum_pq.as_ref().ok_or(Error::MissingParameters)?;
 
-        let theta =
-            match (Integer::from(sum_pq.pow(2)) - (n * Integer::from(4))).sqrt_rem(Integer::ZERO) {
-                (theta, rem) if rem == Integer::ZERO => theta,
-                _ => return Err(Error::NotFound),
-            };
-        let p = (Integer::from(sum_pq) + &theta) / Integer::from(2);
-        let q = (Integer::from(sum_pq) - theta) / Integer::from(2);
+        // Solve: x^2 - sum_pq * x + n = 0
+        let roots = solve_quadratic(&Integer::from(1), &-(sum_pq.clone()), n);
+        let (p, q) = match roots.len() {
+            1 => (roots[0].clone(), roots[0].clone()),
+            2 => (roots[0].clone(), roots[1].clone()),
+            _ => return Err(Error::NotFound),
+        };
+
         Ok(Solution::new_pk(
             self.name(),
             PrivateKey::from_p_q(p, q, e.clone())?,

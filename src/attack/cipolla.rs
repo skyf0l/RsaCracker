@@ -4,6 +4,9 @@ use std::rc::Rc;
 
 use crate::{Attack, Error, Parameters, Solution};
 
+const MAX_ITERATIONS: u64 = 1_000_000;
+const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
+
 // Inspired by https://github.com/TheAlgorithms/Rust/blob/master/src/math/quadratic_residue.rs
 
 #[derive(Debug)]
@@ -76,7 +79,7 @@ pub fn cipolla(a: &Integer, p: &Integer, pb: Option<&ProgressBar>) -> Option<(In
     }
 
     if let Some(pb) = pb {
-        pb.set_length(1_000_000);
+        pb.set_length(MAX_ITERATIONS);
     }
     let mut r = 1;
     loop {
@@ -84,12 +87,12 @@ pub fn cipolla(a: &Integer, p: &Integer, pb: Option<&ProgressBar>) -> Option<(In
             break;
         }
         r += 1;
-        if r % 10_000 == 0 {
+        if r % TICK_SIZE == 0 {
             if let Some(pb) = pb {
-                pb.inc(10_000);
+                pb.inc(TICK_SIZE);
             }
         }
-        if r > 1_000_000 {
+        if r > MAX_ITERATIONS {
             // Limit to 1 million iterations
             return None;
         }

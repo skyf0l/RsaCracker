@@ -3,7 +3,7 @@ use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
-const MAX_ITERATIONS: u64 = 50000;
+const MAX_ITERATIONS: u64 = 50_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Mersenne GCD attack (try to find a common factor with Mersenne (+ or - 1) numbers)

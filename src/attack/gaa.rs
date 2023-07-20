@@ -3,7 +3,7 @@ use rug::{ops::Pow, Integer};
 
 use crate::{key::PrivateKey, utils::solve_quadratic, Attack, Error, Parameters, Solution};
 
-const MAX_ITERATIONS: u64 = 1000000;
+const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Ghafar-Ariffin-Asbullah key recovery attack (lsb of p and q are known)
@@ -39,7 +39,7 @@ impl Attack for GaaAttack {
             let sigma = (n_sqrt.clone() - &k).pow(2);
             let z = (n - Integer::from(rp * rq)) % &sigma;
 
-            // Solve: x ** 2 - z * x + sigma * rp * rq == 0
+            // Solve: x^2 - z * x + sigma * rp * rq = 0
             for root in solve_quadratic(&one, &(-z), &(sigma * rp * rq)) {
                 if root < 0 {
                     continue;

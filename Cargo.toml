@@ -39,7 +39,8 @@ tokio = { version = "1.29", features = ["rt", "rt-multi-thread"], optional = tru
 mpsc = { version = "0.1", optional = true }
 num_cpus = { version = "1.15", optional = true }
 update-informer = "1"
-indicatif = "0.17.5"
+indicatif = "0.17"
+itertools = "0.11"
 
 [dependencies.rug]
 version = "1"

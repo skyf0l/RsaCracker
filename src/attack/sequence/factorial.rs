@@ -3,7 +3,7 @@ use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
-const MAX_ITERATIONS: u64 = 25000;
+const MAX_ITERATIONS: u64 = 25_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Factorial GCD attack (try to find a common factor with Factorial (+ or - 1) numbers)

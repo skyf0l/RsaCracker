@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{rand::RandState, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 fn brent(n: &Integer, pb: Option<&ProgressBar>) -> Option<Integer> {
     if let Some(pb) = pb {
@@ -87,6 +87,10 @@ pub struct BrentAttack;
 impl Attack for BrentAttack {
     fn name(&self) -> &'static str {
         "brent"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Slow
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

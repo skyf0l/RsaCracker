@@ -4,6 +4,9 @@ use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
+const MAX_ITERATIONS: u64 = 1_000_000;
+const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
+
 /// Small prime attack
 pub struct SmallPrimeAttack;
 
@@ -17,9 +20,9 @@ impl Attack for SmallPrimeAttack {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
         if let Some(pb) = pb {
-            pb.set_length(1000000);
+            pb.set_length(MAX_ITERATIONS);
         }
-        for (i, p) in Primes::all().take(1000000).enumerate() {
+        for (i, p) in Primes::all().take(MAX_ITERATIONS as usize).enumerate() {
             if p.ge(n) {
                 break;
             }
@@ -38,9 +41,9 @@ impl Attack for SmallPrimeAttack {
                     PrivateKey::from_p_q(p, q, e.clone())?,
                 ));
             }
-            if i % 10000 == 0 {
+            if i % TICK_SIZE as usize == 0 {
                 if let Some(pb) = pb {
-                    pb.inc(10000);
+                    pb.inc(TICK_SIZE);
                 }
             }
         }

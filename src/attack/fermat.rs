@@ -3,6 +3,9 @@ use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
 
+const MAX_ITERATIONS: u64 = 10_000_000;
+const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
+
 /// Fermat factorization attack
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FermatAttack;
@@ -21,7 +24,7 @@ impl Attack for FermatAttack {
         }
 
         if let Some(pb) = pb {
-            pb.set_length(10000000);
+            pb.set_length(MAX_ITERATIONS);
         }
 
         let (a, rem) = n.sqrt_rem_ref().into();
@@ -33,12 +36,12 @@ impl Attack for FermatAttack {
             c += 2;
 
             tries += 1;
-            if tries % 10000 == 0 {
+            if tries % TICK_SIZE == 0 {
                 if let Some(pb) = pb {
-                    pb.inc(10000);
+                    pb.inc(TICK_SIZE);
                 }
             }
-            if tries > 10000000 {
+            if tries > MAX_ITERATIONS {
                 return Err(Error::NotFound);
             }
         }

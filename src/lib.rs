@@ -2,6 +2,7 @@
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use itertools::Itertools;
 use rug::integer::IsPrime;
 use rug::Integer;
 #[cfg(feature = "parallel")]
@@ -120,7 +121,7 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<Solution> {
     check_n_prime(&params.n)?;
 
     let (mp, pb_main) = create_multi_progress();
-    for attack in ATTACKS.iter() {
+    for attack in ATTACKS.iter().sorted_by_key(|a| a.speed()) {
         let pb = create_progress_bar(&mp);
         if let Ok(solved) = run_attack(attack, params, Some(&pb)) {
             return Some(solved);
@@ -134,7 +135,7 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<Solution> {
 async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Solution>) {
     let (mp, pb_main) = create_multi_progress();
 
-    for attack in ATTACKS.iter() {
+    for attack in ATTACKS.iter().sorted_by_key(|a| a.speed()) {
         let params = Arc::clone(&params);
         let sender = sender.clone();
         let mp = Arc::clone(&mp);

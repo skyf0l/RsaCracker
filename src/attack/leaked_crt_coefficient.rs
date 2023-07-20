@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, utils::solve_quadratic, Attack, Error, Parameters, Solution};
 
 fn find_phi(e: &Integer, d: &Integer) -> impl Iterator<Item = Integer> {
     let e = e.clone();
@@ -21,28 +21,19 @@ fn find_phi(e: &Integer, d: &Integer) -> impl Iterator<Item = Integer> {
 }
 
 fn find_p_q_from_phi(phi: &Integer, qinv: &Integer, pinv: &Integer) -> Option<(Integer, Integer)> {
+    // Solve: (qinv - 1) * x^2 + (pinv + qinv - 2 - phi) * x + (pinv - 1) * phi = 0
     let a: Integer = qinv.clone() - 1;
     let b: Integer = pinv.clone() + qinv - 2 - phi;
     let c: Integer = pinv.clone() * phi - phi;
-    let delta: Integer = b.clone() * &b - Integer::from(4) * &a * &c;
 
-    if delta > 0 {
-        let (root, rem) = delta.sqrt_rem(Integer::ZERO);
-        if rem == Integer::ZERO {
-            let x1: Integer = (root.clone() - &b) / (a.clone() * 2);
-            let x2: Integer = (-root - &b) / (a * 2);
-            if Integer::from(&x1 + 1).is_probably_prime(300) != IsPrime::No {
-                let q = x1.clone() + 1;
-                let p = phi / x1 + 1;
-                return Some((p, q));
-            }
-            if Integer::from(&x2 + 1).is_probably_prime(300) != IsPrime::No {
-                let q = x2.clone() + 1;
-                let p = phi / x2 + 1;
-                return Some((p, q));
-            }
+    for x in solve_quadratic(&a, &b, &c) {
+        if Integer::from(&x + 1).is_probably_prime(300) != IsPrime::No {
+            let q = x.clone() + 1;
+            let p = phi / x + 1;
+            return Some((p, q));
         }
     }
+
     None
 }
 

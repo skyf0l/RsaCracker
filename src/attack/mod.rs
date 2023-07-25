@@ -20,6 +20,7 @@ mod pollard_rho;
 mod sequence;
 mod small_e;
 mod small_prime;
+mod squfof;
 mod sum_pq;
 mod twin_prime;
 mod wiener;
@@ -46,6 +47,7 @@ pub use sequence::FibonacciGcdAttack;
 pub use sequence::LucasGcdAttack;
 pub use small_e::SmallEAttack;
 pub use small_prime::SmallPrimeAttack;
+pub use squfof::SqufofAttack;
 pub use sum_pq::SumPQAttack;
 pub use twin_prime::TwinPrimeAttack;
 pub use wiener::WienerAttack;
@@ -138,6 +140,7 @@ lazy_static! {
         Box::new(sequence::PrimorialGcdAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
+        Box::new(SqufofAttack),
         Box::new(SumPQAttack),
         Box::new(TwinPrimeAttack),
         Box::new(WienerAttack),

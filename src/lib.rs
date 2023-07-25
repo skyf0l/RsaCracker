@@ -122,8 +122,13 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<Solution> {
 
     let (mp, pb_main) = create_multi_progress();
     for attack in ATTACKS.iter().sorted_by_key(|a| a.speed()) {
-        let pb = create_progress_bar(&mp);
-        if let Ok(solved) = run_attack(attack, params, Some(&pb)) {
+        if let Ok(solved) = if attack.speed() == AttackSpeed::Fast {
+            // No progress bar for fast attacks
+            run_attack(attack, params, None)
+        } else {
+            let pb = create_progress_bar(&mp);
+            run_attack(attack, params, Some(&pb))
+        } {
             return Some(solved);
         }
         pb_main.inc(1);
@@ -141,8 +146,13 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
         let mp = Arc::clone(&mp);
         let pb_main = Arc::clone(&pb_main);
         tokio::task::spawn(async move {
-            let pb = create_progress_bar(&mp);
-            if let Ok(solved) = run_attack(attack, &params, Some(&pb)) {
+            if let Ok(solved) = if attack.speed() == AttackSpeed::Fast {
+                // No progress bar for fast attacks
+                run_attack(attack, &params, None)
+            } else {
+                let pb = create_progress_bar(&mp);
+                run_attack(attack, &params, Some(&pb))
+            } {
                 mp.suspend(|| {
                     sender.send(solved).expect("Failed to send result");
                     // This is a hack to make sure the progress bar is not displayed after the attack is done

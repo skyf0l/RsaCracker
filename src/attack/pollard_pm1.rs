@@ -1,9 +1,9 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Complete, Integer};
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
-const MAX_ITERATIONS: u64 = 100_000;
+const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
@@ -15,8 +15,8 @@ fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
         pb.set_length(MAX_ITERATIONS);
     }
     loop {
-        a = a.pow_mod_ref(&b.into(), n).unwrap().into();
-        let p = Integer::from(&a - 1).gcd_ref(n).complete();
+        a = a.pow_mod(&b.into(), n).unwrap();
+        let p = Integer::from(&a - 1).gcd(n);
         if p > 1 && &p < n {
             let (q, rem) = n.div_rem_ref(&p).complete();
             if rem != Integer::ZERO {
@@ -52,11 +52,15 @@ fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
 
 /// Pollard p-1 factorization attack
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PollardP1Attack;
+pub struct PollardPM1Attack;
 
-impl Attack for PollardP1Attack {
+impl Attack for PollardPM1Attack {
     fn name(&self) -> &'static str {
-        "pollard_p_1"
+        "pollard_pm1"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Slow
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

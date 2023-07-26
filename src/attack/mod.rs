@@ -16,7 +16,7 @@ mod leaked_crt_exponent;
 mod leaked_crt_exponents;
 mod leaked_pq;
 mod mersenne_prime;
-mod pollard_p_1;
+mod pollard_pm1;
 mod pollard_rho;
 mod sequence;
 mod small_e;
@@ -43,7 +43,7 @@ pub use leaked_crt_exponent::LeakedCrtExponentAttack;
 pub use leaked_crt_exponents::LeakedCrtExponentsAttack;
 pub use leaked_pq::LeakedPQAttack;
 pub use mersenne_prime::MersennePrimeAttack;
-pub use pollard_p_1::PollardP1Attack;
+pub use pollard_pm1::PollardPM1Attack;
 pub use pollard_rho::PollardRhoAttack;
 pub use sequence::FibonacciGcdAttack;
 pub use sequence::LucasGcdAttack;
@@ -132,7 +132,7 @@ lazy_static! {
         Box::new(LeakedCrtExponentsAttack),
         Box::new(LeakedPQAttack),
         Box::new(MersennePrimeAttack),
-        Box::new(PollardP1Attack),
+        Box::new(PollardPM1Attack),
         Box::new(PollardRhoAttack),
         Box::new(sequence::FactorialGcdAttack),
         Box::new(sequence::FermatGcdAttack),

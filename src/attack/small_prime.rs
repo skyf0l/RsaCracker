@@ -27,7 +27,6 @@ impl Attack for SmallPrimeAttack {
                 break;
             }
             if n.is_divisible(&Integer::from(p)) {
-                println!("find p = {}", p);
                 let q = n.clone() / p;
                 let p: Integer = p.into();
 

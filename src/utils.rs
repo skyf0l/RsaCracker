@@ -10,6 +10,23 @@ pub fn phi(factors: &[Integer]) -> Integer {
     phi
 }
 
+/// Compute the log of n in given base, rounded up.
+pub fn log_base_ceil(n: &Integer, base: usize) -> usize {
+    if *n <= 1 {
+        return 0;
+    }
+
+    let mut result = 0;
+    let mut num = n.clone() - 1;
+
+    while num > 0 {
+        result += 1;
+        num /= base;
+    }
+
+    result
+}
+
 /// Solve quadratic equation ax^2 + bx + c = 0 and return real integer solutions.
 pub fn solve_quadratic(a: &Integer, b: &Integer, c: &Integer) -> Vec<Integer> {
     let delta = b.clone().pow(2) - Integer::from(4) * a * c;

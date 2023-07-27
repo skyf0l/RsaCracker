@@ -83,6 +83,11 @@ impl Attack for SqufofAttack {
 
             let mut r = Integer::from(Q.sqrt_ref());
             for i in 2..MAX_ITERATIONS {
+                // Prevent division by zero
+                if Q == 0 {
+                    return Err(Error::NotFound);
+                }
+
                 let b = (Po.clone() + &P) / &Q;
                 P = b.clone() * &Q - &P;
                 let q = Q.clone();
@@ -112,6 +117,11 @@ impl Attack for SqufofAttack {
             Q = (D - (Pprev.clone().pow(2))) / &Qprev;
 
             for i in 2..MAX_ITERATIONS {
+                // Prevent division by zero
+                if Q == 0 {
+                    return Err(Error::NotFound);
+                }
+
                 let b = (Po.clone() + &P) / &Q;
                 Pprev = P.clone();
                 P = b.clone() * &Q - &P;

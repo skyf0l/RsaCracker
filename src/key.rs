@@ -86,6 +86,13 @@ impl PrivateKey {
         c.clone().pow_mod(&self.d, &self.n).unwrap()
     }
 
+    /// Returns all factors
+    pub fn factors(&self) -> Vec<Integer> {
+        let mut factors = vec![self.p.clone(), self.q.clone()];
+        factors.extend(self.other_factors.clone());
+        factors
+    }
+
     /// Returns dP or dmp1 CRT exponent. (d mod p-1)
     pub fn dp(&self) -> Integer {
         self.d.clone() % (&self.p - Integer::from(1))

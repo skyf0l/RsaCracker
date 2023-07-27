@@ -163,8 +163,14 @@ fn main() -> Result<(), MainError> {
                 println!("Private key:");
                 println!("n = {}", private_key.n);
                 println!("e = {}", private_key.e);
-                println!("p = {}", private_key.p);
-                println!("q = {}", private_key.q);
+                if private_key.other_factors.is_empty() {
+                    println!("p = {}", private_key.p);
+                    println!("q = {}", private_key.q);
+                } else {
+                    for (i, p) in private_key.factors().iter().enumerate() {
+                        println!("p{} = {}", i + 1, p);
+                    }
+                }
                 println!("d = {}", private_key.d);
             }
             if args.dumpextkey {

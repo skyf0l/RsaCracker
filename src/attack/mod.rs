@@ -18,6 +18,7 @@ mod leaked_pq;
 mod mersenne_prime;
 mod pollard_pm1;
 mod pollard_rho;
+mod power;
 mod sequence;
 mod small_e;
 mod small_prime;
@@ -46,6 +47,7 @@ pub use leaked_pq::LeakedPQAttack;
 pub use mersenne_prime::MersennePrimeAttack;
 pub use pollard_pm1::PollardPM1Attack;
 pub use pollard_rho::PollardRhoAttack;
+pub use power::PowerAttack;
 pub use sequence::FibonacciGcdAttack;
 pub use sequence::LucasGcdAttack;
 pub use small_e::SmallEAttack;
@@ -136,6 +138,7 @@ lazy_static! {
         Box::new(MersennePrimeAttack),
         Box::new(PollardPM1Attack),
         Box::new(PollardRhoAttack),
+        Box::new(PowerAttack),
         Box::new(sequence::FactorialGcdAttack),
         Box::new(sequence::FermatGcdAttack),
         Box::new(sequence::FibonacciGcdAttack),

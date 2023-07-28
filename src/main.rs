@@ -1,9 +1,9 @@
-use std::time::Duration;
-
 use clap::{command, Parser};
+use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
 use main_error::MainError;
 use rug::Integer;
+use std::{collections::HashMap, time::Duration};
 
 use rsacracker::{integer_to_bytes, integer_to_string, Parameters};
 use update_informer::{registry, Check};
@@ -74,6 +74,9 @@ struct Args {
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
+    /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
+    #[clap(long, alias = "dislog", requires("c"))]
+    dlog: bool,
     /// Public key PEM/X509/openssh file.
     #[clap(long)]
     publickey: Option<String>,
@@ -197,6 +200,30 @@ fn main() -> Result<(), MainError> {
                 "Bytes = b\"{}\"",
                 display_bytes(&integer_to_bytes(&uncipher))
             );
+        }
+
+        if args.dlog {
+            if let Some(pk) = &solution.pk {
+                println!("Compute discrete logarithm...");
+                if let Ok(dlog) = discrete_log_with_factors(
+                    &pk.n,
+                    &params.c.unwrap(),
+                    &pk.e,
+                    &HashMap::from_iter(pk.factors().into_iter().map(|p| (p, 1))),
+                ) {
+                    println!("Int = {dlog}");
+                    println!("Hex = 0x{dlog:02x}");
+                    if let Some(str) = integer_to_string(&dlog) {
+                        println!("String = \"{str}\"");
+                    } else {
+                        println!("Bytes = b\"{}\"", display_bytes(&integer_to_bytes(&dlog)));
+                    }
+                } else {
+                    println!("Discrete logarithm failed");
+                }
+            } else {
+                println!("Discrete logarithm requires private key");
+            }
         }
     }
 

@@ -30,7 +30,7 @@ lazy_static = "1"
 clap = { version = "4", features = ["derive", "env"] }
 main_error = "0.1"
 primal = "0.3"
-ecm = { version = "0.3", features = ["progress-bar"]}
+ecm = { version = "0.4", features = ["progress-bar"] }
 openssl = "0.10"
 base-x = "0.2"
 display_bytes = "0.2"

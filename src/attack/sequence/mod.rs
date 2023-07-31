@@ -5,6 +5,7 @@ mod jacobsthal;
 mod lucas;
 mod mersenne;
 mod primorial;
+mod xy;
 
 pub use factorial::*;
 pub use fermat::*;
@@ -13,3 +14,4 @@ pub use jacobsthal::*;
 pub use lucas::*;
 pub use mersenne::*;
 pub use primorial::*;
+pub use xy::*;

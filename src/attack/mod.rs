@@ -145,6 +145,7 @@ lazy_static! {
         Box::new(sequence::FactorialGcdAttack),
         Box::new(sequence::FermatGcdAttack),
         Box::new(sequence::FibonacciGcdAttack),
+        Box::new(sequence::XYGcdAttack),
         Box::new(sequence::JacobsthalGcdAttack),
         Box::new(sequence::LucasGcdAttack),
         Box::new(sequence::MersenneGcdAttack),

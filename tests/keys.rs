@@ -3,8 +3,8 @@ use std::str::FromStr;
 use rsacracker::{integer_to_string, run_attacks, Parameters};
 use rug::Integer;
 
-const PLAINTEXT: &'static str = "RsaCracker";
-const KEY_PASSPHRASE: &'static str = "Skyf0l";
+const PLAINTEXT: &str = "RsaCracker";
+const KEY_PASSPHRASE: &str = "Skyf0l";
 
 lazy_static::lazy_static!(
     static ref CIPHER: Integer = Integer::from_str("10081655714054146207611946782441334760726791245685168254988161960973092859816964620592959371094315545344538578719378318287478311296168179292095059619434203279406072992447601").unwrap();

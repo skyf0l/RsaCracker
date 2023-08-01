@@ -2,7 +2,7 @@ use indicatif::ProgressBar;
 use primal::Primes;
 use rug::Integer;
 
-use crate::{key::PrivateKey, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
@@ -13,6 +13,10 @@ pub struct SmallPrimeAttack;
 impl Attack for SmallPrimeAttack {
     fn name(&self) -> &'static str {
         "small_prime"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

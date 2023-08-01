@@ -1,0 +1,6 @@
+**/**
+
+!.gitignore
+!*.pem
+!*.der
+!*.cer

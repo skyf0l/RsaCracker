@@ -146,8 +146,8 @@ fn main() -> Result<(), MainError> {
     };
     if let Some(private_key) = args.privatekey {
         let bytes = std::fs::read(private_key)?;
-        params +=
-            Parameters::from_private_key(&bytes, args.password).ok_or("Invalid private key")?;
+        params += Parameters::from_private_key(&bytes, args.password.as_deref())
+            .ok_or("Invalid private key")?;
     };
     #[cfg(feature = "parallel")]
     let solution =

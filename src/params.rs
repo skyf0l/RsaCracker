@@ -61,6 +61,11 @@ impl Parameters {
     pub fn from_rsa_public_key(key: &[u8]) -> Option<Self> {
         let public_key = openssl::pkey::PKey::public_key_from_pem(key)
             .or_else(|_| openssl::pkey::PKey::public_key_from_der(key))
+            .or_else(|_| {
+                // RSA der pkcs1 are not decoded by the `PKey::public_key_from_der` function
+                openssl::rsa::Rsa::public_key_from_der_pkcs1(key)
+                    .map(|rsa| openssl::pkey::PKey::from_rsa(rsa).unwrap())
+            })
             .ok()?;
         let rsa = public_key.rsa().ok()?;
 
@@ -115,13 +120,13 @@ impl Parameters {
     }
 
     /// Create parameters from private key
-    pub fn from_private_key(key: &[u8], passphrase: Option<String>) -> Option<Self> {
-        Self::from_rsa_private_key(key, passphrase.clone())
+    pub fn from_private_key(key: &[u8], passphrase: Option<&str>) -> Option<Self> {
+        Self::from_rsa_private_key(key, passphrase)
             .or_else(|| Self::from_openssh_private_key(key, passphrase))
     }
 
     /// Create parameters from rsa private key
-    pub fn from_rsa_private_key(key: &[u8], passphrase: Option<String>) -> Option<Self> {
+    pub fn from_rsa_private_key(key: &[u8], passphrase: Option<&str>) -> Option<Self> {
         let private_key = openssl::pkey::PKey::private_key_from_der(key)
             .or_else(|_| {
                 if let Some(passphrase) = passphrase {
@@ -167,7 +172,7 @@ impl Parameters {
     }
 
     /// Create parameters from openssh private key
-    pub fn from_openssh_private_key(key: &[u8], passphrase: Option<String>) -> Option<Self> {
+    pub fn from_openssh_private_key(key: &[u8], passphrase: Option<&str>) -> Option<Self> {
         let mut private_key = ssh_key::private::PrivateKey::from_openssh(key)
             .or_else(|_| ssh_key::private::PrivateKey::from_bytes(key))
             .ok()?;

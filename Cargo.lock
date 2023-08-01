@@ -699,6 +699,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gen_keys"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "openssl",
+ "rand_core 0.6.4",
+ "rug",
+ "ssh-key",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"

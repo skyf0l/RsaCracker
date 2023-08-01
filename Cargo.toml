@@ -16,6 +16,11 @@ include = [
 ]
 readme = "README.md"
 
+[workspace]
+members = [
+  "tools/gen_keys",
+]
+
 [features]
 default = ["parallel"]
 parallel = ["tokio", "mpsc", "num_cpus"]

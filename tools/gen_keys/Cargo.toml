@@ -1,0 +1,15 @@
+[package]
+name = "gen_keys"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lazy_static = "1"
+openssl = "0.10"
+ssh-key = { version = "0.5", features = ["encryption"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
+
+[dependencies.rug]
+version = "1"
+default-features = false
+features = ["integer", "rand"]

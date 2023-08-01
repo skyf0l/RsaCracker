@@ -3,6 +3,7 @@ use lazy_static::lazy_static;
 
 mod brent;
 mod cipolla;
+mod comfact_cn;
 mod cube_root;
 mod cunningham_chain;
 mod ecm;
@@ -34,6 +35,7 @@ use crate::{Parameters, Solution};
 pub use self::ecm::EcmAttack;
 pub use brent::BrentAttack;
 pub use cipolla::CipollaAttack;
+pub use comfact_cn::ComfactCnAttack;
 pub use cube_root::CubeRootAttack;
 pub use cunningham_chain::CunninghamChainAttack;
 pub use fermat::FermatAttack;
@@ -125,6 +127,7 @@ lazy_static! {
     pub static ref ATTACKS: Vec<Box<dyn Attack + Sync>> = vec![
         Box::new(BrentAttack),
         Box::new(CipollaAttack),
+        Box::new(ComfactCnAttack),
         Box::new(CubeRootAttack),
         Box::new(CunninghamChainAttack),
         Box::new(EcmAttack),
@@ -150,6 +153,7 @@ lazy_static! {
         Box::new(sequence::LucasGcdAttack),
         Box::new(sequence::MersenneGcdAttack),
         Box::new(sequence::PrimorialGcdAttack),
+        Box::new(sequence::XYGcdAttack),
         Box::new(SmallEAttack),
         Box::new(SmallPrimeAttack),
         Box::new(SparseAttack),

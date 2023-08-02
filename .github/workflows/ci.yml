@@ -47,7 +47,25 @@ jobs:
       - uses: taiki-e/install-action@nextest
 
       - name: Test
-        run: cargo nextest run --all-targets --all-features
+        run: cargo nextest run --all-features --lib --bins --test keys
+
+  ctf-challenges:
+    name: CTF challenges
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
+
+      - name: Test
+        run: cargo nextest run --release --all-features --test "*ctf*"
 
   coverage:
     name: Coverage
@@ -65,7 +83,7 @@ jobs:
       - uses: taiki-e/install-action@nextest
 
       - name: Tests
-        run: cargo nextest run --all-targets --all-features
+        run: cargo nextest run --all-features --lib --bins --test keys
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"

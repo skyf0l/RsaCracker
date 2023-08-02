@@ -10,21 +10,20 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  ci:
-    name: CI
+  format:
+    name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v3
-      - name: Stable with rustfmt and clippy
+      - name: Stable toolchain with rustfmt and clippy
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
 
       - name: Check coding style
         run: cargo fmt --check --all
@@ -32,11 +31,23 @@ jobs:
       - name: Lint
         run: cargo clippy --all-targets  --all-features -- -D warnings
 
-      - name: Build
-        run: cargo build
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
 
       - name: Test
-        run: cargo nextest run --all-targets
+        run: cargo nextest run --all-targets --all-features
 
   coverage:
     name: Coverage
@@ -45,7 +56,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - name: Stable toolchain
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
           override: true
@@ -53,7 +65,7 @@ jobs:
       - uses: taiki-e/install-action@nextest
 
       - name: Tests
-        run: cargo nextest run --all-targets
+        run: cargo nextest run --all-targets --all-features
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"

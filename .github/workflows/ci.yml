@@ -84,3 +84,48 @@ jobs:
           flags: rust
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+
+      # msys2 required by rug on windows
+      - name: Setup msys2 (windows)
+        uses: msys2/setup-msys2@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          install: >-
+            base-devel
+            pacman-mirrors
+            diffutils
+            m4
+            make
+            openssl
+            openssl-devel
+          pacboy: >-
+            gcc:p
+            rust:p
+
+      # Only for windows
+      - name: Msys2 build (windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: |
+          cargo build
+
+      - name: Build
+        if: matrix.os != 'windows-latest'
+        run: cargo build

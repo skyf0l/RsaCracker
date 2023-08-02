@@ -9,6 +9,7 @@ mod cunningham_chain;
 mod ecm;
 mod fermat;
 mod gaa;
+mod hart;
 mod known_d;
 mod known_factors;
 mod known_phi;
@@ -40,6 +41,7 @@ pub use cube_root::CubeRootAttack;
 pub use cunningham_chain::CunninghamChainAttack;
 pub use fermat::FermatAttack;
 pub use gaa::GaaAttack;
+pub use hart::HartAttack;
 pub use known_d::KnownDAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use known_phi::KnownPhiAttack;
@@ -133,6 +135,7 @@ lazy_static! {
         Box::new(EcmAttack),
         Box::new(FermatAttack),
         Box::new(GaaAttack),
+        Box::new(HartAttack),
         Box::new(KnownDAttack),
         Box::new(KnownFactorsAttack),
         Box::new(KnownPhiAttack),
@@ -148,7 +151,6 @@ lazy_static! {
         Box::new(sequence::FactorialGcdAttack),
         Box::new(sequence::FermatGcdAttack),
         Box::new(sequence::FibonacciGcdAttack),
-        Box::new(sequence::XYGcdAttack),
         Box::new(sequence::JacobsthalGcdAttack),
         Box::new(sequence::LucasGcdAttack),
         Box::new(sequence::MersenneGcdAttack),

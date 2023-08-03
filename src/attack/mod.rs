@@ -13,6 +13,7 @@ mod hart;
 mod known_d;
 mod known_factors;
 mod known_phi;
+mod kraitchik;
 mod leaked_crt_coefficient;
 mod leaked_crt_exponent;
 mod leaked_crt_exponents;
@@ -45,6 +46,7 @@ pub use hart::HartAttack;
 pub use known_d::KnownDAttack;
 pub use known_factors::KnownFactorsAttack;
 pub use known_phi::KnownPhiAttack;
+pub use kraitchik::KraitchikAttack;
 pub use leaked_crt_coefficient::LeakedCrtCoefficientAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
 pub use leaked_crt_exponents::LeakedCrtExponentsAttack;
@@ -139,6 +141,7 @@ lazy_static! {
         Box::new(KnownDAttack),
         Box::new(KnownFactorsAttack),
         Box::new(KnownPhiAttack),
+        Box::new(KraitchikAttack),
         Box::new(LeakedCrtCoefficientAttack),
         Box::new(LeakedCrtExponentAttack),
         Box::new(LeakedCrtExponentsAttack),

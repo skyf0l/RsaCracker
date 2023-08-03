@@ -8,7 +8,7 @@ const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Ghafar-Ariffin-Asbullah key recovery attack (lsb of p and q are known)
 ///
-/// Implementation of https://www.mdpi.com/2073-8994/12/5/838
+/// Implementation of <https://www.mdpi.com/2073-8994/12/5/838>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GaaAttack;
 

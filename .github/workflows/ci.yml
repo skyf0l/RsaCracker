@@ -10,26 +10,59 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  format:
+  fmt:
     name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v3
-      - name: Stable toolchain with rustfmt and clippy
+      - name: Stable toolchain with rustfmt
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
-          components: rustfmt, clippy
+          components: rustfmt
       - uses: Swatinem/rust-cache@v2
 
       - name: Check coding style
         run: cargo fmt --check --all
 
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Stable toolchain with clippy
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+
       - name: Lint
         run: cargo clippy --all-targets  --all-features -- -D warnings
+
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUSTDOCFLAGS: "-Dwarnings"
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+
+      - run: cargo doc --no-deps
 
   tests:
     name: Tests

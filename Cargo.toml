@@ -47,11 +47,10 @@ update-informer = "1"
 indicatif = "0.17"
 itertools = "0.11"
 discrete-logarithm = "0.1"
+base64 = "0.21"
 
 [dependencies.rug]
 version = "1"
 default-features = false
 features = ["integer", "rand"]
 
-[dev-dependencies]
-base64 = "0.21"

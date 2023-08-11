@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine};
 use clap::{command, Parser};
 use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
@@ -27,6 +28,11 @@ impl std::str::FromStr for IntegerArg {
             Ok(Self(
                 Integer::from_str_radix(n, 8).or(Err("Invalid octal number".to_string()))?,
             ))
+        } else if let Some(n) = n.strip_prefix("b64") {
+            let bytes = general_purpose::STANDARD
+                .decode(n.as_bytes())
+                .or(Err("Invalid base64 number".to_string()))?;
+            Ok(Self(Integer::from_digits(&bytes, rug::integer::Order::Msf)))
         } else {
             Ok(Self(
                 Integer::from_str(n).or(Err("Invalid number".to_string()))?,

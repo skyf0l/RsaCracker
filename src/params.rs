@@ -227,6 +227,15 @@ impl Add for Parameters {
     }
 }
 
+impl<'a> Add<&'a Parameters> for Parameters {
+    type Output = Self;
+
+    fn add(mut self, rhs: &'a Parameters) -> Self::Output {
+        self += rhs.clone();
+        self
+    }
+}
+
 impl AddAssign for Parameters {
     fn add_assign(&mut self, rhs: Self) {
         if self.n.is_none() {

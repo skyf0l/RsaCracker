@@ -1,7 +1,9 @@
 use indicatif::ProgressBar;
 use rug::{ops::Pow, rand::RandState, Integer};
 
-use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
+use crate::{
+    key::PrivateKey, utils::log_base_ceil, Attack, AttackSpeed, Error, Parameters, Solution,
+};
 
 /// Known phi attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -22,15 +24,12 @@ impl Attack for KnownDAttack {
         let d = params.d.as_ref().ok_or(Error::MissingParameters)?;
 
         let k = e * d - Integer::from(1);
-        let mut t = 0;
-        while k.is_divisible(&Integer::from(2).pow(t)) {
-            t += 1
-        }
+        let bits = log_base_ceil(&k, 2);
 
         let mut rgen = RandState::new();
         loop {
             let g = (n.clone() - Integer::from(1)).random_below(&mut rgen) + Integer::from(1);
-            for s in 1..=t {
+            for s in 1..=bits as u32 {
                 let x = Integer::from(g.pow_mod_ref(&(&k / Integer::from(2).pow(s)), n).unwrap());
                 let p = Integer::from(n.gcd_ref(&(x - Integer::from(1))));
                 if p > 1 && p < *n && n.is_divisible(&p) {

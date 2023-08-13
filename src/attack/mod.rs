@@ -20,6 +20,7 @@ mod leaked_crt_exponents;
 mod leaked_pq;
 mod londahl;
 mod mersenne_prime;
+mod partial_d;
 mod pollard_pm1;
 mod pollard_rho;
 mod power;
@@ -53,6 +54,7 @@ pub use leaked_crt_exponents::LeakedCrtExponentsAttack;
 pub use leaked_pq::LeakedPQAttack;
 pub use londahl::LondahlAttack;
 pub use mersenne_prime::MersennePrimeAttack;
+pub use partial_d::PartialDAttack;
 pub use pollard_pm1::PollardPM1Attack;
 pub use pollard_rho::PollardRhoAttack;
 pub use power::PowerAttack;
@@ -148,6 +150,7 @@ lazy_static! {
         Box::new(LeakedPQAttack),
         Box::new(LondahlAttack),
         Box::new(MersennePrimeAttack),
+        Box::new(PartialDAttack),
         Box::new(PollardPM1Attack),
         Box::new(PollardRhoAttack),
         Box::new(PowerAttack),

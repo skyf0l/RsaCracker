@@ -1,5 +1,6 @@
 use indicatif::ProgressBar;
 use lazy_static::lazy_static;
+use std::sync::Arc;
 
 mod brent;
 mod cipolla;
@@ -115,7 +116,7 @@ impl Ord for AttackSpeed {
 }
 
 /// Abstract attack trait
-pub trait Attack {
+pub trait Attack: std::fmt::Debug {
     /// Get the attack name
     fn name(&self) -> &'static str;
 
@@ -130,44 +131,44 @@ pub trait Attack {
 
 lazy_static! {
     /// List of attacks
-    pub static ref ATTACKS: Vec<Box<dyn Attack + Sync>> = vec![
-        Box::new(BrentAttack),
-        Box::new(CipollaAttack),
-        Box::new(ComfactCnAttack),
-        Box::new(CubeRootAttack),
-        Box::new(CunninghamChainAttack),
-        Box::new(EcmAttack),
-        Box::new(FermatAttack),
-        Box::new(GaaAttack),
-        Box::new(HartAttack),
-        Box::new(KnownDAttack),
-        Box::new(KnownFactorsAttack),
-        Box::new(KnownPhiAttack),
-        Box::new(KraitchikAttack),
-        Box::new(LeakedCrtCoefficientAttack),
-        Box::new(LeakedCrtExponentAttack),
-        Box::new(LeakedCrtExponentsAttack),
-        Box::new(LeakedPQAttack),
-        Box::new(LondahlAttack),
-        Box::new(MersennePrimeAttack),
-        Box::new(PartialDAttack),
-        Box::new(PollardPM1Attack),
-        Box::new(PollardRhoAttack),
-        Box::new(PowerAttack),
-        Box::new(sequence::FactorialGcdAttack),
-        Box::new(sequence::FermatGcdAttack),
-        Box::new(sequence::FibonacciGcdAttack),
-        Box::new(sequence::JacobsthalGcdAttack),
-        Box::new(sequence::LucasGcdAttack),
-        Box::new(sequence::MersenneGcdAttack),
-        Box::new(sequence::PrimorialGcdAttack),
-        Box::new(sequence::XYGcdAttack),
-        Box::new(SmallEAttack),
-        Box::new(SmallPrimeAttack),
-        Box::new(SparseAttack),
-        Box::new(SqufofAttack),
-        Box::new(SumPQAttack),
-        Box::new(TwinPrimeAttack),
-        Box::new(WienerAttack),
+    pub static ref ATTACKS: Vec<Arc<dyn Attack + Sync + Send>> = vec![
+        Arc::new(BrentAttack),
+        Arc::new(CipollaAttack),
+        Arc::new(ComfactCnAttack),
+        Arc::new(CubeRootAttack),
+        Arc::new(CunninghamChainAttack),
+        Arc::new(EcmAttack),
+        Arc::new(FermatAttack),
+        Arc::new(GaaAttack),
+        Arc::new(HartAttack),
+        Arc::new(KnownDAttack),
+        Arc::new(KnownFactorsAttack),
+        Arc::new(KnownPhiAttack),
+        Arc::new(KraitchikAttack),
+        Arc::new(LeakedCrtCoefficientAttack),
+        Arc::new(LeakedCrtExponentAttack),
+        Arc::new(LeakedCrtExponentsAttack),
+        Arc::new(LeakedPQAttack),
+        Arc::new(LondahlAttack),
+        Arc::new(MersennePrimeAttack),
+        Arc::new(PartialDAttack),
+        Arc::new(PollardPM1Attack),
+        Arc::new(PollardRhoAttack),
+        Arc::new(PowerAttack),
+        Arc::new(sequence::FactorialGcdAttack),
+        Arc::new(sequence::FermatGcdAttack),
+        Arc::new(sequence::FibonacciGcdAttack),
+        Arc::new(sequence::JacobsthalGcdAttack),
+        Arc::new(sequence::LucasGcdAttack),
+        Arc::new(sequence::MersenneGcdAttack),
+        Arc::new(sequence::PrimorialGcdAttack),
+        Arc::new(sequence::XYGcdAttack),
+        Arc::new(SmallEAttack),
+        Arc::new(SmallPrimeAttack),
+        Arc::new(SparseAttack),
+        Arc::new(SqufofAttack),
+        Arc::new(SumPQAttack),
+        Arc::new(TwinPrimeAttack),
+        Arc::new(WienerAttack),
     ];
 }

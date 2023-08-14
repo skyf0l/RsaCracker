@@ -4,9 +4,9 @@ use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
 use main_error::MainError;
 use rug::Integer;
-use std::{collections::HashMap, time::Duration};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use rsacracker::{integer_to_bytes, integer_to_string, Parameters};
+use rsacracker::{integer_to_bytes, integer_to_string, Attack, Parameters, ATTACKS};
 use update_informer::{registry, Check};
 
 #[derive(Debug, Clone)]
@@ -38,6 +38,21 @@ impl std::str::FromStr for IntegerArg {
                 Integer::from_str(n).or(Err("Invalid number".to_string()))?,
             ))
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct AttackArg(Arc<dyn Attack + Sync + Send>);
+
+impl std::str::FromStr for AttackArg {
+    type Err = String;
+
+    fn from_str(attack: &str) -> Result<Self, Self::Err> {
+        ATTACKS
+            .iter()
+            .find(|a| a.name() == attack)
+            .map(|a| Self(a.clone()))
+            .ok_or_else(|| format!("Unknown attack: {}", attack))
     }
 }
 
@@ -111,6 +126,9 @@ struct Args {
     #[cfg(feature = "parallel")]
     #[clap(short, long, default_value_t = num_cpus::get())]
     threads: usize,
+    /// Specify attacks to run. Default: all
+    #[clap(short, long, value_delimiter = ',')]
+    attacks: Option<Vec<AttackArg>>,
 }
 
 fn main() -> Result<(), MainError> {
@@ -123,8 +141,10 @@ fn main() -> Result<(), MainError> {
         eprintln!("You can update by running: cargo install {pkg_name}\n");
     }
 
+    // Parse command line arguments
     let args = Args::parse();
 
+    // Build parameters
     let mut params = Parameters {
         c: args.c.map(|n| n.0),
         n: args.n.map(|n| n.0),
@@ -139,6 +159,8 @@ fn main() -> Result<(), MainError> {
         pinv: args.pinv.map(|n| n.0),
         sum_pq: args.sum_pq.map(|n| n.0),
     };
+
+    // Read public and private keys
     if let Some(public_key) = args.publickey {
         let bytes = std::fs::read(public_key)?;
         let public_key_params = Parameters::from_public_key(&bytes).ok_or("Invalid public key")?;
@@ -155,11 +177,23 @@ fn main() -> Result<(), MainError> {
         params += Parameters::from_private_key(&bytes, args.password.as_deref())
             .ok_or("Invalid private key")?;
     };
+
+    // Run attacks
+    let attacks = args
+        .attacks
+        .map(|attacks| {
+            attacks
+                .into_iter()
+                .map(|attack| attack.0)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or(ATTACKS.to_vec());
     #[cfg(feature = "parallel")]
-    let solution =
-        rsacracker::run_parallel_attacks(&params, args.threads).ok_or("No attack succeeded")?;
+    let solution = rsacracker::run_parallel_attacks(&params, &attacks, args.threads)
+        .ok_or("No attack succeeded")?;
     #[cfg(not(feature = "parallel"))]
-    let solution = rsacracker::run_sequence_attacks(&params).ok_or("No attack succeeded")?;
+    let solution =
+        rsacracker::run_sequence_attacks(&params, &attacks).ok_or("No attack succeeded")?;
 
     println!("Succeeded with attack: {}", solution.attack);
 

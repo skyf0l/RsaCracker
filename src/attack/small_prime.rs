@@ -8,6 +8,7 @@ const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Small prime attack
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SmallPrimeAttack;
 
 impl Attack for SmallPrimeAttack {

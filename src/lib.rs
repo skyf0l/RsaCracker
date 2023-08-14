@@ -44,9 +44,8 @@ pub fn string_to_integer(s: &str) -> Integer {
 }
 
 /// Run a single attack.
-#[allow(clippy::borrowed_box)]
 pub fn run_attack(
-    attack: &Box<dyn Attack + Sync>,
+    attack: Arc<dyn Attack + Sync + Send>,
     params: &Parameters,
     pb: Option<&ProgressBar>,
 ) -> Result<Solution, Error> {
@@ -69,9 +68,23 @@ pub fn run_attack(
 /// Else, it will run all attacks in sequence (single-threaded).
 pub fn run_attacks(params: &Parameters) -> Option<Solution> {
     #[cfg(feature = "parallel")]
-    return run_parallel_attacks(params, num_cpus::get());
+    return run_parallel_attacks(params, &ATTACKS, num_cpus::get());
     #[cfg(not(feature = "parallel"))]
-    run_sequence_attacks(params)
+    run_sequence_attacks(params, &ATTACKS)
+}
+
+/// Run specific attacks.
+///
+/// When the `parallel` feature is enabled, this function will run all attacks in parallel using all available CPU cores.
+/// Else, it will run all attacks in sequence (single-threaded).
+pub fn run_specific_attacks(
+    params: &Parameters,
+    attacks: &[Arc<dyn Attack + Sync + Send>],
+) -> Option<Solution> {
+    #[cfg(feature = "parallel")]
+    return run_parallel_attacks(params, attacks, num_cpus::get());
+    #[cfg(not(feature = "parallel"))]
+    run_sequence_attacks(params, attacks)
 }
 
 fn check_n_prime(n: &Option<Integer>) -> Option<()> {
@@ -90,9 +103,9 @@ fn check_n_prime(n: &Option<Integer>) -> Option<()> {
     Some(())
 }
 
-fn create_multi_progress() -> (Arc<MultiProgress>, Arc<ProgressBar>) {
+fn create_multi_progress(nb_attacks: usize) -> (Arc<MultiProgress>, Arc<ProgressBar>) {
     let mp = Arc::new(MultiProgress::new());
-    let pb_main = Arc::new(mp.add(ProgressBar::new(ATTACKS.len() as u64)));
+    let pb_main = Arc::new(mp.add(ProgressBar::new(nb_attacks as u64)));
 
     pb_main.set_style(
         ProgressStyle::with_template(
@@ -116,18 +129,21 @@ fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
     pb
 }
 
-/// Run all attacks in sequence (single-threaded)
-pub fn run_sequence_attacks(params: &Parameters) -> Option<Solution> {
+/// Run all attacks in sequence, from fastest to slowest (single-threaded)
+pub fn run_sequence_attacks(
+    params: &Parameters,
+    attacks: &[Arc<dyn Attack + Sync + Send>],
+) -> Option<Solution> {
     check_n_prime(&params.n)?;
 
-    let (mp, pb_main) = create_multi_progress();
-    for attack in ATTACKS.iter().sorted_by_key(|a| a.speed()) {
+    let (mp, pb_main) = create_multi_progress(attacks.len());
+    for attack in attacks.iter().sorted_by_key(|a| a.speed()) {
         if let Ok(solved) = if attack.speed() == AttackSpeed::Fast {
             // No progress bar for fast attacks
-            run_attack(attack, params, None)
+            run_attack(attack.clone(), params, None)
         } else {
             let pb = create_progress_bar(&mp);
-            run_attack(attack, params, Some(&pb))
+            run_attack(attack.clone(), params, Some(&pb))
         } {
             return Some(solved);
         }
@@ -137,11 +153,16 @@ pub fn run_sequence_attacks(params: &Parameters) -> Option<Solution> {
 }
 
 #[cfg(feature = "parallel")]
-async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Solution>) {
-    let (mp, pb_main) = create_multi_progress();
+async fn _run_parallel_attacks<'a>(
+    params: Arc<Parameters>,
+    attacks: &[Arc<dyn Attack + Sync + Send>],
+    sender: mpsc::Sender<Solution>,
+) {
+    let (mp, pb_main) = create_multi_progress(attacks.len());
 
-    for attack in ATTACKS.iter().sorted_by_key(|a| a.speed()) {
+    for attack in attacks.iter().sorted_by_key(|a| a.speed()) {
         let params = Arc::clone(&params);
+        let attack = Arc::clone(attack);
         let sender = sender.clone();
         let mp = Arc::clone(&mp);
         let pb_main = Arc::clone(&pb_main);
@@ -164,11 +185,15 @@ async fn _run_parallel_attacks(params: Arc<Parameters>, sender: mpsc::Sender<Sol
     }
 }
 
-/// Run all attacks in parallel (multi-threaded)
+/// Run all attacks in parallel, from fastest to slowest (multi-threaded)
 #[cfg(feature = "parallel")]
-pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solution> {
+pub fn run_parallel_attacks(
+    params: &Parameters,
+    attacks: &[Arc<dyn Attack + Sync + Send>],
+    threads: usize,
+) -> Option<Solution> {
     if threads <= 1 {
-        return run_sequence_attacks(params);
+        return run_sequence_attacks(params, attacks);
     }
 
     check_n_prime(&params.n)?;
@@ -185,7 +210,8 @@ pub fn run_parallel_attacks(params: &Parameters, threads: usize) -> Option<Solut
         .unwrap();
 
     // Spawn attacks in background
-    r.spawn(async { _run_parallel_attacks(params, sender).await });
+    let attacks = attacks.to_vec();
+    r.spawn(async move { _run_parallel_attacks(params, &attacks, sender).await });
 
     // Wait for result
     let res = receiver.recv().ok();

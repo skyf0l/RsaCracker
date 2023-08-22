@@ -1,7 +1,37 @@
 use std::str::FromStr;
 
-use rsacracker::{run_attacks, Parameters};
+use rsacracker::{integer_to_string, run_attacks, Parameters};
 use rug::Integer;
+
+#[test]
+fn tjctf_2022_rsa_apprentice() {
+    // From TJCTF 2022 / rsa-apprentice
+    // https://ctftime.org/task/21330
+
+    let params_1 = Parameters {
+        n: Some(Integer::from_str("1216177716507739302616478655910148392804849").unwrap()),
+        c: Some(Integer::from_str("257733734393970582988408159581244878149116").unwrap()),
+        ..Default::default()
+    };
+
+    let solution_1 = run_attacks(&params_1).unwrap();
+    assert!(solution_1.pk.is_some());
+
+    let params_2 = Parameters {
+        n: Some(Integer::from_str("1216177716507739302616478655910148392804849").unwrap()),
+        c: Some(Integer::from_str("843105902970788695411197846605744081831851").unwrap()),
+        ..Default::default()
+    };
+
+    let solution_2 = run_attacks(&params_2).unwrap();
+    assert!(solution_2.pk.is_some());
+
+    assert_eq!(
+        integer_to_string(&solution_1.m.unwrap()).unwrap()
+            + &integer_to_string(&solution_2.m.unwrap()).unwrap(),
+        "tjctf{n0t_s0_S3cur3_Cryp70}"
+    );
+}
 
 #[test]
 fn tjctf_2022_factor_master_stage1() {

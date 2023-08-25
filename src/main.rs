@@ -98,25 +98,25 @@ struct Args {
     /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
     #[clap(long, alias = "dislog", requires("c"))]
     dlog: bool,
-    /// Public key PEM/X509/openssh file.
-    #[clap(long)]
-    publickey: Option<String>,
-    /// Print the RSA public key variables n and e, and exit.
-    #[clap(long, requires("publickey"))]
-    dumppublickey: bool,
-    /// Private key PEM file.
-    #[clap(long)]
-    privatekey: Option<String>,
+    /// Public or private key file. (RSA, X509, OPENSSH in PEM and DER formats.)
+    #[clap(short, long)]
+    key: Option<String>,
     /// Private key password/passphrase if encrypted.
     #[clap(long)]
     password: Option<String>,
-    /// Print the private key in PEM/openssh format.
+    /// Print the public key in PEM format.
     #[clap(long)]
-    printkey: bool,
+    public: bool,
+    /// Print the private key in PEM format.
+    #[clap(long)]
+    private: bool,
     /// Add a password/passphrase to the private key.
-    #[clap(long, requires("printkey"))]
+    #[clap(long, requires("private"))]
     addpassword: Option<String>,
-    /// Print the RSA key variables n, e, p, q and d.
+    /// Print all the input parameters.
+    #[clap(long)]
+    dump: bool,
+    /// Print the private RSA key variables n, e, p, q and d.
     #[clap(long)]
     dumpkey: bool,
     /// Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv.
@@ -129,6 +129,19 @@ struct Args {
     /// Specify attacks to run. Default: all
     #[clap(short, long, value_delimiter = ',')]
     attacks: Option<Vec<AttackArg>>,
+}
+
+fn display_unciphered_data(uncipher: &Integer) {
+    println!("Int = {uncipher}");
+    println!("Hex = 0x{uncipher:02x}");
+    if let Some(str) = integer_to_string(&uncipher) {
+        println!("String = \"{str}\"");
+    } else {
+        println!(
+            "Bytes = b\"{}\"",
+            display_bytes(&integer_to_bytes(&uncipher))
+        );
+    }
 }
 
 fn main() -> Result<(), MainError> {
@@ -161,22 +174,40 @@ fn main() -> Result<(), MainError> {
     };
 
     // Read public and private keys
-    if let Some(public_key) = args.publickey {
-        let bytes = std::fs::read(public_key)?;
-        let public_key_params = Parameters::from_public_key(&bytes).ok_or("Invalid public key")?;
-        if args.dumppublickey {
-            println!("Public key :");
-            println!("n = {}", public_key_params.n.unwrap());
-            println!("e = {}", public_key_params.e);
+    if let Some(key) = args.key {
+        let bytes = std::fs::read(key)?;
+
+        params += Parameters::from_public_key(&bytes)
+            .or(Parameters::from_private_key(
+                &bytes,
+                args.password.as_deref(),
+            ))
+            .ok_or("Invalid key")?;
+    };
+
+    if args.dump {
+        println!("{params}");
+        return Ok(());
+    }
+
+    // Print public key
+    if args.public {
+        if let Some(n) = &params.n {
+            let rsa = openssl::rsa::Rsa::from_public_components(
+                openssl::bn::BigNum::from_dec_str(&n.to_string()).unwrap(),
+                openssl::bn::BigNum::from_dec_str(&params.e.to_string()).unwrap(),
+            )
+            .or(Err("Invalid public key parameters"))?;
+            let pem = rsa
+                .public_key_to_pem()
+                .map(|pem| String::from_utf8(pem).unwrap())
+                .unwrap();
+            print!("{pem}",);
             return Ok(());
+        } else {
+            return Err("No public key found".into());
         }
-        params += public_key_params;
-    };
-    if let Some(private_key) = args.privatekey {
-        let bytes = std::fs::read(private_key)?;
-        params += Parameters::from_private_key(&bytes, args.password.as_deref())
-            .ok_or("Invalid private key")?;
-    };
+    }
 
     // Run attacks
     let attacks = args
@@ -197,15 +228,17 @@ fn main() -> Result<(), MainError> {
 
     println!("Succeeded with attack: {}", solution.attack);
 
-    if args.printkey || args.dumpkey || args.dumpextkey {
+    if args.private || args.dumpkey || args.dumpextkey {
         if let Some(private_key) = &solution.pk {
-            if args.printkey {
-                println!("{}", private_key.to_pem(&args.addpassword).unwrap());
+            if args.private {
+                print!("{}", private_key.to_pem(&args.addpassword).unwrap());
             }
             if args.dumpkey || args.dumpextkey {
                 println!("Private key:");
                 println!("n = {}", private_key.n);
                 println!("e = {}", private_key.e);
+
+                // Print factors
                 if private_key.other_factors.is_empty() {
                     println!("p = {}", private_key.p);
                     println!("q = {}", private_key.q);
@@ -231,55 +264,30 @@ fn main() -> Result<(), MainError> {
 
     if let Some(uncipher) = solution.m {
         println!("Unciphered data:");
-        println!("Int = {uncipher}");
-        println!("Hex = 0x{uncipher:02x}");
-        if let Some(str) = integer_to_string(&uncipher) {
-            println!("String = \"{str}\"");
-        } else {
-            println!(
-                "Bytes = b\"{}\"",
-                display_bytes(&integer_to_bytes(&uncipher))
-            );
-        }
+        display_unciphered_data(&uncipher);
 
-        if args.dlog {
-            if let Some(pk) = &solution.pk {
-                println!("Compute discrete logarithm...");
-                if let Ok(dlog) = discrete_log_with_factors(
-                    &pk.n,
-                    &params.c.unwrap(),
-                    &pk.e,
-                    &HashMap::from_iter(pk.factors().into_iter().map(|p| (p, 1))),
-                ) {
-                    println!("Int = {dlog}");
-                    println!("Hex = 0x{dlog:02x}");
-                    if let Some(str) = integer_to_string(&dlog) {
-                        println!("String = \"{str}\"");
-                    } else {
-                        println!("Bytes = b\"{}\"", display_bytes(&integer_to_bytes(&dlog)));
-                    }
-                } else {
-                    println!("Discrete logarithm failed");
-                }
+        if let (Some(pk), true) = (&solution.pk, args.dlog) {
+            println!("Compute discrete logarithm...");
+            if let Ok(dlog) = discrete_log_with_factors(
+                &pk.n,
+                &params.c.unwrap(),
+                &pk.e,
+                &HashMap::from_iter(pk.factors().into_iter().map(|p| (p, 1))),
+            ) {
+                display_unciphered_data(&dlog);
             } else {
-                println!("Discrete logarithm requires private key");
+                println!("Discrete logarithm failed");
             }
+        } else {
+            println!("Discrete logarithm requires private key");
         }
     }
 
     if !solution.ms.is_empty() {
         println!("Multiple unciphered data found:");
         for uncipher in solution.ms {
-            println!("\nInt = {uncipher}");
-            println!("Hex = 0x{uncipher:02x}");
-            if let Some(str) = integer_to_string(&uncipher) {
-                println!("String = \"{str}\"");
-            } else {
-                println!(
-                    "Bytes = b\"{}\"",
-                    display_bytes(&integer_to_bytes(&uncipher))
-                );
-            }
+            println!();
+            display_unciphered_data(&uncipher);
         }
     }
 

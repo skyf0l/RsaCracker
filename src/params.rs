@@ -1,5 +1,8 @@
 use rug::Integer;
-use std::ops::{Add, AddAssign};
+use std::{
+    fmt::Display,
+    ops::{Add, AddAssign},
+};
 
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -46,6 +49,54 @@ impl Default for Parameters {
             pinv: None,
             sum_pq: None,
         }
+    }
+}
+
+impl Display for Parameters {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut s = String::new();
+
+        if let Some(n) = &self.n {
+            s += &format!("n = {}\n", n);
+        }
+        s += &format!("e = {}\n", self.e);
+        if let Some(c) = &self.c {
+            s += &format!("c = {}\n", c);
+        }
+        if let Some(p) = &self.p {
+            s += &format!("p = {}\n", p);
+        }
+        if let Some(q) = &self.q {
+            s += &format!("q = {}\n", q);
+        }
+        if let Some(d) = &self.d {
+            s += &format!("d = {}\n", d);
+        }
+        if let Some(phi) = &self.phi {
+            s += &format!("phi = {}\n", phi);
+        }
+        if let Some(dp) = &self.dp {
+            s += &format!("dp = {}\n", dp);
+        }
+        if let Some(dq) = &self.dq {
+            s += &format!("dq = {}\n", dq);
+        }
+        if let Some(qinv) = &self.qinv {
+            s += &format!("qinv = {}\n", qinv);
+        }
+        if let Some(pinv) = &self.pinv {
+            s += &format!("pinv = {}\n", pinv);
+        }
+        if let Some(sum_pq) = &self.sum_pq {
+            s += &format!("sum_pq = {}\n", sum_pq);
+        }
+
+        // Remove trailing newline
+        if s.ends_with('\n') {
+            s.pop();
+        }
+
+        write!(f, "{}", s)
     }
 }
 

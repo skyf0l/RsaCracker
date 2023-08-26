@@ -134,12 +134,12 @@ struct Args {
 fn display_unciphered_data(uncipher: &Integer) {
     println!("Int = {uncipher}");
     println!("Hex = 0x{uncipher:02x}");
-    if let Some(str) = integer_to_string(&uncipher) {
+    if let Some(str) = integer_to_string(uncipher) {
         println!("String = \"{str}\"");
     } else {
         println!(
             "Bytes = b\"{}\"",
-            display_bytes(&integer_to_bytes(&uncipher))
+            display_bytes(&integer_to_bytes(uncipher))
         );
     }
 }

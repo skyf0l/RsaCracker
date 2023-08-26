@@ -383,11 +383,11 @@ impl Attack for CunninghamChainAttack {
         }
         for ((m, length), kind) in CC_FIRST_KIND
             .iter()
-            .zip(vec![ChainKind::First].iter().cycle())
+            .zip([ChainKind::First].iter().cycle())
             .chain(
                 CC_SECOND_KIND
                     .iter()
-                    .zip(vec![ChainKind::Second].iter().cycle()),
+                    .zip([ChainKind::Second].iter().cycle()),
             )
         {
             for p in cunningham_chain(m, *length, *kind) {

@@ -135,7 +135,7 @@ impl Attack for SqufofAttack {
                     if 1 < r && r < *n {
                         return Ok(Solution::new_pk(
                             self.name(),
-                            PrivateKey::from_p_q(r.clone(), n / r, e.clone()).unwrap(),
+                            PrivateKey::from_p_q(r.clone(), n / r, e.clone())?,
                         ));
                     }
                 }

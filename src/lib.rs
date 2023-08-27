@@ -56,7 +56,10 @@ pub fn run_attack(
         pb.set_prefix(attack.name());
     }
 
-    let mut solution = attack.run(params, pb)?;
+    let mut solution = attack.run(params, pb).map_err(|e| {
+        eprintln!("Error: {}: {}", attack.name(), e);
+        e
+    })?;
     // Try to decrypt the cipher if no message was found
     if let (Some(pk), None, Some(c)) = (&solution.pk, &solution.m, &params.c) {
         solution.m = Some(pk.decrypt(c))

@@ -35,7 +35,7 @@ impl Attack for KraitchikAttack {
                     if z.clone() % n != 0 && w.clone() % n != 0 {
                         return Ok(Solution::new_pk(
                             self.name(),
-                            PrivateKey::from_p_q(z.gcd(n), w.gcd(n), e.clone()).unwrap(),
+                            PrivateKey::from_p_q(z.gcd(n), w.gcd(n), e.clone())?,
                         ));
                     }
                 }

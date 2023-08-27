@@ -34,6 +34,7 @@ mod sum_pq;
 mod twin_prime;
 mod wiener;
 
+use crate::Factors;
 use crate::{Parameters, Solution};
 
 pub use self::ecm::EcmAttack;
@@ -73,14 +74,28 @@ pub use wiener::WienerAttack;
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     /// Missing parameters
-    #[error("missing parameters")]
+    #[error("Missing parameters")]
     MissingParameters,
     /// Unsuccessful attack
-    #[error("unsuccessful attack")]
+    #[error("Unsuccessful attack")]
     NotFound,
     /// Key error
     #[error(transparent)]
-    Key(#[from] crate::key::KeyError),
+    Key(crate::key::KeyError),
+    /// Partial factorization
+    #[error("Partial factorization: {0:?}")]
+    PartialFactorization(Factors),
+}
+
+impl From<crate::key::KeyError> for Error {
+    fn from(e: crate::key::KeyError) -> Self {
+        match e {
+            crate::key::KeyError::FactorsAreNotPrimeNumbers(factors) => {
+                Error::PartialFactorization(factors)
+            }
+            _ => Error::Key(e),
+        }
+    }
 }
 
 /// Attack speed

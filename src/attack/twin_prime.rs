@@ -32,7 +32,7 @@ impl Attack for TwinPrimeAttack {
             if p.clone() * &q == *n {
                 return Ok(Solution::new_pk(
                     self.name(),
-                    PrivateKey::from_p_q(p, q, e.clone()).unwrap(),
+                    PrivateKey::from_p_q(p, q, e.clone())?,
                 ));
             }
 
@@ -41,7 +41,7 @@ impl Attack for TwinPrimeAttack {
             if p.clone() * &q == *n {
                 return Ok(Solution::new_pk(
                     self.name(),
-                    PrivateKey::from_p_q(p, q, e.clone()).unwrap(),
+                    PrivateKey::from_p_q(p, q, e.clone())?,
                 ));
             }
 
@@ -50,7 +50,7 @@ impl Attack for TwinPrimeAttack {
             if p.clone() * &q == *n {
                 return Ok(Solution::new_pk(
                     self.name(),
-                    PrivateKey::from_p_q(p, q, e.clone()).unwrap(),
+                    PrivateKey::from_p_q(p, q, e.clone())?,
                 ));
             }
 

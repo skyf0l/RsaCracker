@@ -7,8 +7,8 @@ use crate::factors::Factors;
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 pub enum KeyError {
     /// Factors are not prime numbers
-    #[error("factors are not prime numbers")]
-    FactorsAreNotPrimeNumbers,
+    #[error("factors are not prime numbers: {0:?}")]
+    FactorsAreNotPrimeNumbers(Factors),
     /// Private exponent computation failed
     #[error("private exponent computation failed")]
     PrivateExponentComputationFailed,
@@ -45,7 +45,7 @@ impl PrivateKey {
             .iter()
             .any(|f| f.is_probably_prime(30) == IsPrime::No)
         {
-            return Err(KeyError::FactorsAreNotPrimeNumbers);
+            return Err(KeyError::FactorsAreNotPrimeNumbers(factors));
         }
 
         let n: Integer = factors.product();

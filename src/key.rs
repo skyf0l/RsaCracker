@@ -25,8 +25,6 @@ pub struct PrivateKey {
     pub factors: Factors,
     /// Private exponent.
     pub d: Integer,
-    /// Phi or Euler's totient function of n. (p-1)(q-1)
-    pub phi: Integer,
 }
 
 impl PrivateKey {
@@ -49,19 +47,12 @@ impl PrivateKey {
         }
 
         let n: Integer = factors.product();
-        let phi = factors.phi();
         let d = e
             .clone()
-            .invert(&phi)
+            .invert(&factors.phi())
             .or(Err(KeyError::PrivateExponentComputationFailed))?;
 
-        Ok(Self {
-            n,
-            e,
-            factors,
-            d,
-            phi,
-        })
+        Ok(Self { n, e, factors, d })
     }
 
     /// Decrypt cipher message
@@ -77,6 +68,11 @@ impl PrivateKey {
     /// Returns Q factor
     pub fn q(&self) -> Integer {
         self.factors[1].clone()
+    }
+
+    /// Returns phi(n) or totient
+    pub fn phi(&self) -> Integer {
+        self.factors.phi()
     }
 
     /// Returns dP or dmp1 CRT exponent. (d mod p-1)

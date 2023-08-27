@@ -251,7 +251,7 @@ fn main() -> Result<(), MainError> {
             }
             if args.dumpextkey {
                 println!("Extended private key:");
-                println!("phi = {}", private_key.phi);
+                println!("phi = {}", private_key.phi());
                 println!("dP = {}", private_key.dp());
                 println!("dQ = {}", private_key.dq());
                 println!("pInv = {}", private_key.pinv());

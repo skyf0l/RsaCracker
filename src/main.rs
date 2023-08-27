@@ -16,19 +16,19 @@ impl std::str::FromStr for IntegerArg {
     type Err = String;
 
     fn from_str(n: &str) -> Result<Self, Self::Err> {
-        if let Some(n) = n.strip_prefix("0x") {
+        if let Some(n) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
             Ok(Self(
                 Integer::from_str_radix(n, 16).or(Err("Invalid hex number".to_string()))?,
             ))
-        } else if let Some(n) = n.strip_prefix("0b") {
+        } else if let Some(n) = n.strip_prefix("0b").or_else(|| n.strip_prefix("0B")) {
             Ok(Self(
                 Integer::from_str_radix(n, 2).or(Err("Invalid binary number".to_string()))?,
             ))
-        } else if let Some(n) = n.strip_prefix("0o") {
+        } else if let Some(n) = n.strip_prefix("0o").or_else(|| n.strip_prefix("0O")) {
             Ok(Self(
                 Integer::from_str_radix(n, 8).or(Err("Invalid octal number".to_string()))?,
             ))
-        } else if let Some(n) = n.strip_prefix("b64") {
+        } else if let Some(n) = n.strip_prefix("b64").or_else(|| n.strip_prefix("B64")) {
             let bytes = general_purpose::STANDARD
                 .decode(n.as_bytes())
                 .or(Err("Invalid base64 number".to_string()))?;
@@ -122,6 +122,9 @@ struct Args {
     /// Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv.
     #[clap(long)]
     dumpextkey: bool,
+    /// Print all factors of n.
+    #[clap(long)]
+    factors: bool,
     /// Number of threads to use. Default: number of CPUs
     #[cfg(feature = "parallel")]
     #[clap(short, long, default_value_t = num_cpus::get())]
@@ -225,9 +228,27 @@ fn main() -> Result<(), MainError> {
     #[cfg(not(feature = "parallel"))]
     let solution =
         rsacracker::run_sequence_attacks(&params, &attacks).or(Err("No attack succeeded"));
-
     println!("Succeeded with attack: {}", solution.attack);
 
+    // Print factors
+    if args.factors {
+        if let Some(private_key) = &solution.pk {
+            println!("Factors of n:");
+            if private_key.factors.len() == 2 {
+                println!("p = {}", private_key.p());
+                println!("q = {}", private_key.q());
+            } else {
+                for (i, p) in private_key.factors.as_vec().into_iter().enumerate() {
+                    println!("p{} = {}", i + 1, p);
+                }
+            }
+        } else {
+            return Err("No private key found".into());
+        }
+        return Ok(());
+    }
+
+    // Print private key
     if args.private || args.dumpkey || args.dumpextkey {
         if let Some(private_key) = &solution.pk {
             if args.private {
@@ -243,7 +264,7 @@ fn main() -> Result<(), MainError> {
                     println!("p = {}", private_key.p());
                     println!("q = {}", private_key.q());
                 } else {
-                    for (i, p) in private_key.factors.to_vec().iter().enumerate() {
+                    for (i, p) in private_key.factors.as_vec().into_iter().enumerate() {
                         println!("p{} = {}", i + 1, p);
                     }
                 }
@@ -258,31 +279,37 @@ fn main() -> Result<(), MainError> {
                 println!("qInv = {}", private_key.qinv());
             }
         } else {
-            eprintln!("No private key found");
+            return Err("No private key found".into());
         }
+        return Ok(());
     }
 
+    // Print unciphered data
     if let Some(uncipher) = solution.m {
         println!("Unciphered data:");
         display_unciphered_data(&uncipher);
 
-        if let (Some(pk), true) = (&solution.pk, args.dlog) {
-            println!("Compute discrete logarithm...");
-            if let Ok(dlog) = discrete_log_with_factors(
-                &pk.n,
-                &params.c.unwrap(),
-                &pk.e,
-                &pk.factors.to_hash_map(),
-            ) {
-                display_unciphered_data(&dlog);
+        // Print discrete logarithm
+        if args.dlog {
+            if let Some(pk) = &solution.pk {
+                println!("Compute discrete logarithm...");
+                if let Ok(dlog) = discrete_log_with_factors(
+                    &pk.n,
+                    &params.c.unwrap(),
+                    &pk.e,
+                    &pk.factors.to_hash_map(),
+                ) {
+                    display_unciphered_data(&dlog);
+                } else {
+                    return Err("Discrete logarithm failed".into());
+                }
             } else {
-                println!("Discrete logarithm failed");
+                return Err("Discrete requires a private key".into());
             }
-        } else {
-            println!("Discrete logarithm requires private key");
         }
     }
 
+    // Print multiple unciphered data
     if !solution.ms.is_empty() {
         println!("Multiple unciphered data found:");
         for uncipher in solution.ms {

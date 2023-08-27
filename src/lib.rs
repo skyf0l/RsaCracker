@@ -263,7 +263,9 @@ pub fn run_parallel_attacks(
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    use std::{collections::BTreeMap, str::FromStr};
+
+    use rug::ops::Pow;
 
     use super::*;
 
@@ -285,5 +287,22 @@ mod tests {
         };
 
         assert!(run_attacks(&params).is_err());
+    }
+
+    #[test]
+    fn partial_factors() {
+        // n == 2 ^ 63 * 690712633549859897233 ^ 6
+        let p = Integer::from(690712633549859897233u128);
+        let params = Parameters {
+            n: Some(Integer::from(2).pow(63) * p.clone().pow(5)),
+            ..Default::default()
+        };
+
+        let err = run_specific_attacks(&params, &[Arc::new(SmallPrimeAttack)]).unwrap_err();
+        let partial_factor = err.unwrap().into_iter().next().unwrap();
+        assert_eq!(
+            partial_factor.0,
+            BTreeMap::from([(Integer::from(2), 63), (p.pow(5), 1),])
+        );
     }
 }

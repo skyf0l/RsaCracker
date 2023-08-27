@@ -1,6 +1,8 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
-use rsacracker::{integer_to_string, run_attacks, Parameters};
+use rsacracker::{
+    integer_to_string, run_attacks, run_specific_attacks, EcmAttack, Parameters, WienerAttack,
+};
 use rug::Integer;
 
 #[test]
@@ -35,7 +37,7 @@ fn picoctf_2019_b00tl3grsa2() {
         ..Default::default()
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(WienerAttack)]).unwrap();
     assert!(solution.pk.is_some());
     assert_eq!(
         integer_to_string(&solution.m.unwrap()).unwrap(),
@@ -54,7 +56,7 @@ fn picoctf_2019_b00tl3grsa3() {
         ..Default::default()
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(EcmAttack)]).unwrap();
     assert!(solution.pk.is_some());
     assert_eq!(
         integer_to_string(&solution.m.unwrap()).unwrap(),

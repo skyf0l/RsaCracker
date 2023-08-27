@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{Attack, Error, Parameters, Solution};
+use crate::{Attack, AttackSpeed, Error, Parameters, Solution};
 
 const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
@@ -13,6 +13,10 @@ pub struct SmallEAttack;
 impl Attack for SmallEAttack {
     fn name(&self) -> &'static str {
         "small_e"
+    }
+
+    fn speed(&self) -> AttackSpeed {
+        AttackSpeed::Fast
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

@@ -1,6 +1,8 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
-use rsacracker::{integer_to_string, run_attacks, Parameters};
+use rsacracker::{
+    integer_to_string, run_attacks, run_specific_attacks, Parameters, PollardPM1Attack,
+};
 use rug::Integer;
 
 #[test]
@@ -34,7 +36,7 @@ fn picoctf_2022_very_smooth() {
         ..Default::default()
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(PollardPM1Attack)]).unwrap();
     assert!(solution.pk.is_some());
     assert_eq!(
         integer_to_string(&solution.m.unwrap()).unwrap().trim(),

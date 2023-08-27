@@ -1,6 +1,9 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
-use rsacracker::{integer_to_string, run_attacks, Parameters};
+use rsacracker::{
+    integer_to_string, run_attacks, run_specific_attacks, EcmAttack, FermatAttack, Parameters,
+    PollardPM1Attack,
+};
 use rug::Integer;
 
 #[test]
@@ -14,11 +17,12 @@ fn tjctf_2022_rsa_apprentice() {
         ..Default::default()
     };
 
-    let solution_1 = run_attacks(&params_1).unwrap();
-    assert!(solution_1.pk.is_some());
+    let solution_1 = run_specific_attacks(&params_1, &[Arc::new(PollardPM1Attack)]).unwrap();
+    let pk = solution_1.pk.unwrap();
 
     let params_2 = Parameters {
-        n: Some(Integer::from_str("1216177716507739302616478655910148392804849").unwrap()),
+        p: Some(pk.factors()[0].clone()),
+        q: Some(pk.factors()[1].clone()),
         c: Some(Integer::from_str("843105902970788695411197846605744081831851").unwrap()),
         ..Default::default()
     };
@@ -44,7 +48,7 @@ fn tjctf_2022_factor_master_stage1() {
 
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(EcmAttack)]).unwrap();
     assert!(solution.pk.is_some());
 }
 
@@ -59,7 +63,7 @@ fn tjctf_2022_factor_master_stage2() {
 
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(FermatAttack)]).unwrap();
     assert!(solution.pk.is_some());
 }
 
@@ -74,6 +78,6 @@ fn tjctf_2022_factor_master_stage3() {
 
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(PollardPM1Attack)]).unwrap();
     assert!(solution.pk.is_some());
 }

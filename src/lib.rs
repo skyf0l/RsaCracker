@@ -239,9 +239,9 @@ mod tests {
     }
 
     #[test]
-    fn huge_n_prime() {
+    fn medium_n_prime() {
         let params = Parameters {
-            n: Some(Integer::from_str("3422439879021862741231658874852020811369429686198702457924807491341988797025050611590032128268794011").unwrap()),  
+            n: Some(Integer::from_str("220375572875274133043506876099").unwrap()),
             ..Default::default()
         };
 

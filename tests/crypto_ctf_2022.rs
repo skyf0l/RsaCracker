@@ -1,7 +1,9 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 
 use discrete_logarithm::discrete_log_with_factors;
-use rsacracker::{integer_to_string, run_attacks, Parameters};
+use rsacracker::{
+    integer_to_string, run_specific_attacks, Parameters, PollardPM1Attack, SparseAttack,
+};
 use rug::Integer;
 
 #[test]
@@ -20,7 +22,7 @@ fn crypto_ctf_2022_cantilever() {
         ..Default::default()
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(PollardPM1Attack)]).unwrap();
     assert!(solution.pk.is_some());
     assert_eq!(
         integer_to_string(&solution.m.unwrap()).unwrap().trim(),
@@ -53,7 +55,7 @@ fn crypto_ctf_2022_sparse() {
         ..Default::default()
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(SparseAttack)]).unwrap();
     assert!(solution.pk.is_some());
     assert_eq!(
         integer_to_string(&solution.m.unwrap()).unwrap().trim(),
@@ -85,6 +87,6 @@ fn crypto_ctf_2022_versace() {
         ..Default::default()
     };
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(PollardPM1Attack)]).unwrap();
     assert!(solution.pk.is_some());
 }

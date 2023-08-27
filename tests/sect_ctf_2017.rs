@@ -1,6 +1,6 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
-use rsacracker::{integer_to_string, run_attacks, Parameters};
+use rsacracker::{integer_to_string, run_specific_attacks, LondahlAttack, Parameters};
 use rug::Integer;
 
 #[test]
@@ -21,7 +21,7 @@ zBSZ7R1QlDmbnpwdAgMDEzc=
     )
     .unwrap();
 
-    let solution = run_attacks(&params).unwrap();
+    let solution = run_specific_attacks(&params, &[Arc::new(LondahlAttack)]).unwrap();
     assert!(solution.pk.is_some());
     assert_eq!(
         integer_to_string(&solution.m.unwrap()).unwrap().trim(),

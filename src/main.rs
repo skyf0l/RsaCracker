@@ -221,10 +221,10 @@ fn main() -> Result<(), MainError> {
         .unwrap_or(ATTACKS.to_vec());
     #[cfg(feature = "parallel")]
     let solution = rsacracker::run_parallel_attacks(&params, &attacks, args.threads)
-        .ok_or("No attack succeeded")?;
+        .or(Err("No attack succeeded"))?;
     #[cfg(not(feature = "parallel"))]
     let solution =
-        rsacracker::run_sequence_attacks(&params, &attacks).ok_or("No attack succeeded")?;
+        rsacracker::run_sequence_attacks(&params, &attacks).or(Err("No attack succeeded"));
 
     println!("Succeeded with attack: {}", solution.attack);
 

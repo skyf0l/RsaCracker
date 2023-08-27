@@ -1,5 +1,8 @@
-use openssl::{bn::BigNum, rsa::RsaPrivateKeyBuilder};
-use rug::{integer::IsPrime, Integer};
+use openssl::rsa::RsaPrivateKeyBuilder;
+use rug::{
+    integer::{IsPrime, Order},
+    Integer,
+};
 
 use crate::factors::Factors;
 
@@ -102,20 +105,20 @@ impl PrivateKey {
         }
 
         let rsa = RsaPrivateKeyBuilder::new(
-            BigNum::from_dec_str(&self.n.to_string()).unwrap(),
-            BigNum::from_dec_str(&self.e.to_string()).unwrap(),
-            BigNum::from_dec_str(&self.d.to_string()).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.n.to_digits(Order::Msf)).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.e.to_digits(Order::Msf)).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.d.to_digits(Order::Msf)).unwrap(),
         )
         .ok()?
         .set_factors(
-            BigNum::from_dec_str(&self.p().to_string()).unwrap(),
-            BigNum::from_dec_str(&self.q().to_string()).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.p().to_digits(Order::Msf)).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.q().to_digits(Order::Msf)).unwrap(),
         )
         .ok()?
         .set_crt_params(
-            BigNum::from_dec_str(&self.dp().to_string()).unwrap(),
-            BigNum::from_dec_str(&self.dq().to_string()).unwrap(),
-            BigNum::from_dec_str(&self.qinv().to_string()).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.dp().to_digits(Order::Msf)).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.dq().to_digits(Order::Msf)).unwrap(),
+            openssl::bn::BigNum::from_slice(&self.qinv().to_digits(Order::Msf)).unwrap(),
         )
         .ok()?
         .build();

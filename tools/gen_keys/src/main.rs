@@ -1,6 +1,6 @@
 use std::{fs, str::FromStr};
 
-use rug::Integer;
+use rug::{integer::Order, Integer};
 
 const KEY_PASSPHRASE: &'static [u8] = b"Skyf0l";
 const OUT_PATH: &'static str = "../../tests/keys";
@@ -19,22 +19,22 @@ lazy_static::lazy_static!(
 
 fn rsa_keys() -> openssl::rsa::Rsa<openssl::pkey::Private> {
     let rsa = openssl::rsa::RsaPrivateKeyBuilder::new(
-        openssl::bn::BigNum::from_dec_str(&MODULUS.to_string()).unwrap(),
-        openssl::bn::BigNum::from_dec_str(&EXPONENT.to_string()).unwrap(),
-        openssl::bn::BigNum::from_dec_str(&D.to_string()).unwrap(),
+        openssl::bn::BigNum::from_slice(&MODULUS.to_digits(Order::Msf)).unwrap(),
+        openssl::bn::BigNum::from_slice(&EXPONENT.to_digits(Order::Msf)).unwrap(),
+        openssl::bn::BigNum::from_slice(&D.to_digits(Order::Msf)).unwrap(),
     )
     .ok()
     .unwrap()
     .set_factors(
-        openssl::bn::BigNum::from_dec_str(&PRIME_P.to_string()).unwrap(),
-        openssl::bn::BigNum::from_dec_str(&PRIME_Q.to_string()).unwrap(),
+        openssl::bn::BigNum::from_slice(&PRIME_P.to_digits(Order::Msf)).unwrap(),
+        openssl::bn::BigNum::from_slice(&PRIME_Q.to_digits(Order::Msf)).unwrap(),
     )
     .ok()
     .unwrap()
     .set_crt_params(
-        openssl::bn::BigNum::from_dec_str(&DP.to_string()).unwrap(),
-        openssl::bn::BigNum::from_dec_str(&DQ.to_string()).unwrap(),
-        openssl::bn::BigNum::from_dec_str(&QINV.to_string()).unwrap(),
+        openssl::bn::BigNum::from_slice(&DP.to_digits(Order::Msf)).unwrap(),
+        openssl::bn::BigNum::from_slice(&DQ.to_digits(Order::Msf)).unwrap(),
+        openssl::bn::BigNum::from_slice(&QINV.to_digits(Order::Msf)).unwrap(),
     )
     .ok()
     .unwrap()

@@ -3,7 +3,7 @@ use clap::{command, Parser};
 use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
 use main_error::MainError;
-use rug::Integer;
+use rug::{integer::Order, Integer};
 use std::{sync::Arc, time::Duration};
 
 use rsacracker::{integer_to_bytes, integer_to_string, Attack, Parameters, ATTACKS};
@@ -197,8 +197,8 @@ fn main() -> Result<(), MainError> {
     if args.public {
         if let Some(n) = &params.n {
             let rsa = openssl::rsa::Rsa::from_public_components(
-                openssl::bn::BigNum::from_dec_str(&n.to_string()).unwrap(),
-                openssl::bn::BigNum::from_dec_str(&params.e.to_string()).unwrap(),
+                openssl::bn::BigNum::from_slice(&n.to_digits(Order::Msf)).unwrap(),
+                openssl::bn::BigNum::from_slice(&params.e.to_digits(Order::Msf)).unwrap(),
             )
             .or(Err("Invalid public key parameters"))?;
             let pem = rsa

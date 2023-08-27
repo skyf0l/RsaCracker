@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr, sync::Arc};
+use std::{str::FromStr, sync::Arc};
 
 use discrete_logarithm::discrete_log_with_factors;
 use rsacracker::{
@@ -31,13 +31,8 @@ fn crypto_ctf_2022_cantilever() {
 
     assert_eq!(
         integer_to_string(
-            &discrete_log_with_factors(
-                &n,
-                &c_2,
-                &e,
-                &HashMap::from_iter(solution.pk.unwrap().factors().into_iter().map(|p| (p, 1))),
-            )
-            .unwrap()
+            &discrete_log_with_factors(&n, &c_2, &e, &solution.pk.unwrap().factors.to_hash_map(),)
+                .unwrap()
         )
         .unwrap()
         .trim(),

@@ -13,6 +13,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 mod attack;
+mod factors;
 mod key;
 mod ntheory;
 mod params;
@@ -20,6 +21,8 @@ mod solution;
 mod utils;
 
 pub use attack::*;
+pub use factors::*;
+pub use key::*;
 pub use params::*;
 pub use solution::*;
 

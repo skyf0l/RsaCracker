@@ -89,7 +89,7 @@ q16/S1WLvzg4PsElmv1f
     let solution = run_attacks(&params).unwrap();
     let pk = solution.pk.unwrap();
 
-    assert_eq!(pk.p, Integer::from(67867967));
-    assert_eq!(pk.q, Integer::from(73176001));
+    assert_eq!(pk.p(), Integer::from(67867967));
+    assert_eq!(pk.q(), Integer::from(73176001));
     assert!(solution.m.is_none());
 }

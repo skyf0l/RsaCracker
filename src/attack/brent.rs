@@ -125,7 +125,7 @@ mod tests {
         let solution = BrentAttack.run(&params, None).unwrap();
         let pk = solution.pk.unwrap();
 
-        assert_eq!(pk.p, Integer::from(1779681653));
-        assert_eq!(pk.q, Integer::from(1903643191));
+        assert_eq!(pk.p(), Integer::from(1779681653));
+        assert_eq!(pk.q(), Integer::from(1903643191));
     }
 }

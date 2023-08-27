@@ -85,7 +85,7 @@ impl Attack for EcmAttack {
 
         Ok(Solution::new_pk(
             self.name(),
-            PrivateKey::from_factors(&factors, e.clone()).unwrap(),
+            PrivateKey::from_factors(factors, e.clone()).unwrap(),
         ))
     }
 }

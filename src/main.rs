@@ -4,7 +4,7 @@ use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
 use main_error::MainError;
 use rug::Integer;
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 
 use rsacracker::{integer_to_bytes, integer_to_string, Attack, Parameters, ATTACKS};
 use update_informer::{registry, Check};
@@ -239,11 +239,11 @@ fn main() -> Result<(), MainError> {
                 println!("e = {}", private_key.e);
 
                 // Print factors
-                if private_key.other_factors.is_empty() {
-                    println!("p = {}", private_key.p);
-                    println!("q = {}", private_key.q);
+                if private_key.factors.len() == 2 {
+                    println!("p = {}", private_key.p());
+                    println!("q = {}", private_key.q());
                 } else {
-                    for (i, p) in private_key.factors().iter().enumerate() {
+                    for (i, p) in private_key.factors.to_vec().iter().enumerate() {
                         println!("p{} = {}", i + 1, p);
                     }
                 }
@@ -272,7 +272,7 @@ fn main() -> Result<(), MainError> {
                 &pk.n,
                 &params.c.unwrap(),
                 &pk.e,
-                &HashMap::from_iter(pk.factors().into_iter().map(|p| (p, 1))),
+                &pk.factors.to_hash_map(),
             ) {
                 display_unciphered_data(&dlog);
             } else {

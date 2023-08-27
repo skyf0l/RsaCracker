@@ -1,15 +1,5 @@
 use rug::{ops::Pow, Integer};
 
-/// Compute the Euler's totient.
-pub fn phi(factors: &[Integer]) -> Integer {
-    let mut phi = Integer::from(1);
-
-    for p in factors {
-        phi *= p - Integer::from(1);
-    }
-    phi
-}
-
 /// Compute the log of n in given base, rounded up.
 pub fn log_base_ceil(n: &Integer, base: usize) -> usize {
     if *n <= 1 {

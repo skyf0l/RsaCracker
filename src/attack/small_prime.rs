@@ -72,7 +72,7 @@ mod tests {
         let solution = SmallPrimeAttack.run(&params, None).unwrap();
         let pk = solution.pk.unwrap();
 
-        assert_eq!(pk.p, Integer::from(54269));
-        assert_eq!(pk.q, Integer::from(93089));
+        assert_eq!(pk.p(), Integer::from(54269));
+        assert_eq!(pk.q(), Integer::from(93089));
     }
 }

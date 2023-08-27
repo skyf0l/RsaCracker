@@ -21,8 +21,8 @@ fn tjctf_2022_rsa_apprentice() {
     let pk = solution_1.pk.unwrap();
 
     let params_2 = Parameters {
-        p: Some(pk.factors()[0].clone()),
-        q: Some(pk.factors()[1].clone()),
+        p: Some(pk.p()),
+        q: Some(pk.q()),
         c: Some(Integer::from_str("843105902970788695411197846605744081831851").unwrap()),
         ..Default::default()
     };

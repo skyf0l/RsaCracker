@@ -70,7 +70,7 @@ impl Attack for PollardPM1Attack {
         let factors = pollard_p_1(n, pb).ok_or(Error::NotFound)?;
         Ok(Solution::new_pk(
             self.name(),
-            PrivateKey::from_factors(&factors, e.clone())?,
+            PrivateKey::from_factors(factors, e.clone())?,
         ))
     }
 }

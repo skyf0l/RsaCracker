@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use indicatif::ProgressBar;
 use rug::Integer;
 
@@ -28,10 +30,10 @@ impl Attack for PowerAttack {
                 continue;
             }
 
-            let factors = (0..power).map(|_| root.clone()).collect::<Vec<_>>();
+            let factors = HashMap::from([(root, power as usize)]);
             return Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_factors(&factors, e.clone())?,
+                PrivateKey::from_factors(factors, e.clone())?,
             ));
         }
 

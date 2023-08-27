@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use indicatif::ProgressBar;
 use primal::Primes;
 use rug::Integer;
@@ -24,32 +26,37 @@ impl Attack for SmallPrimeAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        if let Some(pb) = pb {
-            pb.set_length(MAX_ITERATIONS);
-        }
-        for (i, p) in Primes::all().take(MAX_ITERATIONS as usize).enumerate() {
-            if p.ge(n) {
+        let mut factors: HashMap<Integer, usize> = HashMap::new();
+        let mut tmp_n: Integer = n.clone();
+        for (i, prime) in Primes::all().take(MAX_ITERATIONS as usize).enumerate() {
+            if prime > tmp_n {
                 break;
             }
-            if n.is_divisible(&Integer::from(p)) {
-                let q = n.clone() / p;
-                let p: Integer = p.into();
 
-                let _d = e
-                    .clone()
-                    .invert(&((p.clone() - 1) * (q.clone() - 1)))
-                    .map_err(|_| Error::NotFound)?;
-
-                return Ok(Solution::new_pk(
-                    self.name(),
-                    PrivateKey::from_p_q(p, q, e.clone())?,
-                ));
+            let prime = Integer::from(prime);
+            if tmp_n.clone().div_rem(prime.clone()).1 == 0 {
+                while tmp_n.clone().div_rem(prime.clone()).1 == 0 {
+                    tmp_n /= &prime;
+                    *factors.entry(prime.clone()).or_insert(0) += 1;
+                }
             }
+
             if i % TICK_SIZE as usize == 0 {
                 if let Some(pb) = pb {
                     pb.inc(TICK_SIZE);
                 }
             }
+        }
+
+        if n != &tmp_n {
+            if tmp_n != 1 {
+                factors.insert(tmp_n, 1);
+            }
+
+            return Ok(Solution::new_pk(
+                self.name(),
+                PrivateKey::from_factors(factors, e.clone())?,
+            ));
         }
 
         Err(Error::NotFound)

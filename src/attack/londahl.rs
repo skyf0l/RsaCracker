@@ -37,7 +37,7 @@ fn close_factor(n: &Integer, b: u64, pb: Option<&ProgressBar>) -> Option<(Intege
         .pow_mod(&phi_approx, n)
         .unwrap()
         .invert(n)
-        .unwrap();
+        .ok()?;
     let fac = Integer::from(2).pow_mod(&b.into(), n).unwrap();
 
     for j in 1..=b {

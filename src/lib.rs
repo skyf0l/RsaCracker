@@ -112,7 +112,7 @@ fn create_multi_progress(nb_attacks: usize) -> (Arc<MultiProgress>, Arc<Progress
 
     pb_main.set_style(
         ProgressStyle::with_template(
-            "{prefix:>12.bold} [{elapsed_precise}] [{wide_bar}] {pos}/{len:<4}",
+            "{prefix:>12.bold} [{elapsed_precise}] {msg}[{wide_bar}] {pos}/{len:<4}",
         )
         .unwrap()
         .progress_chars("=> "),
@@ -166,6 +166,10 @@ pub fn run_sequence_attacks(
                 ) {
                     return Ok(Solution::new_pk("Partial factors", private_key));
                 }
+                pb_main.set_message(format!(
+                    "({} factors found) ",
+                    partial_factors.as_ref().unwrap().len()
+                ));
             }
             _ => {}
         }
@@ -180,15 +184,13 @@ async fn _run_parallel_attacks<'a>(
     params: Arc<Parameters>,
     attacks: &[Arc<dyn Attack + Sync + Send>],
     sender: mpsc::Sender<Result<Solution, Error>>,
+    mp: Arc<MultiProgress>,
 ) {
-    let (mp, pb_main) = create_multi_progress(attacks.len());
-
     for attack in attacks.iter().sorted_by_key(|a| a.speed()) {
         let params = Arc::clone(&params);
         let attack = Arc::clone(attack);
         let sender = sender.clone();
         let mp = Arc::clone(&mp);
-        let pb_main = Arc::clone(&pb_main);
         tokio::task::spawn(async move {
             match if attack.speed() == AttackSpeed::Fast {
                 // No progress bar for fast attacks
@@ -206,7 +208,6 @@ async fn _run_parallel_attacks<'a>(
                 }
                 e => sender.send(e).expect("Failed to send result"),
             }
-            pb_main.inc(1);
         });
     }
 }
@@ -232,6 +233,9 @@ pub fn run_parallel_attacks(
     // Create channel for sending result
     let (sender, receiver) = mpsc::channel();
 
+    // Create progress bar
+    let (mp, pb_main) = create_multi_progress(attacks.len());
+
     // Create runtime
     let params = Arc::new(params.clone());
     let r = tokio::runtime::Builder::new_multi_thread()
@@ -242,11 +246,12 @@ pub fn run_parallel_attacks(
 
     // Spawn attacks in background
     let attacks = attacks.to_vec();
-    r.spawn(async move { _run_parallel_attacks(params, &attacks, sender).await });
+    r.spawn(async move { _run_parallel_attacks(params, &attacks, sender, mp).await });
 
     // Retrieve result
     let mut partial_factors: Option<Factors> = None;
     let solution = loop {
+        // Receive solution or error for each attack
         match receiver.recv() {
             Ok(Ok(solution)) => break Some(solution),
             Ok(Err(Error::PartialFactorization(factor))) => {
@@ -263,6 +268,10 @@ pub fn run_parallel_attacks(
                 ) {
                     break Some(Solution::new_pk("Partial factors", private_key));
                 }
+                pb_main.set_message(format!(
+                    "({} factors found) ",
+                    partial_factors.as_ref().unwrap().len()
+                ));
             }
             Ok(_) => {}
             Err(_) => {
@@ -270,6 +279,9 @@ pub fn run_parallel_attacks(
                 break None;
             }
         }
+
+        // Update progress bar
+        pb_main.inc(1);
     };
 
     // Shut down runtime

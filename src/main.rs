@@ -3,7 +3,10 @@ use clap::{command, Parser};
 use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
 use main_error::MainError;
-use rug::{integer::Order, Integer};
+use rug::{
+    integer::{IsPrime, Order},
+    Integer,
+};
 use std::{sync::Arc, time::Duration};
 
 use rsacracker::{integer_to_bytes, integer_to_string, Attack, Parameters, ATTACKS};
@@ -223,11 +226,26 @@ fn main() -> Result<(), MainError> {
         })
         .unwrap_or(ATTACKS.to_vec());
     #[cfg(feature = "parallel")]
-    let solution = rsacracker::run_parallel_attacks(&params, &attacks, args.threads)
-        .or(Err("No attack succeeded"))?;
+    let res = rsacracker::run_parallel_attacks(&params, &attacks, args.threads);
     #[cfg(not(feature = "parallel"))]
-    let solution =
-        rsacracker::run_sequence_attacks(&params, &attacks).or(Err("No attack succeeded"));
+    let res = rsacracker::run_sequence_attacks(&params, &attacks);
+    let solution = match res {
+        Ok(solution) => solution,
+        Err(partial_factors) => {
+            // Print partial factors if any
+            if let Some(partial_factors) = partial_factors {
+                println!("Partial factors of n:");
+                for (i, p) in partial_factors.as_vec().into_iter().enumerate() {
+                    print!("p{} = {}", i + 1, p);
+                    if p.is_probably_prime(300) != IsPrime::Yes {
+                        print!(" (composite)");
+                    }
+                    println!();
+                }
+            }
+            return Err("No attack succeeded".into());
+        }
+    };
     println!("Succeeded with attack: {}", solution.attack);
 
     // Print factors

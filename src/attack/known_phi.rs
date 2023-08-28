@@ -4,7 +4,7 @@ use rug::{integer::IsPrime, ops::Pow, rand::RandState, Integer};
 use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
 
 /// See https://github.com/jvdsn/crypto-attacks/blob/master/attacks/factorization/known_phi.py
-fn factorize(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {
+pub fn factorize(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {
     let s = Integer::from(1) + n - phi;
     let d = s.clone().pow(2) - n * Integer::from(4);
     let sqrt_d = if d > 0 && d.is_perfect_square() {
@@ -21,7 +21,7 @@ fn factorize(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {
     }
 
     // Check if p and q are prime
-    if p.is_probably_prime(30) == IsPrime::No || q.is_probably_prime(30) == IsPrime::No {
+    if p.is_probably_prime(300) == IsPrime::No || q.is_probably_prime(300) == IsPrime::No {
         return None;
     }
 

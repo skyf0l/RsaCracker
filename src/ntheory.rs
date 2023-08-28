@@ -52,7 +52,6 @@ pub fn trivial_factorization_with_n_phi(n: &Integer, phi: &Integer) -> Option<(I
     None
 }
 
-#[allow(dead_code)]
 pub fn crt(residues: &[Integer], modulli: &[Integer]) -> Option<Integer> {
     let prod = modulli.iter().product::<Integer>();
     let mut sum = Integer::ZERO;

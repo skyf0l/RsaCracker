@@ -69,7 +69,7 @@ pub fn run_attack(
 ///
 /// When the `parallel` feature is enabled, this function will run all attacks in parallel using all available CPU cores.
 /// Else, it will run all attacks in sequence (single-threaded).
-pub fn run_attacks(params: &Parameters) -> Result<Solution, Option<Vec<Factors>>> {
+pub fn run_attacks(params: &Parameters) -> Result<Solution, Option<Factors>> {
     #[cfg(feature = "parallel")]
     return run_parallel_attacks(params, &ATTACKS, num_cpus::get());
     #[cfg(not(feature = "parallel"))]
@@ -83,7 +83,7 @@ pub fn run_attacks(params: &Parameters) -> Result<Solution, Option<Vec<Factors>>
 pub fn run_specific_attacks(
     params: &Parameters,
     attacks: &[Arc<dyn Attack + Sync + Send>],
-) -> Result<Solution, Option<Vec<Factors>>> {
+) -> Result<Solution, Option<Factors>> {
     #[cfg(feature = "parallel")]
     return run_parallel_attacks(params, attacks, num_cpus::get());
     #[cfg(not(feature = "parallel"))]
@@ -136,12 +136,12 @@ fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
 pub fn run_sequence_attacks(
     params: &Parameters,
     attacks: &[Arc<dyn Attack + Sync + Send>],
-) -> Result<Solution, Option<Vec<Factors>>> {
+) -> Result<Solution, Option<Factors>> {
     if check_n_prime(&params.n) {
         return Err(None);
     }
 
-    let mut partial_factors = Vec::new();
+    let mut partial_factors: Option<Factors> = None;
     let (mp, pb_main) = create_multi_progress(attacks.len());
     for attack in attacks.iter().sorted_by_key(|a| a.speed()) {
         match if attack.speed() == AttackSpeed::Fast {
@@ -153,18 +153,26 @@ pub fn run_sequence_attacks(
         } {
             Ok(solution) => return Ok(solution),
             Err(Error::PartialFactorization(factor)) => {
-                partial_factors.push(factor);
+                if let Some(partial_factors) = &mut partial_factors {
+                    partial_factors.merge(&factor);
+                } else {
+                    partial_factors = Some(factor);
+                }
+
+                // Try to create a private key from the partial factors
+                if let Ok(private_key) = PrivateKey::from_factors(
+                    partial_factors.as_ref().unwrap().clone(),
+                    params.e.clone(),
+                ) {
+                    return Ok(Solution::new_pk("Partial factors", private_key));
+                }
             }
             _ => {}
         }
         pb_main.inc(1);
     }
 
-    if !partial_factors.is_empty() {
-        Err(Some(partial_factors))
-    } else {
-        Err(None)
-    }
+    Err(partial_factors)
 }
 
 #[cfg(feature = "parallel")]
@@ -209,7 +217,7 @@ pub fn run_parallel_attacks(
     params: &Parameters,
     attacks: &[Arc<dyn Attack + Sync + Send>],
     threads: usize,
-) -> Result<Solution, Option<Vec<Factors>>> {
+) -> Result<Solution, Option<Factors>> {
     if check_n_prime(&params.n) {
         return Err(None);
     }
@@ -217,6 +225,9 @@ pub fn run_parallel_attacks(
     if threads <= 1 {
         return run_sequence_attacks(params, attacks);
     }
+
+    // User for key build from partial factors
+    let param_e = params.e.clone();
 
     // Create channel for sending result
     let (sender, receiver) = mpsc::channel();
@@ -234,12 +245,24 @@ pub fn run_parallel_attacks(
     r.spawn(async move { _run_parallel_attacks(params, &attacks, sender).await });
 
     // Retrieve result
-    let mut partial_factors = Vec::new();
+    let mut partial_factors: Option<Factors> = None;
     let solution = loop {
         match receiver.recv() {
             Ok(Ok(solution)) => break Some(solution),
             Ok(Err(Error::PartialFactorization(factor))) => {
-                partial_factors.push(factor);
+                if let Some(partial_factors) = &mut partial_factors {
+                    partial_factors.merge(&factor);
+                } else {
+                    partial_factors = Some(factor);
+                }
+
+                // Try to create a private key from the partial factors
+                if let Ok(private_key) = PrivateKey::from_factors(
+                    partial_factors.as_ref().unwrap().clone(),
+                    param_e.clone(),
+                ) {
+                    break Some(Solution::new_pk("Partial factors", private_key));
+                }
             }
             Ok(_) => {}
             Err(_) => {
@@ -254,10 +277,8 @@ pub fn run_parallel_attacks(
 
     if let Some(solution) = solution {
         Ok(solution)
-    } else if !partial_factors.is_empty() {
-        Err(Some(partial_factors))
     } else {
-        Err(None)
+        Err(partial_factors)
     }
 }
 
@@ -299,9 +320,9 @@ mod tests {
         };
 
         let err = run_specific_attacks(&params, &[Arc::new(SmallPrimeAttack)]).unwrap_err();
-        let partial_factor = err.unwrap().into_iter().next().unwrap();
+        let partial_factors = err.unwrap();
         assert_eq!(
-            partial_factor.0,
+            partial_factors.0,
             BTreeMap::from([(Integer::from(2), 63), (p.pow(5), 1),])
         );
     }

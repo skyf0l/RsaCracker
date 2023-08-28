@@ -62,6 +62,50 @@ impl Factors {
     pub fn to_hash_map(&self) -> HashMap<Integer, usize> {
         self.0.clone().into_iter().collect()
     }
+
+    /// Optimizes factors when some are divisible by others.
+    pub fn optimize(&mut self) {
+        self.merge(&self.clone());
+    }
+
+    /// Merges two factors of the same number into one.
+    /// The result is the union of the two factors.
+    pub fn merge(&mut self, other: &Self) {
+        if self.product() != other.product() {
+            panic!("Factors must be of the same number");
+        }
+
+        for other_factor in other.0.keys().rev() {
+            // let mut apply = None;
+
+            for origin_factor in self.0.keys() {
+                // Skip if the divisor is greater than the dividend.
+                if origin_factor <= other_factor {
+                    continue;
+                }
+
+                // If divisible, merge them.
+                if origin_factor.is_divisible(other_factor) {
+                    // Calculate the number of times the divisor can be divided by the dividend.
+                    let mut count = 0;
+                    let mut rem = origin_factor.clone();
+                    while rem.is_divisible(other_factor) {
+                        rem /= other_factor.clone();
+                        count += 1;
+                    }
+
+                    // Update the factors.
+                    let origin_count = self.0.remove(&origin_factor.clone()).unwrap();
+                    *self.0.entry(other_factor.clone()).or_insert(0) += count * origin_count;
+                    if rem != 1 {
+                        *self.0.entry(rem).or_insert(0) += origin_count;
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
 }
 
 impl Index<usize> for Factors {
@@ -81,13 +125,16 @@ impl Index<usize> for Factors {
 
 impl From<BTreeMap<Integer, usize>> for Factors {
     fn from(factors: BTreeMap<Integer, usize>) -> Self {
-        Self(factors)
+        let mut factors = Self(factors);
+
+        factors.optimize();
+        factors
     }
 }
 
 impl From<HashMap<Integer, usize>> for Factors {
     fn from(factors: HashMap<Integer, usize>) -> Self {
-        Self(factors.into_iter().collect())
+        Self::from(factors.into_iter().collect::<BTreeMap<_, _>>())
     }
 }
 
@@ -115,5 +162,76 @@ impl<const N: usize> From<[rug::Integer; N]> for Factors {
 impl From<Vec<Integer>> for Factors {
     fn from(factors: Vec<Integer>) -> Self {
         Self::from(factors.as_slice())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn optimize_1() {
+        let mut factors = Factors::from(HashMap::from([(2.into(), 3), (8.into(), 9)]));
+
+        factors.optimize();
+        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+    }
+
+    #[test]
+    fn optimize_2() {
+        let mut factors =
+            Factors::from(HashMap::from([(2.into(), 1), (4.into(), 1), (8.into(), 9)]));
+
+        factors.optimize();
+        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+    }
+
+    #[test]
+    fn merge() {
+        let mut factors = Factors::from([30555.into()]);
+
+        factors.merge(&Factors::from([5.into(), 6111.into()]));
+        assert_eq!(factors, Factors::from([5.into(), 6111.into()]));
+        factors.merge(&Factors::from([7.into(), 4365.into()]));
+        assert_eq!(factors, Factors::from([5.into(), 7.into(), 873.into()]));
+        factors.merge(&Factors::from([3.into(), 7.into(), 1455.into()]));
+        assert_eq!(
+            factors,
+            Factors::from([3.into(), 3.into(), 5.into(), 7.into(), 97.into()])
+        );
+        factors.merge(&Factors::from([
+            3.into(),
+            3.into(),
+            5.into(),
+            7.into(),
+            97.into(),
+        ]));
+        assert_eq!(
+            factors,
+            Factors::from([3.into(), 3.into(), 5.into(), 7.into(), 97.into()])
+        );
+    }
+
+    #[test]
+    fn multiple_merge_1() {
+        let mut factors = Factors::from(HashMap::from([(8.into(), 10)]));
+
+        factors.merge(&Factors::from(HashMap::from([
+            (2.into(), 3),
+            (8.into(), 9),
+        ])));
+        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+    }
+
+    #[test]
+    fn multiple_merge_2() {
+        let mut factors = Factors::from(HashMap::from([(8.into(), 10)]));
+
+        factors.merge(&Factors::from(HashMap::from([
+            (2.into(), 1),
+            (4.into(), 1),
+            (8.into(), 9),
+        ])));
+        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
     }
 }

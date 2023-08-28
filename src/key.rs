@@ -44,7 +44,7 @@ impl PrivateKey {
         if factors
             .factors()
             .iter()
-            .any(|f| f.is_probably_prime(30) == IsPrime::No)
+            .any(|f| f.is_probably_prime(300) == IsPrime::No)
         {
             return Err(KeyError::FactorsAreNotPrimeNumbers(factors));
         }

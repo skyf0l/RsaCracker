@@ -65,6 +65,9 @@ struct Args {
     /// Cipher message.
     #[clap(short)]
     c: Option<IntegerArg>,
+    /// Cipher file.
+    #[clap(long)]
+    cf: Option<std::path::PathBuf>,
     /// Modulus.
     #[clap(short)]
     n: Option<IntegerArg>,
@@ -132,8 +135,8 @@ struct Args {
     #[cfg(feature = "parallel")]
     #[clap(short, long, default_value_t = num_cpus::get())]
     threads: usize,
-    /// Specify attacks to run. Default: all
-    #[clap(short, long, value_delimiter = ',')]
+    /// Specify attacks to run. Default: all. (e.g. --attacks ecm,wiener,sparse)
+    #[clap(short, long, alias = "attack", value_delimiter = ',')]
     attacks: Option<Vec<AttackArg>>,
 }
 
@@ -163,9 +166,21 @@ fn main() -> Result<(), MainError> {
     // Parse command line arguments
     let args = Args::parse();
 
+    // Read cipher
+    let c = if args.c.is_some() {
+        args.c.map(|n| n.0)
+    } else if let Some(cipher_path) = args.cf.as_ref() {
+        match std::fs::read(cipher_path) {
+            Ok(bytes) => Some(Integer::from_digits(&bytes, Order::Msf)),
+            Err(err) => return Err(format!("{}: {err}", cipher_path.to_string_lossy()).into()),
+        }
+    } else {
+        None
+    };
+
     // Build parameters
     let mut params = Parameters {
-        c: args.c.map(|n| n.0),
+        c,
         n: args.n.map(|n| n.0),
         e: args.e.0,
         p: args.p.map(|n| n.0),

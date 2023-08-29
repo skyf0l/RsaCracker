@@ -23,7 +23,8 @@ impl Attack for PowerAttack {
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
-        for power in 2..log_base_ceil(n, 2) as u32 {
+
+        for power in (2..log_base_ceil(n, 2) as u32).rev() {
             let (root, rem) = n.root_rem_ref(power).into();
 
             if rem != Integer::ZERO {
@@ -38,5 +39,48 @@ impl Attack for PowerAttack {
         }
 
         Err(Error::NotFound)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::{Attack, Factors, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack_1() {
+        let p = Integer::from_str("2291993061073575758193465505232279130309044473989611727024268917236359456245089131405543871839300931").unwrap();
+        let factors = Factors::from(HashMap::from([(p, 19)]));
+
+        let params = Parameters {
+            n: Some(factors.product()),
+            phi: Some(factors.phi()),
+            ..Default::default()
+        };
+
+        let solution = PowerAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.factors, factors);
+    }
+
+    #[test]
+    fn attack_2() {
+        let p = Integer::from_str("2291993061073575758193465505232279130309044473989611727024268917236359456245089131405543871839300931").unwrap();
+        let factors = Factors::from(HashMap::from([(p, 16)]));
+
+        let params = Parameters {
+            n: Some(factors.product()),
+            phi: Some(factors.phi()),
+            ..Default::default()
+        };
+
+        let solution = PowerAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.factors, factors);
     }
 }

@@ -30,3 +30,28 @@ impl Attack for CubeRootAttack {
         Err(Error::NotFound)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rug::ops::Pow;
+
+    use crate::{bytes_to_integer, Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let m = bytes_to_integer(b"RsaCracker!");
+        let e = Integer::from(19);
+        let c = m.clone().pow(e.to_u32().unwrap());
+
+        let params = Parameters {
+            e,
+            c: Some(c),
+            ..Default::default()
+        };
+
+        let solution = CubeRootAttack.run(&params, None).unwrap();
+        assert_eq!(solution.m.unwrap(), m);
+    }
+}

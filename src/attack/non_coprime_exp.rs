@@ -123,44 +123,62 @@ impl Attack for NonCoprimeExpAttack {
 mod tests {
     use std::str::FromStr;
 
-    use crate::{string_to_integer, Attack, Parameters};
+    use crate::{bytes_to_integer, Attack, Factors, Parameters};
 
     use super::*;
 
     #[test]
-    fn test_non_coprime_exp_1() {
+    fn attack_1() {
+        let m = bytes_to_integer(b"RsaCracker!");
+        let e = Integer::from(97);
+        let p = Integer::from_str("11524095852199177373008906886201420231946490289689797220765155655781178841702306082424884518466427903652405874225278662832529065525483626062223091831210969").unwrap();
+        let q = Integer::from_str("9518805221010216077164785348989177143142718007905968069666256481649307042900493393990578927655644545997107983546829451351700403322895171863833628141424633").unwrap();
+        let factors = Factors::from([p, q]);
+        let c = m.clone().pow_mod(&e, &factors.product()).unwrap();
+
         let params = Parameters {
-            e: 97.into(),
-            n: Some(Integer::from_str("70614516511653681890499154979132584270226272722256500214622787223610550854997589832081078823061362723307592045336521542508756980750403350846458509885757683321317161650232926804838167800574962335211603765250113548044716181309168596871119574945614348011364785106756383385817704733682831382361355046945990826439").unwrap()),
-            phi: Some(Integer::from_str("70614516511653681890499154979132584270226272722256500214622787223610550854997589832081078823061362723307592045336521542508756980750403350846458509885757666513301563453991037566801998355853698264049064088558494760523929055515901945246240176149856235173437476447914167628671612210755973209476747909997877210160").unwrap()),
-            c: Some(Integer::from_str("64661204029135964132889081687074860054712654034863010536364556786624954291098513345987672476667793926002424442735780851035670961910729632679400018424471981200856732422764873547195622843355994005181303652821475568881690325047489311603051064285114386559008168851547245493284359148537891567724376626953690183719").unwrap()),
+            e,
+            n: Some(factors.product()),
+            phi: Some(factors.phi()),
+            c: Some(c),
             ..Default::default()
         };
 
         let solution = NonCoprimeExpAttack.run(&params, None).unwrap();
 
         let ms = solution.ms;
-        let expected = string_to_integer("RsaCracker!");
         assert_eq!(ms.len(), 97);
-        assert_eq!(ms.iter().find(|&m| m == &expected), Some(&expected));
+        assert!(ms.iter().any(|m_| m_ == &m));
     }
 
     #[test]
-    fn test_non_coprime_exp_2() {
+    fn attack_2() {
+        let m = bytes_to_integer(b"RsaCracker!");
+        let e = Integer::from(97);
+        let p = Integer::from_str(
+            "112219243609243706223486619551298085362360091408633161457003404046681540344297",
+        )
+        .unwrap();
+        let q = Integer::from_str(
+            "64052533192509995760322742160163582601357132095571262796409705234000154367147",
+        )
+        .unwrap();
+        let factors = Factors::from([p, q]);
+        let c = m.clone().pow_mod(&e, &factors.product()).unwrap();
+
         let params = Parameters {
-            e: 97.into(),
-            n: Some(Integer::from_str("9877081787943447296934051979708024943010364249763692219779829369688055631841144147993721685169242981675777515381610996252792949250226858601291763467200163").unwrap()),
-            phi: Some(Integer::from_str("9877081787943447296934051979708024943010364249763692219779829369688055631840943498227708664331165033356285729233883344898767847678347362252996528714313608").unwrap()),
-            c: Some(Integer::from_str("2970243053142559611522730937335730733335477616024160238950964367836218331139618021581786456342640449445296366056186513476961469451249654970019283117081997").unwrap()),
+            e,
+            n: Some(factors.product()),
+            phi: Some(factors.phi()),
+            c: Some(c),
             ..Default::default()
         };
 
         let solution = NonCoprimeExpAttack.run(&params, None).unwrap();
 
         let ms = solution.ms;
-        let _expected = string_to_integer("RsaCracker!");
         assert_eq!(ms.len(), 0);
         // assert_eq!(ms.len(), 97);
-        // assert_eq!(ms.iter().find(|&m| m == &expected), Some(&expected));
+        // assert!(ms.iter().any(|m_| m_ == &m));
     }
 }

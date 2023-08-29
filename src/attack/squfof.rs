@@ -46,6 +46,7 @@ const MULTIPLIER: [usize; 32] = [
 /// Shank's square forms factorization attack
 ///
 /// See <https://en.wikipedia.org/wiki/Shanks%27s_square_forms_factorization>
+/// See <https://github.com/daedalus/integer_factorization_algorithms/blob/main/SQUFOF.py>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SqufofAttack;
 
@@ -149,5 +150,28 @@ impl Attack for SqufofAttack {
         }
 
         Err(Error::NotFound)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let p = Integer::from(2071723);
+        let q = Integer::from(5363222357u64);
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+
+        let solution = SqufofAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

@@ -127,7 +127,7 @@ impl Attack for CipollaAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
-        if n.is_probably_prime(100) == IsPrime::No {
+        if n.is_probably_prime(300) == IsPrime::No {
             // N should be prime
             return Err(Error::NotFound);
         }
@@ -151,7 +151,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn small_numbers() {
+    fn cipolla_small_numbers() {
         assert_eq!(
             cipolla(&1.into(), &43.into(), None),
             Some((1.into(), 42.into()))
@@ -167,7 +167,7 @@ mod tests {
     }
 
     #[test]
-    fn random_numbers() {
+    fn cipolla_random_numbers() {
         assert_eq!(
             cipolla(&392203.into(), &852167.into(), None),
             Some((413252.into(), 438915.into()))
@@ -191,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    fn no_answer() {
+    fn cipolla_no_answer() {
         assert_eq!(cipolla(&650927.into(), &852167.into(), None), None);
     }
 

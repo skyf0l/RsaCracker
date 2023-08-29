@@ -65,21 +65,50 @@ impl Attack for SmallPrimeAttack {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Attack, Parameters};
+    use crate::{Attack, Factors, Parameters};
 
     use super::*;
 
     #[test]
-    fn test_small_prime() {
+    fn attack() {
+        let p = Integer::from(54269);
+        let q = Integer::from(93089);
+
         let params = Parameters {
-            n: Some(Integer::from(5051846941u64)),
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = SmallPrimeAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
+    }
+
+    #[test]
+    fn many_factors() {
+        let factors = Factors::from(vec![
+            38921.into(),
+            18041.into(),
+            55619.into(),
+            89561.into(),
+            84389.into(),
+            81563.into(),
+            90107.into(),
+            70067.into(),
+            36677.into(),
+            65413.into(),
+        ]);
+
+        let params = Parameters {
+            n: Some(factors.product()),
+            phi: Some(factors.phi()),
             ..Default::default()
         };
 
         let solution = SmallPrimeAttack.run(&params, None).unwrap();
         let pk = solution.pk.unwrap();
 
-        assert_eq!(pk.p(), Integer::from(54269));
-        assert_eq!(pk.q(), Integer::from(93089));
+        assert_eq!(pk.factors, factors);
     }
 }

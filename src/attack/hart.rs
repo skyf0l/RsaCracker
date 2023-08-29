@@ -51,3 +51,26 @@ impl Attack for HartAttack {
         Err(Error::NotFound)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let p = Integer::from(1779681653);
+        let q = Integer::from(1903643191);
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = HartAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
+    }
+}

@@ -25,8 +25,8 @@ impl Attack for FermatGcdAttack {
             pb.set_length(30)
         }
 
-        for i in 1..30 {
-            let f = Integer::from(1) << ((1u32 << i) + 1); // (1 << (1 << x)) + 1
+        for i in 0..30 {
+            let f = (Integer::from(1) << (1u32 << i)) + 1u64; // (1 << (1 << x)) + 1
             let p = f.gcd(n);
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);

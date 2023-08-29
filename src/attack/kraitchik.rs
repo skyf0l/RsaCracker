@@ -7,6 +7,8 @@ const MAX_ITERATIONS: u64 = 10_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Kraitchi factorization attack
+///
+/// See <https://github.com/daedalus/integer_factorization_algorithms/blob/main/kraitchik.py>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct KraitchikAttack;
 
@@ -52,5 +54,28 @@ impl Attack for KraitchikAttack {
         }
 
         Err(Error::NotFound)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let p = Integer::from(1779681653);
+        let q = Integer::from(1903643191);
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = KraitchikAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

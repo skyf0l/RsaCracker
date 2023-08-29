@@ -12,10 +12,15 @@ pub struct Factors(pub BTreeMap<Integer, usize>);
 impl Factors {
     /// Returns the product of the factors.
     pub fn product(&self) -> Integer {
-        self.0
-            .iter()
-            .map(|(f, p)| f.clone().pow(*p as u32))
-            .product()
+        // self.0
+        //     .iter()
+        //     .map(|(f, p)| f.clone().pow(*p as u32))
+        //     .product()
+        let mut product = Integer::from(1);
+        for (f, p) in self.0.iter() {
+            product *= f.clone().pow(*p as u32);
+        }
+        product
     }
 
     /// Returns the totient of the factors.
@@ -167,7 +172,33 @@ impl From<Vec<Integer>> for Factors {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::*;
+
+    #[test]
+    fn product_and_phi() {
+        let p = Integer::from_str("11106026672819778415395265319351312104517763207376765038636473714941732117831488482730793398782365364840624898218935983446211558033147834146885518313145941").unwrap();
+        let q = Integer::from_str("12793494802119353329493630005275969260540058187994460635179617401018719587481122947567147790680079651999077966705114757935833094909655872125005398075725409").unwrap();
+
+        let factors = Factors::from([p.clone(), q.clone()]);
+
+        assert_eq!(factors.product(), p.clone() * &q);
+        assert_eq!(factors.phi(), (p - 1) * (q - 1));
+    }
+
+    #[test]
+    fn multiple_primes_product_and_phi() {
+        let p = Integer::from_str("10193015828669388212171268316396616412166866643440710733674534917491644123135436050477232002188857603479321547506131679866357093667445348339711929671105733").unwrap();
+        let q = Integer::from_str("8826244874397589965592244959402585690675974843434609869757034692220480232437419549416634170391846191239385439228177059214900435042874545573920364227747261").unwrap();
+        let r = Integer::from_str("7352042777909126576764043061995108196815011736073183321111078742728938275060552442022686305342309076279692633229512445674423158310200668776459828180575601").unwrap();
+        let s = Integer::from_str("9118676262959556930818956921827413198986277995127667203870694452397233225961924996910197904901037135372560207618442015208042298428698343225720163505153059").unwrap();
+
+        let factors = Factors::from([p.clone(), q.clone(), r.clone(), s.clone()]);
+
+        assert_eq!(factors.product(), p.clone() * &q * &r * &s);
+        assert_eq!(factors.phi(), (p - 1) * (q - 1) * (r - 1) * (s - 1));
+    }
 
     #[test]
     fn optimize_1() {

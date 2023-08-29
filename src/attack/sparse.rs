@@ -59,3 +59,32 @@ impl Attack for SparseAttack {
         Err(Error::NotFound)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use rug::integer::IsPrime;
+
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let p = Integer::from_str("7729848568775352075615583091837654172059095741143868092188926149647651947207100509260263762608517411743825830918928309404832038536720454350643554760215479").unwrap();
+        let q = &p ^ Integer::from(Integer::from(1) << 42);
+        assert!(q.is_probably_prime(300) == IsPrime::Probably);
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+
+        let solution = SparseAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
+    }
+}

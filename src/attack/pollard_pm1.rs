@@ -24,12 +24,12 @@ fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
             }
 
             let mut res = vec![];
-            if p.is_probably_prime(30) == IsPrime::No {
+            if p.is_probably_prime(300) == IsPrime::No {
                 res.extend(pollard_p_1(&p, pb)?);
             } else {
                 res.push(p);
             }
-            if q.is_probably_prime(30) == IsPrime::No {
+            if q.is_probably_prime(300) == IsPrime::No {
                 res.extend(pollard_p_1(&q, pb)?);
             } else {
                 res.push(q);
@@ -72,5 +72,28 @@ impl Attack for PollardPM1Attack {
             self.name(),
             PrivateKey::from_factors(factors, e.clone())?,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let p = Integer::from(1779681653);
+        let q = Integer::from(1903643191);
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = PollardPM1Attack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

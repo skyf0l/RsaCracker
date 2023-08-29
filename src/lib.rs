@@ -92,7 +92,7 @@ pub fn run_specific_attacks(
 
 fn check_n_prime(n: &Option<Integer>) -> bool {
     if let Some(n) = &n {
-        match n.is_probably_prime(30) {
+        match n.is_probably_prime(300) {
             IsPrime::Yes => {
                 eprintln!("Error: N is prime, no attacks possible");
                 return true;

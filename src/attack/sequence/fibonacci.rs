@@ -27,18 +27,42 @@ impl Attack for FibonacciGcdAttack {
         let mut n1 = Integer::from(1);
         let mut n2 = Integer::from(2);
         for i in 1..MAX_ITERATIONS {
-            let n3 = Integer::from(&n1 + &n2);
-            let p = Integer::from(n3.gcd_ref(n));
-            if 1 < p && &p < n {
-                let q = Integer::from(n / &p);
-                return Ok(Solution::new_pk(
-                    self.name(),
-                    PrivateKey::from_p_q(p, q, e.clone())?,
-                ));
+            let f = Integer::from(&n1 + &n2);
+
+            if f.is_odd() {
+                // Fibonacci
+                let p = Integer::from(f.gcd_ref(n));
+                if 1 < p && &p < n {
+                    let q = Integer::from(n / &p);
+                    return Ok(Solution::new_pk(
+                        self.name(),
+                        PrivateKey::from_p_q(p, q, e.clone())?,
+                    ));
+                }
+            } else {
+                // Fibonacci - 1
+                let p = Integer::from(&f - 1).gcd(n);
+                if 1 < p && &p < n {
+                    let q = Integer::from(n / &p);
+                    return Ok(Solution::new_pk(
+                        self.name(),
+                        PrivateKey::from_p_q(p, q, e.clone())?,
+                    ));
+                }
+
+                // Fibonacci + 1
+                let p = Integer::from(&f + 1).gcd(n);
+                if 1 < p && &p < n {
+                    let q = Integer::from(n / &p);
+                    return Ok(Solution::new_pk(
+                        self.name(),
+                        PrivateKey::from_p_q(p, q, e.clone())?,
+                    ));
+                }
             }
 
             n1 = n2;
-            n2 = n3;
+            n2 = f;
 
             if i % TICK_SIZE == 0 {
                 if let Some(pb) = pb {

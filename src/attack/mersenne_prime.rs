@@ -27,8 +27,15 @@ impl Attack for MersennePrimeAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        for m in MERSENNE_PRIMES.iter() {
-            let p: Integer = (Integer::from(1) << m) - 1;
+        let mut mersenne = Integer::from(1);
+        for (from, to) in [0]
+            .iter()
+            .chain(MERSENNE_PRIMES.iter())
+            .zip(MERSENNE_PRIMES.iter())
+        {
+            mersenne <<= to - from;
+            let p = mersenne.clone() - 1;
+
             if p > *n {
                 break;
             }
@@ -41,5 +48,31 @@ impl Attack for MersennePrimeAttack {
             }
         }
         Err(Error::NotFound)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::Parameters;
+
+    use super::*;
+
+    #[test]
+    fn attack() {
+        let p = Integer::from_str("6845076015345685019131303644903910086053485393454116514209234704738874960689745671331206756933246588245429029070211790698552920062641492574671344755035059").unwrap();
+        let q = Integer::from(Integer::from(1) << 521) - 1u64;
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+
+        let solution = MersennePrimeAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

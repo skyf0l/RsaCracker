@@ -7,6 +7,8 @@ const MAX_ITERATIONS: u64 = 10_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
 /// Fermat factorization attack
+///
+/// See <https://github.com/jvdsn/crypto-attacks/blob/master/attacks/factorization/fermat.py>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FermatAttack;
 
@@ -54,5 +56,46 @@ impl Attack for FermatAttack {
             self.name(),
             PrivateKey::from_p_q(p, q, e.clone())?,
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::{Attack, Parameters};
+
+    use super::*;
+
+    #[test]
+    fn small_primes() {
+        let p = Integer::from(59);
+        let q = Integer::from(101);
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = FermatAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
+    }
+
+    #[test]
+    fn big_primes() {
+        let p = Integer::from_str("383885088537555147258860631363598239852683844948508219667734507794290658581818891369581578137796842442514517285109997827646844102293746572763236141308451").unwrap();
+        let q = Integer::from_str("383885088537555147258860631363598239852683844948508219667734507794290658581818891369581578137796842442514517285109997827646844102293746572763236141308659").unwrap();
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = FermatAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

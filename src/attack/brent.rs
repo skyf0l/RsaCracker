@@ -116,16 +116,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_small_prime() {
+    fn attack() {
+        let p = Integer::from(1779681653);
+        let q = Integer::from(1903643191);
+
         let params = Parameters {
-            n: Some(3387878860881074723u64.into()),
+            n: Some(p.clone() * &q),
             ..Default::default()
         };
-
         let solution = BrentAttack.run(&params, None).unwrap();
         let pk = solution.pk.unwrap();
 
-        assert_eq!(pk.p(), Integer::from(1779681653));
-        assert_eq!(pk.q(), Integer::from(1903643191));
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

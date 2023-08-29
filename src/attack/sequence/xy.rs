@@ -14,23 +14,21 @@ fn factor_xy(n: &Integer, base: usize) -> Option<(Integer, Integer)> {
         let xy = Integer::from(base).pow(power);
 
         if xy.is_odd() {
+            // Xy
             let p = Integer::from(xy.gcd_ref(n));
-
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);
                 return Some((p, q));
             }
-        }
-
-        if xy.is_even() {
-            // P-1
+        } else {
+            // Xy - 1
             let p = Integer::from(&xy - 1).gcd(n);
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);
                 return Some((p, q));
             }
 
-            // P+1
+            // Xy + 1
             let p = Integer::from(&xy + 1).gcd(n);
             if 1 < p && &p < n {
                 let q = Integer::from(n / &p);

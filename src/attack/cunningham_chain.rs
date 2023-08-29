@@ -415,7 +415,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_small_prime() {
+    fn small_chain() {
         assert_eq!(
             cunningham_chain(&85864769.into(), 9, ChainKind::First).collect::<Vec<_>>(),
             vec![
@@ -430,5 +430,21 @@ mod tests {
                 21981381119u64.into(),
             ] as Vec<Integer>
         );
+    }
+
+    #[test]
+    fn attack() {
+        let p = Integer::from(10990690559u64);
+        let q = Integer::from(21981381119u64);
+
+        let params = Parameters {
+            n: Some(p.clone() * &q),
+            ..Default::default()
+        };
+        let solution = CunninghamChainAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
     }
 }

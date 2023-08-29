@@ -193,7 +193,7 @@ jobs:
         continue-on-error: true
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile
+        run: DOCKER_BUILDKIT=1 docker build . --file Dockerfile -t rsacracker
 
       - name: Test the Docker image
-        run: docker run -it --rm -v $PWD:/data rsacracker -n 323 --attack small_prime
+        run: docker run --rm -v $PWD:/data rsacracker -n 323 --attack small_prime --factors

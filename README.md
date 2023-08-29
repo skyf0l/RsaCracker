@@ -19,8 +19,17 @@ Note: To build on windows, you need to use [MSYS2](https://www.msys2.org/). This
 
 ## Docker
 
+From dockerhub:
+
 ```console
-docker build -t rsacracker .
+docker pull skyf0l/rsacracker
+docker run -it --rm -v $PWD:/data skyf0l/rsacracker [args]
+```
+
+Or build it yourself:
+
+```console
+DOCKER_BUILDKIT=1 docker build . --file Dockerfile -t rsacracker
 docker run -it --rm -v $PWD:/data rsacracker [args]
 ```
 

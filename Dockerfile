@@ -1,8 +1,7 @@
-FROM rust:1.70 as builder
-RUN apt-get update && apt-get install -y clang && rm -rf /var/lib/apt/lists/*
+FROM rust:1.72 as builder
 WORKDIR /usr/src/rsacracker
 COPY . .
-RUN cargo install --path .
+RUN --mount=type=cache,target=/usr/src/rsacracker/target cargo install --path .
 
 FROM debian:bullseye-slim
 COPY --from=builder /usr/local/cargo/bin/rsacracker /usr/local/bin/rsacracker

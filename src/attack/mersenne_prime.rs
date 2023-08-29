@@ -62,7 +62,7 @@ mod tests {
     #[test]
     fn attack() {
         let p = Integer::from_str("6845076015345685019131303644903910086053485393454116514209234704738874960689745671331206756933246588245429029070211790698552920062641492574671344755035059").unwrap();
-        let q = Integer::from(Integer::from(1) << 521) - 1u64;
+        let q = (Integer::from(1) << 521) - 1u64;
 
         let params = Parameters {
             n: Some(p.clone() * &q),

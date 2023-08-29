@@ -73,7 +73,7 @@ mod tests {
     #[test]
     fn attack() {
         let p = Integer::from_str("7729848568775352075615583091837654172059095741143868092188926149647651947207100509260263762608517411743825830918928309404832038536720454350643554760215479").unwrap();
-        let q = &p ^ Integer::from(Integer::from(1) << 42);
+        let q = p.clone() ^ (Integer::from(1) << 42u32);
         assert!(q.is_probably_prime(300) == IsPrime::Probably);
 
         let params = Parameters {

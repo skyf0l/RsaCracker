@@ -9,10 +9,16 @@ use crate::{
 
 const LONDAHL_B: u64 = 10_000_000;
 
+enum LondahlState {
+    Store(u64),
+    Lookup(u64),
+}
+
+// Optimization of <https://github.com/RsaCtfTool/RsaCtfTool/blob/master/attacks/single_key/londahl.py>
 fn close_factor(n: &Integer, b: u64, pb: Option<&ProgressBar>) -> Option<(Integer, Integer)> {
     let tick_size: u64 = b / 100;
     if let Some(pb) = pb {
-        pb.set_length(b * 2);
+        pb.set_length(b);
     }
 
     // Approximate phi
@@ -20,32 +26,15 @@ fn close_factor(n: &Integer, b: u64, pb: Option<&ProgressBar>) -> Option<(Intege
 
     // Create a look-up table
     let mut look_up = std::collections::HashMap::new();
-    look_up.reserve(b as usize);
+    look_up.reserve(b as usize * 2);
 
+    // Generate first entry
+    let mut generate_entries = true;
     let mut z = Integer::from(1);
-    for i in 0..=b {
-        match look_up.entry(z.clone()) {
-            Entry::Occupied(_) => {
-                // Key already exists, so key generation is looping
-                if let Some(pb) = pb {
-                    pb.set_position(b);
-                }
-                break;
-            }
-            Entry::Vacant(e) => {
-                e.insert(i);
-            }
-        }
-        z = (z * 2) % n;
+    look_up.insert(Integer::from(1), LondahlState::Store(0));
+    z = (z * 2) % n;
 
-        if i % tick_size == 0 {
-            if let Some(pb) = pb {
-                pb.inc(tick_size);
-            }
-        }
-    }
-
-    // Check the table
+    // Prepare to check the table
     let mut mu = Integer::from(2)
         .pow_mod(&phi_approx, n)
         .unwrap()
@@ -53,25 +42,66 @@ fn close_factor(n: &Integer, b: u64, pb: Option<&ProgressBar>) -> Option<(Intege
         .ok()?;
     let fac = Integer::from(2).pow_mod(&b.into(), n).unwrap();
 
+    // Start computing
     for j in 1..=b {
-        mu = (mu * &fac) % n;
-
         if j % tick_size == 0 {
             if let Some(pb) = pb {
                 pb.inc(tick_size);
             }
         }
 
-        if let Some(i) = look_up.get(&mu) {
-            let phi = &phi_approx + (i - Integer::from(j) * b);
-            let b = -(n - phi + 1u64);
-            let roots = solve_quadratic(&Integer::from(1), &b, n);
+        // Store new stored key
+        if generate_entries {
+            match look_up.entry(z.clone()) {
+                Entry::Occupied(value) => {
+                    match value.get() {
+                        LondahlState::Lookup(lookup_j) => {
+                            // Found a lookup key, try to factor the modulus
+                            let i = j;
+                            let phi = &phi_approx + (i - Integer::from(*lookup_j) * b);
+                            let b = -(n - phi + 1u64);
+                            let roots = solve_quadratic(&Integer::from(1), &b, n);
 
-            if roots.len() != 2 || roots.iter().any(|r| *r == 1) {
-                continue;
+                            if roots.len() == 2 && roots.iter().all(|r| *r != 1) {
+                                return Some((roots[0].clone(), roots[1].clone()));
+                            }
+                        }
+                        LondahlState::Store(_) => {
+                            // Stored key already exists, so key generation is looping
+                            generate_entries = false;
+                        }
+                    }
+                }
+                Entry::Vacant(e) => {
+                    // Insert new stored key
+                    e.insert(LondahlState::Store(j));
+                }
             }
+        }
 
-            return Some((roots[0].clone(), roots[1].clone()));
+        z = (z * 2) % n;
+        mu = (mu * &fac) % n;
+
+        // Check if mu is in the table
+        match look_up.get(&mu) {
+            Some(LondahlState::Store(i)) => {
+                // Found a stored key, try to factor the modulus
+                let phi = &phi_approx + (i - Integer::from(j) * b);
+                let b = -(n - phi + 1u64);
+                let roots = solve_quadratic(&Integer::from(1), &b, n);
+
+                if roots.len() == 2 && roots.iter().all(|r| *r != 1) {
+                    return Some((roots[0].clone(), roots[1].clone()));
+                }
+            }
+            Some(LondahlState::Lookup(_)) => {
+                // Lookup key already exists, so key guess is looping
+                break;
+            }
+            None => {
+                // Insert new lookup key
+                look_up.insert(mu.clone(), LondahlState::Lookup(j));
+            }
         }
     }
 
@@ -80,7 +110,7 @@ fn close_factor(n: &Integer, b: u64, pb: Option<&ProgressBar>) -> Option<(Intege
 
 /// Londahl close-prime factorization attack
 ///
-/// See <https://web.archive.org/web/20201031000312/https://grocid.net/2017/09/16/finding-close-prime-factorizations/>
+/// See <https://github.com/RsaCtfTool/RsaCtfTool/blob/master/attacks/single_key/londahl.py>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LondahlAttack;
 

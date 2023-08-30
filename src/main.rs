@@ -62,12 +62,12 @@ impl std::str::FromStr for AttackArg {
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 struct Args {
-    /// Cipher message.
-    #[clap(short)]
-    c: Option<IntegerArg>,
-    /// Cipher file.
-    #[clap(long)]
-    cf: Option<std::path::PathBuf>,
+    /// Cipher message: the message to uncipher.
+    #[clap(short, long)]
+    cipher: Option<IntegerArg>,
+    /// Cipher message file: the file to uncipher.
+    #[clap(short = 'f', long)]
+    cipherfile: Option<std::path::PathBuf>,
     /// Modulus.
     #[clap(short)]
     n: Option<IntegerArg>,
@@ -102,7 +102,7 @@ struct Args {
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
     /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
-    #[clap(long, alias = "dislog", requires("c"))]
+    #[clap(long, alias = "dislog")]
     dlog: bool,
     /// Public or private key file. (RSA, X509, OPENSSH in PEM and DER formats.)
     #[clap(short, long)]
@@ -136,8 +136,20 @@ struct Args {
     #[clap(short, long, default_value_t = num_cpus::get())]
     threads: usize,
     /// Specify attacks to run. Default: all. (e.g. --attacks ecm,wiener,sparse)
-    #[clap(short, long, alias = "attack", value_delimiter = ',')]
-    attacks: Option<Vec<AttackArg>>,
+    #[clap(
+        short,
+        long,
+        alias = "attacks",
+        value_delimiter = ',',
+        conflicts_with = "exclude"
+    )]
+    attack: Option<Vec<AttackArg>>,
+    /// Specify attacks to exclude. Default: none. (e.g. --exclude ecm,wiener,sparse)
+    #[clap(long, value_delimiter = ',', conflicts_with = "attack")]
+    exclude: Option<Vec<AttackArg>>,
+    /// List all available attacks.
+    #[clap(long)]
+    list: bool,
 }
 
 fn display_unciphered_data(uncipher: &Integer) {
@@ -166,10 +178,19 @@ fn main() -> Result<(), MainError> {
     // Parse command line arguments
     let args = Args::parse();
 
+    // List attacks
+    if args.list {
+        println!("Available attacks:");
+        for attack in ATTACKS.iter() {
+            println!("  {}", attack.name());
+        }
+        return Ok(());
+    }
+
     // Read cipher
-    let c = if args.c.is_some() {
-        args.c.map(|n| n.0)
-    } else if let Some(cipher_path) = args.cf.as_ref() {
+    let c = if args.cipher.is_some() {
+        args.cipher.map(|n| n.0)
+    } else if let Some(cipher_path) = args.cipherfile.as_ref() {
         match std::fs::read(cipher_path) {
             Ok(bytes) => Some(Integer::from_digits(&bytes, Order::Msf)),
             Err(err) => return Err(format!("{}: {err}", cipher_path.to_string_lossy()).into()),
@@ -177,6 +198,11 @@ fn main() -> Result<(), MainError> {
     } else {
         None
     };
+
+    // Check if discrete logarithm can be computed
+    if args.dlog && c.is_none() {
+        return Err("Discrete logarithm requires a cipher".into());
+    }
 
     // Build parameters
     let mut params = Parameters {
@@ -230,16 +256,26 @@ fn main() -> Result<(), MainError> {
         }
     }
 
-    // Run attacks
+    // Build attack list
     let attacks = args
-        .attacks
+        .attack
         .map(|attacks| {
             attacks
                 .into_iter()
                 .map(|attack| attack.0)
                 .collect::<Vec<_>>()
         })
-        .unwrap_or(ATTACKS.to_vec());
+        .unwrap_or(ATTACKS.to_vec())
+        .into_iter()
+        .filter(|attack| {
+            args.exclude
+                .as_ref()
+                .map(|exclude| !exclude.iter().any(|a| a.0.name() == attack.name()))
+                .unwrap_or(true)
+        })
+        .collect::<Vec<_>>();
+
+    // Run attacks
     #[cfg(feature = "parallel")]
     let res = rsacracker::run_parallel_attacks(&params, &attacks, args.threads);
     #[cfg(not(feature = "parallel"))]

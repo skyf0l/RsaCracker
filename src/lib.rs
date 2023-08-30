@@ -201,12 +201,16 @@ async fn _run_parallel_attacks<'a>(
             } {
                 Ok(solution) => {
                     mp.suspend(|| {
-                        sender.send(Ok(solution)).expect("Failed to send result");
+                        // Note: error if channel closed
+                        sender.send(Ok(solution)).ok();
                         // This is a hack to make sure the progress bar is not displayed after the attack is done
                         sleep(Duration::from_millis(1000));
                     });
                 }
-                e => sender.send(e).expect("Failed to send result"),
+                e => {
+                    // Note: error if channel closed
+                    sender.send(e).ok();
+                }
             }
         });
     }

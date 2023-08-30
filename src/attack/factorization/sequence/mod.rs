@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use lazy_static::lazy_static;
+
 mod factorial;
 mod fermat;
 mod fibonacci;
@@ -15,6 +19,22 @@ pub use lucas::*;
 pub use mersenne::*;
 pub use primorial::*;
 pub use xy::*;
+
+use crate::Attack;
+
+lazy_static! {
+    /// List of attacks
+    pub static ref SEQUENCE_ATTACKS: Vec<Arc<dyn Attack + Sync + Send>> = vec![
+        Arc::new(FactorialGcdAttack),
+        Arc::new(FermatGcdAttack),
+        Arc::new(FibonacciGcdAttack),
+        Arc::new(JacobsthalGcdAttack),
+        Arc::new(LucasGcdAttack),
+        Arc::new(MersenneGcdAttack),
+        Arc::new(PrimorialGcdAttack),
+        Arc::new(XYGcdAttack),
+    ];
+}
 
 #[cfg(test)]
 mod tests {

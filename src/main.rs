@@ -2,6 +2,7 @@ use base64::{engine::general_purpose, Engine};
 use clap::{command, Parser};
 use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
+use itertools::Itertools;
 use main_error::MainError;
 use rug::{
     integer::{IsPrime, Order},
@@ -259,6 +260,7 @@ fn main() -> Result<(), MainError> {
     // Build attack list
     let attacks = args
         .attack
+        // Collect attacks
         .map(|attacks| {
             attacks
                 .into_iter()
@@ -266,6 +268,7 @@ fn main() -> Result<(), MainError> {
                 .collect::<Vec<_>>()
         })
         .unwrap_or(ATTACKS.to_vec())
+        // Exclude attacks
         .into_iter()
         .filter(|attack| {
             args.exclude
@@ -273,6 +276,8 @@ fn main() -> Result<(), MainError> {
                 .map(|exclude| !exclude.iter().any(|a| a.0.name() == attack.name()))
                 .unwrap_or(true)
         })
+        // Sort attacks by kind and speed
+        .sorted_by_key(|a| (a.kind(), a.speed()))
         .collect::<Vec<_>>();
 
     // Run attacks

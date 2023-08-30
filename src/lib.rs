@@ -2,7 +2,6 @@
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use itertools::Itertools;
 use rug::integer::IsPrime;
 use rug::Integer;
 #[cfg(feature = "parallel")]
@@ -143,7 +142,7 @@ pub fn run_sequence_attacks(
 
     let mut partial_factors: Option<Factors> = None;
     let (mp, pb_main) = create_multi_progress(attacks.len());
-    for attack in attacks.iter().sorted_by_key(|a| a.speed()) {
+    for attack in attacks.iter() {
         match if attack.speed() == AttackSpeed::Fast {
             // No progress bar for fast attacks
             run_attack(attack.clone(), params, None)
@@ -186,7 +185,7 @@ async fn _run_parallel_attacks<'a>(
     sender: mpsc::Sender<Result<Solution, Error>>,
     mp: Arc<MultiProgress>,
 ) {
-    for attack in attacks.iter().sorted_by_key(|a| a.speed()) {
+    for attack in attacks.iter() {
         let params = Arc::clone(&params);
         let attack = Arc::clone(attack);
         let sender = sender.clone();

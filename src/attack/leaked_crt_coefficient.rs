@@ -1,7 +1,9 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Integer};
 
-use crate::{key::PrivateKey, utils::solve_quadratic, Attack, Error, Parameters, Solution};
+use crate::{
+    key::PrivateKey, utils::solve_quadratic, Attack, AttackKind, Error, Parameters, Solution,
+};
 
 fn find_phi(e: &Integer, d: &Integer) -> impl Iterator<Item = Integer> {
     let e = e.clone();
@@ -44,6 +46,10 @@ pub struct LeakedCrtCoefficientAttack;
 impl Attack for LeakedCrtCoefficientAttack {
     fn name(&self) -> &'static str {
         "leaked_crt_coefficient"
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

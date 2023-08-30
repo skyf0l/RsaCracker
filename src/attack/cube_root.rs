@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{Attack, AttackSpeed, Error, Parameters, Solution};
+use crate::{Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
 /// Cube root attack (m^e < n and small e)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -14,6 +14,10 @@ impl Attack for CubeRootAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

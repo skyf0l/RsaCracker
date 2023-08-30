@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, ops::Pow, Integer};
 
-use crate::{ntheory::crt, Attack, AttackSpeed, Error, Parameters, Solution};
+use crate::{ntheory::crt, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
 use super::known_phi::factorize as factorize_from_phi;
 
@@ -18,6 +18,10 @@ impl Attack for NonCoprimeExpAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, ops::Pow, rand::RandState, Integer};
 
-use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
 /// See https://github.com/jvdsn/crypto-attacks/blob/master/attacks/factorization/known_phi.py
 pub fn factorize(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {
@@ -81,6 +81,10 @@ impl Attack for KnownPhiAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

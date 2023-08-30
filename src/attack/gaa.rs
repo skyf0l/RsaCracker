@@ -1,7 +1,9 @@
 use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
-use crate::{key::PrivateKey, utils::solve_quadratic, Attack, Error, Parameters, Solution};
+use crate::{
+    key::PrivateKey, utils::solve_quadratic, Attack, AttackKind, Error, Parameters, Solution,
+};
 
 const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
@@ -16,6 +18,10 @@ pub struct GaaAttack;
 impl Attack for GaaAttack {
     fn name(&self) -> &'static str {
         "gaa"
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

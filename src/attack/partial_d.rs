@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::Integer;
 
-use crate::{Attack, AttackSpeed, Error, KnownDAttack, Parameters, Solution};
+use crate::{Attack, AttackKind, AttackSpeed, Error, KnownDAttack, Parameters, Solution};
 
 /// Partial d leaked attack (more that half of the bits of d are known)
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -14,6 +14,10 @@ impl Attack for PartialDAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

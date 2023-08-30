@@ -4,7 +4,7 @@ use rug::{ops::Pow, Integer};
 use crate::{
     key::PrivateKey,
     ntheory::{contfrac_to_rational, rational_to_contfrac, trivial_factorization_with_n_phi},
-    Attack, Error, Parameters, Solution,
+    Attack, AttackKind, Error, Parameters, Solution,
 };
 
 /// Wiener's attack (too small d)
@@ -16,6 +16,10 @@ pub struct WienerAttack;
 impl Attack for WienerAttack {
     fn name(&self) -> &'static str {
         "wiener"
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

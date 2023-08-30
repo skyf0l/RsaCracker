@@ -2,7 +2,8 @@ use indicatif::ProgressBar;
 use rug::{ops::Pow, rand::RandState, Integer};
 
 use crate::{
-    key::PrivateKey, utils::log_base_ceil, Attack, AttackSpeed, Error, Parameters, Solution,
+    key::PrivateKey, utils::log_base_ceil, Attack, AttackKind, AttackSpeed, Error, Parameters,
+    Solution,
 };
 
 /// Known phi attack
@@ -18,6 +19,10 @@ impl Attack for KnownDAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

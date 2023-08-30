@@ -2,7 +2,7 @@ use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Integer};
 use std::rc::Rc;
 
-use crate::{Attack, Error, Parameters, Solution};
+use crate::{Attack, AttackKind, Error, Parameters, Solution};
 
 const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
@@ -121,6 +121,10 @@ pub struct CipollaAttack;
 impl Attack for CipollaAttack {
     fn name(&self) -> &'static str {
         "cipolla"
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {

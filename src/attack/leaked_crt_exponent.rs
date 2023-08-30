@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{Complete, Integer};
 
-use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
 /// Leaked CRT exponent attack
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -14,6 +14,10 @@ impl Attack for LeakedCrtExponentAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

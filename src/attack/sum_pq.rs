@@ -2,7 +2,8 @@ use indicatif::ProgressBar;
 use rug::Integer;
 
 use crate::{
-    key::PrivateKey, utils::solve_quadratic, Attack, AttackSpeed, Error, Parameters, Solution,
+    key::PrivateKey, utils::solve_quadratic, Attack, AttackKind, AttackSpeed, Error, Parameters,
+    Solution,
 };
 
 /// Leaked sum of p and q attack (0 = x^2 - xsum + n)
@@ -12,6 +13,10 @@ pub struct SumPQAttack;
 impl Attack for SumPQAttack {
     fn name(&self) -> &'static str {
         "sum_pq"
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn speed(&self) -> AttackSpeed {

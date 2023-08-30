@@ -1,6 +1,6 @@
 use indicatif::ProgressBar;
 
-use crate::{key::PrivateKey, Attack, AttackSpeed, Error, Parameters, Solution};
+use crate::{key::PrivateKey, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
 /// Common factor shared in plaintext / ciphertext attack
 ///
@@ -15,6 +15,10 @@ impl Attack for ComfactCnAttack {
 
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Fast
+    }
+
+    fn kind(&self) -> AttackKind {
+        AttackKind::KnownExtraInformation
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

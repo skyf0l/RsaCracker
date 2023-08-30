@@ -99,17 +99,52 @@ impl Ord for AttackSpeed {
     }
 }
 
+/// Attack kind
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AttackKind {
+    /// Factorization attack requiring only n
+    Factorization,
+    /// Attack depending on knowing extra information (e.g. d, phi, p, q, etc.)
+    KnownExtraInformation,
+}
+
+impl PartialOrd for AttackKind {
+    fn partial_cmp(&self, other: &AttackKind) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for AttackKind {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        use crate::AttackKind::{Factorization, KnownExtraInformation};
+        use std::cmp::Ordering::*;
+
+        match (self, other) {
+            (Factorization, Factorization) | (KnownExtraInformation, KnownExtraInformation) => {
+                Equal
+            }
+            (KnownExtraInformation, _) => Less,
+            (_, KnownExtraInformation) => Greater,
+        }
+    }
+}
+
 /// Abstract attack trait
 pub trait Attack: std::fmt::Debug {
-    /// Get the attack name
+    /// Returns the attack name
     fn name(&self) -> &'static str;
 
-    /// Get the attack speed
+    /// Returns the attack speed
     fn speed(&self) -> AttackSpeed {
         AttackSpeed::Medium
     }
 
-    /// Run the attack
+    /// Returns the attack kind
+    fn kind(&self) -> AttackKind {
+        AttackKind::Factorization
+    }
+
+    /// Runs the attack
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error>;
 }
 

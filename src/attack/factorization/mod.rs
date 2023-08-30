@@ -20,9 +20,9 @@ mod sparse;
 mod squfof;
 mod twin_prime;
 
+pub use self::ecm::EcmAttack;
 pub use brent::BrentAttack;
 pub use cunningham_chain::CunninghamChainAttack;
-pub use ecm::EcmAttack;
 pub use fermat::FermatAttack;
 pub use hart::HartAttack;
 pub use known_factors::KnownFactorsAttack;

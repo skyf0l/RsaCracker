@@ -225,11 +225,8 @@ fn main() -> Result<(), MainError> {
     if let Some(key) = args.key {
         let bytes = std::fs::read(key)?;
 
-        params += Parameters::from_public_key(&bytes)
-            .or(Parameters::from_private_key(
-                &bytes,
-                args.password.as_deref(),
-            ))
+        params += Parameters::from_private_key(&bytes, args.password.as_deref())
+            .or_else(|| Parameters::from_public_key(&bytes))
             .ok_or("Invalid key")?;
     };
 

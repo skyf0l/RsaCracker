@@ -77,3 +77,23 @@ private_key_test!(private_openssl_pem, "private_openssl.pem");
 private_key_test!(private_rsa_der, "private_rsa.der");
 private_key_test!(private_rsa_passphrase_pem, "private_rsa_passphrase.pem");
 private_key_test!(private_rsa_pem, "private_rsa.pem");
+
+#[test]
+fn to_pem() {
+    let params = Parameters {
+        c: Some(CIPHER.clone()),
+        ..Default::default()
+    } + Parameters::from_private_key(
+        include_bytes!("keys/private_rsa.pem"),
+        Some(KEY_PASSPHRASE),
+    )
+    .unwrap();
+
+    let solution = run_attacks(&params).unwrap();
+    let pk = solution.pk.unwrap();
+
+    assert_eq!(
+        pk.to_pem(&None).unwrap(),
+        include_str!("keys/private_rsa.pem")
+    );
+}

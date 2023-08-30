@@ -12,8 +12,8 @@ lazy_static::lazy_static!(
     static ref MODULUS: Integer = Integer::from(&*PRIME_P * &*PRIME_Q);
     static ref PHI: Integer = (PRIME_P.clone() - 1) * (PRIME_Q.clone() - 1);
     static ref D: Integer = EXPONENT.clone().invert(&PHI).unwrap();
-    static ref DP: Integer = D.clone() % (PRIME_Q.clone() - 1);
-    static ref DQ: Integer = D.clone() % (PRIME_P.clone() - 1);
+    static ref DP: Integer = D.clone() % (PRIME_P.clone() - 1);
+    static ref DQ: Integer = D.clone() % (PRIME_Q.clone() - 1);
     static ref QINV: Integer = Integer::from(PRIME_Q.invert_ref(&PRIME_P).unwrap());
 );
 

@@ -40,7 +40,7 @@ fn ecm(
     for (factor, count) in ecm::ecm_with_params(n, OPTIMAL_B1[deep], 100_000, 100, seed, pb)
         .or(Err(Error::NotFound))?
     {
-        if factor.is_probably_prime(300) != IsPrime::No {
+        if factor.is_probably_prime(100) != IsPrime::No {
             factors.insert(factor, count);
         } else {
             // Try with larger bounds

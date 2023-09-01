@@ -41,7 +41,7 @@ impl Attack for NonCoprimeExpAttack {
 
         if (phi.clone() / e).gcd(e) == 1 {
             // E must be prime
-            if e.is_probably_prime(300) == IsPrime::No {
+            if e.is_probably_prime(100) == IsPrime::No {
                 return Err(Error::NotFound);
             }
 

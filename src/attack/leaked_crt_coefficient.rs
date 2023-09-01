@@ -29,7 +29,7 @@ fn find_p_q_from_phi(phi: &Integer, qinv: &Integer, pinv: &Integer) -> Option<(I
     let c: Integer = pinv.clone() * phi - phi;
 
     for x in solve_quadratic(&a, &b, &c) {
-        if Integer::from(&x + 1).is_probably_prime(300) != IsPrime::No {
+        if Integer::from(&x + 1).is_probably_prime(100) != IsPrime::No {
             let q = x.clone() + 1;
             let p = phi / x + 1;
             return Some((p, q));

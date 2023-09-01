@@ -131,7 +131,7 @@ impl Attack for CipollaAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
-        if n.is_probably_prime(300) == IsPrime::No {
+        if n.is_probably_prime(100) == IsPrime::No {
             // N should be prime
             return Err(Error::NotFound);
         }

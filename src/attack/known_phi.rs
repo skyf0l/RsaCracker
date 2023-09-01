@@ -21,7 +21,7 @@ pub fn factorize(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {
     }
 
     // Check if p and q are prime
-    if p.is_probably_prime(300) == IsPrime::No || q.is_probably_prime(300) == IsPrime::No {
+    if p.is_probably_prime(100) == IsPrime::No || q.is_probably_prime(100) == IsPrime::No {
         return None;
     }
 
@@ -48,13 +48,13 @@ fn factorize_multi_factors(n: &Integer, phi: &Integer) -> Option<Vec<Integer>> {
                 let p = Integer::from(n.gcd_ref(&(sqrt_1 + 1)));
                 let q = n.clone() / &p;
 
-                if p.is_probably_prime(300) != IsPrime::No {
+                if p.is_probably_prime(100) != IsPrime::No {
                     prime_factors.insert(p);
                 } else if p > 1 {
                     factors.push(p);
                 }
 
-                if q.is_probably_prime(300) != IsPrime::No {
+                if q.is_probably_prime(100) != IsPrime::No {
                     prime_factors.insert(q);
                 } else if q > 1 {
                     factors.push(q);

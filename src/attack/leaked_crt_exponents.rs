@@ -49,7 +49,7 @@ impl Attack for LeakedCrtExponentsAttack {
                 let p = d1p.clone() / k + &one;
 
                 // If p is prime, p may be the modulus
-                if p.is_probably_prime(300) != IsPrime::No {
+                if p.is_probably_prime(100) != IsPrime::No {
                     let d1q = dq.clone() * e - &one;
 
                     // Brute force q
@@ -58,7 +58,7 @@ impl Attack for LeakedCrtExponentsAttack {
                             let q = d1q.clone() / m + &one;
 
                             // If q is prime, q may be the modulus
-                            if q.is_probably_prime(300) != IsPrime::No {
+                            if q.is_probably_prime(100) != IsPrime::No {
                                 // If p and q satisfy the CRT, we have found the modulus
                                 if (qinv * q.clone()) % p.clone() == 1
                                     || (qinv * p.clone()) % q.clone() == 1

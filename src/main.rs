@@ -290,7 +290,7 @@ fn main() -> Result<(), MainError> {
                 println!("Partial factors of n:");
                 for (i, p) in partial_factors.as_vec().into_iter().enumerate() {
                     print!("p{} = {}", i + 1, p);
-                    if p.is_probably_prime(300) != IsPrime::Yes {
+                    if p.is_probably_prime(100) != IsPrime::Yes {
                         print!(" (composite)");
                     }
                     println!();

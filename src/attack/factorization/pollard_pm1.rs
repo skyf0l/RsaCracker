@@ -24,12 +24,12 @@ fn pollard_p_1(n: &Integer, pb: Option<&ProgressBar>) -> Option<Vec<Integer>> {
             }
 
             let mut res = vec![];
-            if p.is_probably_prime(300) == IsPrime::No {
+            if p.is_probably_prime(100) == IsPrime::No {
                 res.extend(pollard_p_1(&p, pb)?);
             } else {
                 res.push(p);
             }
-            if q.is_probably_prime(300) == IsPrime::No {
+            if q.is_probably_prime(100) == IsPrime::No {
                 res.extend(pollard_p_1(&q, pb)?);
             } else {
                 res.push(q);

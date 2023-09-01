@@ -98,7 +98,7 @@ jobs:
       - uses: taiki-e/install-action@nextest
 
       - name: Test
-        run: cargo nextest run --release --all-features --test "*ctf*"
+        run: cargo nextest run --release --all-features --test "*ctf*" --test crypton
 
   coverage:
     name: Coverage

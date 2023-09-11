@@ -4,12 +4,11 @@
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rug::integer::IsPrime;
 use rug::Integer;
+use std::cell::RefCell;
 #[cfg(feature = "parallel")]
 use std::sync::mpsc;
 #[cfg(feature = "parallel")]
 use std::sync::Arc;
-use std::thread::sleep;
-use std::time::Duration;
 
 mod attack;
 mod factors;
@@ -185,32 +184,35 @@ async fn _run_parallel_attacks<'a>(
     sender: mpsc::Sender<Result<Solution, Error>>,
     mp: Arc<MultiProgress>,
 ) {
-    for attack in attacks.iter() {
+    // Create all progress bars
+    let pbs = RefCell::new(Vec::with_capacity(attacks.len()));
+    for _ in 0..attacks.len() {
+        pbs.borrow_mut().push(Arc::new(create_progress_bar(&mp)));
+    }
+
+    for (attack, pb) in attacks.iter().cloned().zip(pbs.borrow().iter().cloned()) {
+        // Clone variables for closure
         let params = Arc::clone(&params);
-        let attack = Arc::clone(attack);
         let sender = sender.clone();
         let mp = Arc::clone(&mp);
+        let pbs = RefCell::clone(&pbs);
+
+        // Spawn attack as a task
         tokio::task::spawn(async move {
-            match if attack.speed() == AttackSpeed::Fast {
-                // No progress bar for fast attacks
-                run_attack(attack, &params, None)
-            } else {
-                let pb = create_progress_bar(&mp);
-                run_attack(attack, &params, Some(&pb))
-            } {
-                Ok(solution) => {
-                    mp.suspend(|| {
-                        // Note: error if channel closed
-                        sender.send(Ok(solution)).ok();
-                        // This is a hack to make sure the progress bar is not displayed after the attack is done
-                        sleep(Duration::from_millis(1000));
-                    });
-                }
-                e => {
-                    // Note: error if channel closed
-                    sender.send(e).ok();
+            let res = run_attack(attack, &params, Some(&pb));
+
+            // Remove progress bar from list
+            mp.remove(&pb);
+            // If attack was successful, clear all progress bars
+            if res.is_ok() {
+                for pb in pbs.borrow().iter() {
+                    pb.finish_and_clear();
                 }
             }
+
+            // Send result to main thread
+            // Note: error if channel closed
+            sender.send(res).ok();
         });
     }
 }
@@ -289,6 +291,7 @@ pub fn run_parallel_attacks(
 
     // Shut down runtime
     r.shutdown_background();
+    eprintln!("Elapsed time: {:?}", pb_main.elapsed());
 
     if let Some(solution) = solution {
         Ok(solution)

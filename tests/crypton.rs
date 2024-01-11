@@ -6,7 +6,7 @@ use rsacracker::{integer_to_string, run_attacks, Parameters};
 use rug::Integer;
 
 #[test]
-fn crypton_challenge_0() {
+fn crypton_intro_challenge_0() {
     // From Crypton/RSA-encryption/Intro-Challenges/Challenge-0
     let p  = Integer::from_str("6958271393287170117448891021448827870244652620796166337874899406278127643022124226656230972235829204217718701711355755622520840943962368410353060326959627").unwrap();
     let q  = Integer::from_str("10816988558466468069802205154113557859050665172995721741674476865844313409030354507360669179381457836401919224815040955096510785560864262908230559354811907").unwrap();
@@ -30,7 +30,7 @@ fn crypton_challenge_0() {
 }
 
 #[test]
-fn crypton_challenge_1() {
+fn crypton_intro_challenge_1() {
     // From Crypton/RSA-encryption/Intro-Challenges/Challenge-1
     let params = Parameters {
         n : Some(Integer::from_str("97327465444798587278055948925526845496009505279537394552285739021722293489201558751886782168432091942363160534355604762279998727630923810091914577017524593073642676827447173895227246888600059180358809402075042576891370242394248767130395066592747932602851717995806723009815226684448970582305350597344040878031").unwrap()),
@@ -49,7 +49,7 @@ fn crypton_challenge_1() {
 }
 
 #[test]
-fn crypton_challenge_2() {
+fn crypton_intro_challenge_2() {
     // From Crypton/RSA-encryption/Intro-Challenges/Challenge-2
     let params = Parameters::from_public_key(
         b"-----BEGIN PUBLIC KEY-----
@@ -75,7 +75,7 @@ caqlsRPzNDC+9+m3AgED
 
 // TODO: Common prime attack
 // #[test]
-// fn crypton_challenge_3() {
+// fn crypton_intro_challenge_3() {
 //     // From Crypton/RSA-encryption/Intro-Challenges/Challenge-3
 
 //     // N
@@ -98,7 +98,7 @@ caqlsRPzNDC+9+m3AgED
 // }
 
 #[test]
-fn crypton_challenge_4() {
+fn crypton_intro_challenge_4() {
     // From Crypton/RSA-encryption/Intro-Challenges/Challenge-4
     let params = Parameters::from_public_key(
         b"-----BEGIN PUBLIC KEY-----
@@ -123,7 +123,7 @@ Y33dDzS9A+Ev+T8PAgMBAAE=
 }
 
 #[test]
-fn crypton_dp_dq() {
+fn crypton_intro_dp_dq() {
     // From Crypton/RSA-encryption/Intro-Challenges/Dp&Dq
     let params = Parameters::from_public_key(
         b"-----BEGIN PUBLIC KEY-----
@@ -150,7 +150,7 @@ GMhjlTbZFA19S3s9AgMBAAE=
 }
 
 #[test]
-fn crypton_c4_reloaded() {
+fn crypton_intro_c4_reloaded() {
     // From Crypton/RSA-encryption/Intro-Challenges/C4-reloaded
     let params = Parameters::from_public_key(
         b"-----BEGIN PUBLIC KEY-----
@@ -175,7 +175,7 @@ sWodZlOoEQghGSj7JoS5b5ZDQSACePzla9rUUcqgkvKT0ST+KGQ7nVrqKzj0/H+0
 }
 
 #[test]
-fn crypton_7h3_godf4ther() {
+fn crypton_intro_7h3_godf4ther() {
     // From Crypton/RSA-encryption/Intro-Challenges/7h3_Godf4ther
     let params = Parameters {
         n : Some(Integer::from_str("551504906448961847141690415172108060028728303241409233555695098354559944134593608349928135804830998592132110248539199471080424828431558863560289446722435352638365009233192053427739540819371609958014315243749107802424381558044339319969305152016580632977089138029197496120537936093909331580951370236220987003013").unwrap()),

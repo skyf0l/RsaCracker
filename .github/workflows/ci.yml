@@ -38,6 +38,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          override: true
           components: rustfmt
       - uses: Swatinem/rust-cache@v2
 
@@ -56,6 +57,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          override: true
           components: clippy
       - uses: Swatinem/rust-cache@v2
 
@@ -76,6 +78,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          override: true
       - uses: Swatinem/rust-cache@v2
 
       - run: cargo doc --no-deps
@@ -92,6 +95,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          override: true
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
 
@@ -110,6 +114,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          override: true
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
 
@@ -126,6 +131,7 @@ jobs:
       - name: Stable toolchain
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: nightly
           override: true
       - uses: Swatinem/rust-cache@v2
@@ -167,6 +173,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          override: true
       - uses: Swatinem/rust-cache@v2
 
       # msys2 required by rug on windows

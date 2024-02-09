@@ -15,7 +15,7 @@ pub fn rational_to_contfrac(x: &Integer, y: &Integer) -> Vec<Integer> {
     }
 }
 
-pub fn contfrac_to_rational(frac: &Vec<Integer>) -> (Integer, Integer) {
+pub fn contfrac_to_rational(frac: &[Integer]) -> (Integer, Integer) {
     if frac.is_empty() {
         (0.into(), 1.into())
     } else if frac.len() == 1 {
@@ -28,7 +28,7 @@ pub fn contfrac_to_rational(frac: &Vec<Integer>) -> (Integer, Integer) {
 }
 
 #[allow(dead_code)]
-pub fn convergents_from_contfrac(frac: &Vec<Integer>) -> Vec<(Integer, Integer)> {
+pub fn convergents_from_contfrac(frac: &[Integer]) -> Vec<(Integer, Integer)> {
     let mut convs = Vec::new();
 
     for i in 0..frac.len() {

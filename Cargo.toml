@@ -58,5 +58,5 @@ base64 = "0.21"
 [dependencies.rug]
 version = "1"
 default-features = false
-features = ["integer", "rand"]
+features = ["integer", "rand", "std"]
 

@@ -32,7 +32,7 @@ pub fn convergents_from_contfrac(frac: &[Integer]) -> Vec<(Integer, Integer)> {
     let mut convs = Vec::new();
 
     for i in 0..frac.len() {
-        convs.push(contfrac_to_rational(&frac[0..i].to_vec()));
+        convs.push(contfrac_to_rational(&frac[0..i]));
     }
     convs
 }

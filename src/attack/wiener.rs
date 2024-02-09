@@ -32,7 +32,7 @@ impl Attack for WienerAttack {
         }
         let mut convergents = Vec::new();
         for i in 0..frac.len() {
-            convergents.push(contfrac_to_rational(&frac[0..i].to_vec()));
+            convergents.push(contfrac_to_rational(&frac[0..i]));
             if let Some(pb) = pb {
                 pb.inc(1);
             }

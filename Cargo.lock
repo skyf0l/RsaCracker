@@ -1936,7 +1936,7 @@ dependencies = [
 
 [[package]]
 name = "rsacracker"
-version = "0.6.5"
+version = "0.6.6"
 dependencies = [
  "base-x",
  "base64",

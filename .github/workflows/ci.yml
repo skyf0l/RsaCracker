@@ -4,23 +4,23 @@ on:
   push:
     branches: [master]
     paths-ignore:
-      - ".github/**"
-      - "!.github/workflows/ci.yml"
-      - ".gitignore"
-      - "codecov.yml"
-      - "grcov.yml"
-      - "LICENSE*"
-      - "README.md"
+    - ".github/**"
+    - "!.github/workflows/ci.yml"
+    - ".gitignore"
+    - "codecov.yml"
+    - "grcov.yml"
+    - "LICENSE*"
+    - "README.md"
   pull_request:
     branches: [master]
     paths-ignore:
-      - ".github/**"
-      - "!.github/workflows/ci.yml"
-      - ".gitignore"
-      - "codecov.yml"
-      - "grcov.yml"
-      - "LICENSE*"
-      - "README.md"
+    - ".github/**"
+    - "!.github/workflows/ci.yml"
+    - ".gitignore"
+    - "codecov.yml"
+    - "grcov.yml"
+    - "LICENSE*"
+    - "README.md"
 
 env:
   RUST_BACKTRACE: 1
@@ -32,18 +32,18 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stable toolchain with rustfmt
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt
-      - uses: Swatinem/rust-cache@v2
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - name: Stable toolchain with rustfmt
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        components: rustfmt
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
 
-      - name: Check coding style
-        run: cargo fmt --check --all
+    - name: Check coding style
+      run: cargo fmt --check --all
 
   clippy:
     name: Clippy
@@ -51,18 +51,18 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stable toolchain with clippy
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: clippy
-      - uses: Swatinem/rust-cache@v2
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - name: Stable toolchain with clippy
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+        components: clippy
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
 
-      - name: Lint
-        run: cargo clippy --all-targets  --all-features -- -D warnings
+    - name: Lint
+      run: cargo clippy --all-targets  --all-features -- -D warnings
 
   docs:
     name: Docs
@@ -72,16 +72,16 @@ jobs:
       RUSTDOCFLAGS: "-Dwarnings"
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v2
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - name: Stable toolchain
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
 
-      - run: cargo doc --no-deps
+    - run: cargo doc --no-deps
 
   tests:
     name: Tests
@@ -89,18 +89,18 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - name: Stable toolchain
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: taiki-e/install-action@c2c0b6efca88e97964ac243a1bce7fa796e0f56f # v2.41.4
 
-      - name: Test
-        run: cargo nextest run --all-features --lib --bins --test keys
+    - name: Test
+      run: cargo nextest run --all-features --lib --bins --test keys
 
   ctf-challenges:
     name: CTF challenges
@@ -108,18 +108,18 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - name: Stable toolchain
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: taiki-e/install-action@c2c0b6efca88e97964ac243a1bce7fa796e0f56f # v2.41.4
 
-      - name: Test
-        run: cargo nextest run --release --all-features --test "*ctf*" --test crypton
+    - name: Test
+      run: cargo nextest run --release --all-features --test "*ctf*" --test crypton
 
   coverage:
     name: Coverage
@@ -127,36 +127,36 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - uses: Swatinem/rust-cache@v2
-      - uses: taiki-e/install-action@nextest
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - name: Stable toolchain
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        override: true
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: taiki-e/install-action@c2c0b6efca88e97964ac243a1bce7fa796e0f56f # v2.41.4
 
-      - name: Tests
-        run: cargo nextest run --all-features --lib --bins --test keys
-        env:
-          CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+    - name: Tests
+      run: cargo nextest run --all-features --lib --bins --test keys
+      env:
+        CARGO_INCREMENTAL: "0"
+        RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+        RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
-      - name: Grcov
-        id: coverage
-        uses: actions-rs/grcov@v0.1
-        with:
-          config: grcov.yml
+    - name: Grcov
+      id: coverage
+      uses: actions-rs/grcov@770fa904bcbfc50da498080d1511da7388e6ddc6 # v0.1
+      with:
+        config: grcov.yml
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: ${{ steps.coverage.outputs.report }}
-          flags: rust
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3
+      with:
+        files: ${{ steps.coverage.outputs.report }}
+        flags: rust
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build
@@ -168,41 +168,33 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: Swatinem/rust-cache@v2
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
 
-      # msys2 required by rug on windows
-      - name: Setup msys2 (windows)
-        uses: msys2/setup-msys2@v2
-        if: matrix.os == 'windows-latest'
-        with:
-          install: >-
-            base-devel
-            pacman-mirrors
-            diffutils
-            m4
-            make
-            openssl
-            openssl-devel
-          pacboy: >-
-            gcc:p
-            rust:p
+    # msys2 required by rug on windows
+    - name: Setup msys2 (windows)
+      uses: msys2/setup-msys2@d0e80f58dffbc64f6a3a1f43527d469b4fc7b6c8 # v2
+      if: matrix.os == 'windows-latest'
+      with:
+        install: >-
+          base-devel pacman-mirrors diffutils m4 make openssl openssl-devel
+        pacboy: >-
+          gcc:p rust:p #magic___^_^___line
+    # Only for windows
+    - name: Msys2 build (windows)
+      if: matrix.os == 'windows-latest'
+      shell: msys2 {0}
+      run: |
+        cargo build
 
-      # Only for windows
-      - name: Msys2 build (windows)
-        if: matrix.os == 'windows-latest'
-        shell: msys2 {0}
-        run: |
-          cargo build
-
-      - name: Build
-        if: matrix.os != 'windows-latest'
-        run: cargo build
+    - name: Build
+      if: matrix.os != 'windows-latest'
+      run: cargo build
 
   docker-build:
     name: Docker build
@@ -210,13 +202,13 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v2
+    - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
 
-      - uses: jpribyl/action-docker-layer-caching@v0.1.1
-        continue-on-error: true
+    - uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
+      continue-on-error: true
 
-      - name: Build the Docker image
-        run: DOCKER_BUILDKIT=1 docker build . --file Dockerfile -t rsacracker
+    - name: Build the Docker image
+      run: DOCKER_BUILDKIT=1 docker build . --file Dockerfile -t rsacracker
 
-      - name: Test the Docker image
-        run: docker run --rm -v $PWD:/data rsacracker -n 323 --attack small_prime --factors
+    - name: Test the Docker image
+      run: docker run --rm -v $PWD:/data rsacracker -n 323 --attack small_prime --factors

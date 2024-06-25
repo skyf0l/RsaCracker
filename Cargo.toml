@@ -46,14 +46,14 @@ openssl = "0.10"
 base-x = "0.2"
 display_bytes = "0.2"
 ssh-key = { version = "0.6", features = ["encryption"] }
-tokio = { version = "1.29", features = ["rt", "rt-multi-thread"], optional = true }
+tokio = { version = "1.38", features = ["rt", "rt-multi-thread"], optional = true }
 mpsc = { version = "0.2", optional = true }
 num_cpus = { version = "1.15", optional = true }
 update-informer = "1"
 indicatif = "0.17"
-itertools = "0.12"
+itertools = "0.13"
 discrete-logarithm = "0.1"
-base64 = "0.21"
+base64 = "0.22"
 
 [dependencies.rug]
 version = "1"

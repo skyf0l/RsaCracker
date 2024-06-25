@@ -97,7 +97,7 @@ jobs:
         toolchain: stable
         override: true
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
-    - uses: taiki-e/install-action@c2c0b6efca88e97964ac243a1bce7fa796e0f56f # v2.41.4
+    - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
 
     - name: Test
       run: cargo nextest run --all-features --lib --bins --test keys
@@ -116,7 +116,7 @@ jobs:
         toolchain: stable
         override: true
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
-    - uses: taiki-e/install-action@c2c0b6efca88e97964ac243a1bce7fa796e0f56f # v2.41.4
+    - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
 
     - name: Test
       run: cargo nextest run --release --all-features --test "*ctf*" --test crypton
@@ -135,7 +135,7 @@ jobs:
         toolchain: nightly
         override: true
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
-    - uses: taiki-e/install-action@c2c0b6efca88e97964ac243a1bce7fa796e0f56f # v2.41.4
+    - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
 
     - name: Tests
       run: cargo nextest run --all-features --lib --bins --test keys

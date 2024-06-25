@@ -2,8 +2,8 @@ use std::{fs, str::FromStr};
 
 use rug::{integer::Order, Integer};
 
-const KEY_PASSPHRASE: &'static [u8] = b"Skyf0l";
-const OUT_PATH: &'static str = "../../tests/keys";
+const KEY_PASSPHRASE: &[u8] = b"Skyf0l";
+const OUT_PATH: &str = "../../tests/keys";
 
 lazy_static::lazy_static!(
     static ref EXPONENT: Integer = 65537.into();
@@ -77,7 +77,7 @@ fn rsa_keys() -> openssl::rsa::Rsa<openssl::pkey::Private> {
     // Encrypted RSA private key
     fs::write(
         format!("{OUT_PATH}/private_rsa_passphrase.pem"),
-        rsa.private_key_to_pem_passphrase(openssl::symm::Cipher::aes_256_cbc(), &KEY_PASSPHRASE)
+        rsa.private_key_to_pem_passphrase(openssl::symm::Cipher::aes_256_cbc(), KEY_PASSPHRASE)
             .unwrap(),
     )
     .unwrap();
@@ -117,7 +117,7 @@ fn openssl_keys(
         format!("{OUT_PATH}/private_openssl_passphrase.pem"),
         pkey.private_key_to_pem_pkcs8_passphrase(
             openssl::symm::Cipher::aes_256_cbc(),
-            &KEY_PASSPHRASE,
+            KEY_PASSPHRASE,
         )
         .unwrap(),
     )
@@ -128,14 +128,14 @@ fn openssl_keys(
 
 fn openssh_keys() {
     let public_data = ssh_key::public::RsaPublicKey {
-        e: ssh_key::MPInt::from_bytes(&EXPONENT.to_digits(rug::integer::Order::Msf)).unwrap(),
-        n: ssh_key::MPInt::from_bytes(&MODULUS.to_digits(rug::integer::Order::Msf)).unwrap(),
+        e: ssh_key::Mpint::from_bytes(&EXPONENT.to_digits(rug::integer::Order::Msf)).unwrap(),
+        n: ssh_key::Mpint::from_bytes(&MODULUS.to_digits(rug::integer::Order::Msf)).unwrap(),
     };
     let private_data = ssh_key::private::RsaPrivateKey {
-        d: ssh_key::MPInt::from_bytes(&D.to_digits(rug::integer::Order::Msf)).unwrap(),
-        p: ssh_key::MPInt::from_bytes(&PRIME_P.to_digits(rug::integer::Order::Msf)).unwrap(),
-        q: ssh_key::MPInt::from_bytes(&PRIME_Q.to_digits(rug::integer::Order::Msf)).unwrap(),
-        iqmp: ssh_key::MPInt::from_bytes(&QINV.to_digits(rug::integer::Order::Msf)).unwrap(),
+        d: ssh_key::Mpint::from_bytes(&D.to_digits(rug::integer::Order::Msf)).unwrap(),
+        p: ssh_key::Mpint::from_bytes(&PRIME_P.to_digits(rug::integer::Order::Msf)).unwrap(),
+        q: ssh_key::Mpint::from_bytes(&PRIME_Q.to_digits(rug::integer::Order::Msf)).unwrap(),
+        iqmp: ssh_key::Mpint::from_bytes(&QINV.to_digits(rug::integer::Order::Msf)).unwrap(),
     };
     let keypair = ssh_key::private::KeypairData::Rsa(ssh_key::private::RsaKeypair {
         public: public_data,
@@ -171,7 +171,7 @@ fn openssh_keys() {
 
     // Encrypted OpenSSH private key
     let private_key = private_key
-        .encrypt(&mut rand_core::OsRng, &KEY_PASSPHRASE)
+        .encrypt(&mut rand_core::OsRng, KEY_PASSPHRASE)
         .unwrap();
     fs::write(
         format!("{OUT_PATH}/private_openssh_passphrase.pem"),

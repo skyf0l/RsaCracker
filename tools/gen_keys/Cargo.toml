@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 lazy_static = "1"
 openssl = "0.10"
-ssh-key = { version = "0.5", features = ["encryption"] }
+ssh-key = { version = "0.6", features = ["encryption"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 
 [dependencies.rug]

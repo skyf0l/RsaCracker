@@ -32,15 +32,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Stable toolchain with rustfmt
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: stable
         override: true
         components: rustfmt
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
     - name: Check coding style
       run: cargo fmt --check --all
@@ -51,15 +51,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Stable toolchain with clippy
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: stable
         override: true
         components: clippy
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
     - name: Lint
       run: cargo clippy --all-targets  --all-features -- -D warnings
@@ -72,14 +72,14 @@ jobs:
       RUSTDOCFLAGS: "-Dwarnings"
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Stable toolchain
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: stable
         override: true
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
     - run: cargo doc --no-deps
 
@@ -89,14 +89,14 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Stable toolchain
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: stable
         override: true
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
     - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
 
     - name: Test
@@ -108,14 +108,14 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Stable toolchain
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: stable
         override: true
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
     - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
 
     - name: Test
@@ -127,14 +127,14 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Stable toolchain
-      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: nightly
         override: true
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
     - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
 
     - name: Tests
@@ -146,12 +146,12 @@ jobs:
 
     - name: Grcov
       id: coverage
-      uses: actions-rs/grcov@770fa904bcbfc50da498080d1511da7388e6ddc6 # v0.1
+      uses: actions-rs/grcov@770fa904bcbfc50da498080d1511da7388e6ddc6 # v0.1.6
       with:
         config: grcov.yml
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3
+      uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # v3.1.6
       with:
         files: ${{ steps.coverage.outputs.report }}
         flags: rust
@@ -168,17 +168,17 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
-    - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+    - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
       with:
         profile: minimal
         toolchain: stable
         override: true
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2
+    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
 
     # msys2 required by rug on windows
     - name: Setup msys2 (windows)
-      uses: msys2/setup-msys2@d0e80f58dffbc64f6a3a1f43527d469b4fc7b6c8 # v2
+      uses: msys2/setup-msys2@d0e80f58dffbc64f6a3a1f43527d469b4fc7b6c8 # v2.23.0
       if: matrix.os == 'windows-latest'
       with:
         install: >-
@@ -202,7 +202,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
 
     - uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
       continue-on-error: true

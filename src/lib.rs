@@ -1,6 +1,9 @@
 #![doc = include_str!("../README.md")]
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
+// Clippy lints
+#![allow(clippy::assigning_clones)]
+
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rug::integer::IsPrime;
 use rug::Integer;

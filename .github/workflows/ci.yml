@@ -211,3 +211,64 @@ jobs:
 
     - name: Test the Docker image
       run: docker run --rm -v $PWD:/data rsacracker -n 323 --attack small_prime --factors
+
+  publish-crates_io:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    needs: [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Install stable toolchain
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
+    - run: cargo publish --token ${CRATES_TOKEN}
+      env:
+        CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+  publish-docker_hub:
+    name: Publish to hub.docker.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    needs: [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+
+    env:
+      IMAGE_NAME: skyf0l/rsacracker
+
+    steps:
+    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Install yq
+      run: |
+        sudo wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq
+        sudo chmod +x /usr/bin/yq
+      env:
+        VERSION: v4.40.5
+        BINARY: yq_linux_amd64
+
+    - name: Get package version
+      id: get_version
+      run: echo VERSION=$(yq ".package.version" Cargo.toml) >> $GITHUB_OUTPUT
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # v3.2.0
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@31159d49c0d4756269a0940a750801a1ea5d7003 # v6.1.0
+      with:
+        push: true
+        tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest

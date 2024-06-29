@@ -41,7 +41,7 @@ lazy_static = "1"
 clap = { version = "4", features = ["derive", "env"] }
 main_error = "0.1"
 primal = "0.3"
-ecm = { version = "0.4", features = ["progress-bar"] }
+ecm = { version = "1.0", features = ["progress-bar"] }
 openssl = "0.10"
 base-x = "0.2"
 display_bytes = "0.2"
@@ -52,7 +52,7 @@ num_cpus = { version = "1.15", optional = true }
 update-informer = "1"
 indicatif = "0.17"
 itertools = "0.13"
-discrete-logarithm = "0.1"
+discrete-logarithm = "1.0"
 base64 = "0.22"
 
 [dependencies.rug]

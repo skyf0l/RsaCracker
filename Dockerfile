@@ -1,4 +1,4 @@
-FROM rust:1.75 as builder
+FROM rust:1.75 AS builder
 WORKDIR /usr/src/rsacracker
 COPY . .
 RUN --mount=type=cache,target=/usr/src/rsacracker/target cargo install --path .

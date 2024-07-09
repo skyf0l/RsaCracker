@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/skyf0l/RsaCracker/actions/workflows/ci.yml/badge.svg)](https://github.com/skyf0l/RsaCracker/actions/workflows/ci.yml)
 [![Crate.io](https://img.shields.io/crates/v/rsacracker.svg)](https://crates.io/crates/rsacracker)
+[![Docker Image Version](https://img.shields.io/docker/v/skyf0l/rsacracker?logo=docker)](https://hub.docker.com/r/skyf0l/rsacracker)
 [![codecov](https://codecov.io/gh/skyf0l/rsacracker/branch/main/graph/badge.svg)](https://codecov.io/gh/skyf0l/rsacracker)
 
 Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.

@@ -1,7 +1,9 @@
 FROM rust:1.75 AS builder
 WORKDIR /usr/src/rsacracker
 COPY . .
-RUN --mount=type=cache,target=/usr/src/rsacracker/target cargo install --path .
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/src/rsacracker/target \
+    cargo install --path .
 
 FROM debian:12.4-slim
 RUN apt-get update && apt-get install -y libssl-dev && rm -rf /var/lib/apt/lists/*

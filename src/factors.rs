@@ -158,6 +158,7 @@ impl<const N: usize> From<&[rug::Integer; N]> for Factors {
         Self::from(factors as &[rug::Integer])
     }
 }
+
 impl<const N: usize> From<[rug::Integer; N]> for Factors {
     fn from(factors: [rug::Integer; N]) -> Self {
         Self::from(&factors)

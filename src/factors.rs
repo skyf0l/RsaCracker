@@ -12,15 +12,10 @@ pub struct Factors(pub BTreeMap<Integer, usize>);
 impl Factors {
     /// Returns the product of the factors.
     pub fn product(&self) -> Integer {
-        // self.0
-        //     .iter()
-        //     .map(|(f, p)| f.clone().pow(*p as u32))
-        //     .product()
-        let mut product = Integer::from(1);
-        for (f, p) in self.0.iter() {
-            product *= f.clone().pow(*p as u32);
-        }
-        product
+        self.0
+            .iter()
+            .map(|(f, p)| f.clone().pow(*p as u32))
+            .product()
     }
 
     /// Returns the totient of the factors.

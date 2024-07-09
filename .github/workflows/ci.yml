@@ -221,8 +221,8 @@ jobs:
       id: cache
       with:
         path: |
-          target
-          /usr/local/cargo/registry
+          /tmp/cache/rsacracker/target
+          /tmp/cache/cargo/registry
         key: ${{ runner.os }}-rust-${{ env.CACHE_VERSION }}-${{ github.job }}-${{ matrix.arch }}-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
         restore-keys: |
           ${{ runner.os }}-rust-${{ env.CACHE_VERSION }}-${{ github.job }}-${{ matrix.arch }}-
@@ -232,8 +232,8 @@ jobs:
       with:
         cache-map: |
           {
-            "target": "/usr/src/rsacracker/target",
-            "/usr/local/cargo/registry": "/usr/local/cargo/registry"
+            "/tmp/cache/rsacracker/target": "/usr/src/rsacracker/target",
+            "/tmp/cache/cargo/registry": "/usr/local/cargo/registry"
           }
         skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 

@@ -203,11 +203,12 @@ jobs:
     steps:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-    - uses: jpribyl/action-docker-layer-caching@c632825d12ec837065f49726ea27ddd40bcc7894 # v0.1.1
-      continue-on-error: true
-
-    - name: Build the Docker image
-      run: DOCKER_BUILDKIT=1 docker build . --file Dockerfile -t rsacracker
+    - name: Build
+      uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+      with:
+        tags: rsacracker
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: Test the Docker image
       run: docker run --rm -v $PWD:/data rsacracker -n 323 --attack small_prime --factors

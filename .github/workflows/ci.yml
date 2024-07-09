@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths-ignore:
     - ".github/**"
     - "!.github/workflows/ci.yml"
@@ -12,7 +12,7 @@ on:
     - "LICENSE*"
     - "README.md"
   pull_request:
-    branches: [master]
+    branches: [main]
     paths-ignore:
     - ".github/**"
     - "!.github/workflows/ci.yml"

@@ -36,6 +36,6 @@ impl Attack for PrimeModulusAttack {
             return Ok(Solution::new_m(self.name(), m));
         }
 
-        return Err(Error::MissingParameters);
+        Err(Error::MissingParameters)
     }
 }

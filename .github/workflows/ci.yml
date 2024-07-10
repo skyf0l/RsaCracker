@@ -100,7 +100,7 @@ jobs:
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
     - uses: taiki-e/install-action@b28eee2bb643cb4606a986e802770206f53c5259 # v2.41.12
       with:
-        tool: cargo-nextest,grcov
+        tool: cargo-nextest,cargo-llvm-cov
 
     - name: Tests
       run: cargo llvm-cov nextest --lcov --output-path lcov.info --all-features --lib --bins --test keys

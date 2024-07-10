@@ -311,3 +311,18 @@ jobs:
         tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest
         platforms: linux/${{ matrix.arch }}
         build-args: ARCH=${{ matrix.arch }}
+
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    needs: [publish-crates_io, publish-docker_hub]
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Create Release
+      uses: softprops/action-gh-release@a74c6b72af54cfa997e81df42d94703d6313a2d0 # v2.0.6
+      with:
+        make_latest: "true"
+

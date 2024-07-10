@@ -238,10 +238,6 @@ jobs:
     needs: [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
-    strategy:
-      matrix:
-        arch: [amd64, arm64]
-
     env:
       IMAGE_NAME: skyf0l/rsacracker
 
@@ -274,8 +270,7 @@ jobs:
       with:
         push: true
         tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest
-        platforms: linux/${{ matrix.arch }}
-        build-args: ARCH=${{ matrix.arch }}
+        platforms: linux/amd64,linux/arm64
 
   release:
     name: GitHub Release

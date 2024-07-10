@@ -4,24 +4,8 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-    paths-ignore:
-    - ".github/**"
-    - "!.github/workflows/ci.yml"
-    - ".gitignore"
-    - "codecov.yml"
-    - "grcov.yml"
-    - "LICENSE*"
-    - "README.md"
   pull_request:
     branches: [main]
-    paths-ignore:
-    - ".github/**"
-    - "!.github/workflows/ci.yml"
-    - ".gitignore"
-    - "codecov.yml"
-    - "grcov.yml"
-    - "LICENSE*"
-    - "README.md"
 
 env:
   RUST_BACKTRACE: 1
@@ -82,7 +66,9 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@stable
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
+    - uses: taiki-e/install-action@b28eee2bb643cb4606a986e802770206f53c5259 # v2.41.12
+      with:
+        tool: cargo-nextest
 
     - name: Test
       run: cargo nextest run --all-features --lib --bins --test keys
@@ -96,10 +82,12 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@stable
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
+    - uses: taiki-e/install-action@b28eee2bb643cb4606a986e802770206f53c5259 # v2.41.12
+      with:
+        tool: cargo-nextest
 
     - name: Test
-      run: cargo nextest run --release --all-features --test "*ctf*" --test crypton
+      run: cargo nextest run --release --all-features --test "ctf_*"
 
   coverage:
     name: Coverage
@@ -110,28 +98,20 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@nightly
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@ef7090108a583d4124f188b4958359153b2d19e1 # nextest
+    - uses: taiki-e/install-action@b28eee2bb643cb4606a986e802770206f53c5259 # v2.41.12
+      with:
+        tool: cargo-nextest,cargo-llvm-cov
 
     - name: Tests
-      run: cargo nextest run --all-features --lib --bins --test keys
-      env:
-        CARGO_INCREMENTAL: "0"
-        RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-        RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-
-    - name: Grcov
-      id: coverage
-      uses: actions-rs/grcov@770fa904bcbfc50da498080d1511da7388e6ddc6 # v0.1.6
-      with:
-        config: grcov.yml
+      run: cargo llvm-cov nextest --lcov --output-path lcov.info --all-features --lib --bins --test keys
 
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673 # v4.5.0
       with:
-        files: ${{ steps.coverage.outputs.report }}
+        files: lcov.info
         flags: rust
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build

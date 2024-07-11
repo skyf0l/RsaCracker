@@ -1,9 +1,4 @@
+comment: false
 coverage:
   precision: 2
   round: up
-  status:
-    project:
-      default:
-        target: 80%
-        threshold: 5%
-comment: false

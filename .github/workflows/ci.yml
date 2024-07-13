@@ -66,7 +66,7 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@stable
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@30bcc3acc9b9fc2ef5216c3b9c1946223a581691 # v2.41.13
+    - uses: taiki-e/install-action@32300fcc7462d35c920c6d4a42efe7bc39b61569 # v2.41.17
       with:
         tool: cargo-nextest
 
@@ -82,7 +82,7 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@stable
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@30bcc3acc9b9fc2ef5216c3b9c1946223a581691 # v2.41.13
+    - uses: taiki-e/install-action@32300fcc7462d35c920c6d4a42efe7bc39b61569 # v2.41.17
       with:
         tool: cargo-nextest
 
@@ -98,7 +98,7 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@nightly
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@30bcc3acc9b9fc2ef5216c3b9c1946223a581691 # v2.41.13
+    - uses: taiki-e/install-action@32300fcc7462d35c920c6d4a42efe7bc39b61569 # v2.41.17
       with:
         tool: cargo-nextest,cargo-llvm-cov
 

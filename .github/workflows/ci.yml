@@ -66,7 +66,7 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@stable
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@32300fcc7462d35c920c6d4a42efe7bc39b61569 # v2.41.17
+    - uses: taiki-e/install-action@3e71e7135de310b70bc22dccb4d275acde8e055a # v2.42.0
       with:
         tool: cargo-nextest
 
@@ -82,7 +82,7 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@stable
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@32300fcc7462d35c920c6d4a42efe7bc39b61569 # v2.41.17
+    - uses: taiki-e/install-action@3e71e7135de310b70bc22dccb4d275acde8e055a # v2.42.0
       with:
         tool: cargo-nextest
 
@@ -98,7 +98,7 @@ jobs:
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
     - uses: dtolnay/rust-toolchain@nightly
     - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@32300fcc7462d35c920c6d4a42efe7bc39b61569 # v2.41.17
+    - uses: taiki-e/install-action@3e71e7135de310b70bc22dccb4d275acde8e055a # v2.42.0
       with:
         tool: cargo-nextest,cargo-llvm-cov
 
@@ -182,7 +182,7 @@ jobs:
         skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
     - name: Build
-      uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+      uses: docker/build-push-action@a254f8ca60a858f3136a2f1f23a60969f2c402dd # v6.4.0
       with:
         tags: rsacracker:test
         outputs: type=docker
@@ -249,7 +249,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push
-      uses: docker/build-push-action@1a162644f9a7e87d8f4b053101d1d9a712edc18c # v6.3.0
+      uses: docker/build-push-action@a254f8ca60a858f3136a2f1f23a60969f2c402dd # v6.4.0
       with:
         push: true
         tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest

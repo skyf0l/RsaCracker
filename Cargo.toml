@@ -46,7 +46,7 @@ openssl = "0.10"
 base-x = "0.2"
 display_bytes = "0.2"
 ssh-key = { version = "0.6", features = ["encryption"] }
-tokio = { version = "1.38", features = ["rt", "rt-multi-thread"], optional = true }
+tokio = { version = "1.39", features = ["rt", "rt-multi-thread"], optional = true }
 mpsc = { version = "0.2", optional = true }
 num_cpus = { version = "1.15", optional = true }
 update-informer = "1"

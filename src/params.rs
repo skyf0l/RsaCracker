@@ -1,8 +1,43 @@
+use base64::{engine::general_purpose, Engine};
 use rug::Integer;
 use std::{
     fmt::Display,
     ops::{Add, AddAssign},
+    str::FromStr,
 };
+
+#[derive(Debug, Clone)]
+/// Struct used to parse integers from different bases and formats
+pub struct IntegerArg(pub Integer);
+
+impl std::str::FromStr for IntegerArg {
+    type Err = String;
+
+    fn from_str(n: &str) -> Result<Self, Self::Err> {
+        if let Some(n) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
+            Ok(Self(
+                Integer::from_str_radix(n, 16).or(Err("Invalid hex number".to_string()))?,
+            ))
+        } else if let Some(n) = n.strip_prefix("0b").or_else(|| n.strip_prefix("0B")) {
+            Ok(Self(
+                Integer::from_str_radix(n, 2).or(Err("Invalid binary number".to_string()))?,
+            ))
+        } else if let Some(n) = n.strip_prefix("0o").or_else(|| n.strip_prefix("0O")) {
+            Ok(Self(
+                Integer::from_str_radix(n, 8).or(Err("Invalid octal number".to_string()))?,
+            ))
+        } else if let Some(n) = n.strip_prefix("b64").or_else(|| n.strip_prefix("B64")) {
+            let bytes = general_purpose::STANDARD
+                .decode(n.as_bytes())
+                .or(Err("Invalid base64 number".to_string()))?;
+            Ok(Self(Integer::from_digits(&bytes, rug::integer::Order::Msf)))
+        } else {
+            Ok(Self(
+                Integer::from_str(n).or(Err("Invalid number".to_string()))?,
+            ))
+        }
+    }
+}
 
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -101,6 +136,67 @@ impl Display for Parameters {
 }
 
 impl Parameters {
+    /// Create parameters from raw file
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// // Example of a raw file
+    /// n = 1
+    /// # This is a comment
+    /// e: 0x1
+    /// C 0x00
+    /// phi: 0x1
+    /// ```
+    pub fn from_raw(raw: &str) -> Self {
+        let mut params = Self::default();
+
+        for line in raw.lines() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') || line.starts_with("//") {
+                continue;
+            }
+
+            let (key, value) = if let Some(idx) = line.find(':') {
+                let (key, value) = line.split_at(idx);
+                (key.trim(), value[1..].trim())
+            } else if let Some(idx) = line.find('=') {
+                let (key, value) = line.split_at(idx);
+                (key.trim(), value[1..].trim())
+            } else {
+                continue;
+            };
+
+            // Clean up key
+            let key = key.replace("_", "").replace("-", "");
+
+            let value = if let Ok(value) = IntegerArg::from_str(value) {
+                value.0
+            } else {
+                eprintln!("Warning: Failed to parse {} value: {}", key, value);
+                continue;
+            };
+
+            match key.to_lowercase().as_str() {
+                "n" => params.n = Some(value),
+                "e" => params.e = value,
+                "c" => params.c = Some(value),
+                "p" => params.p = Some(value),
+                "q" => params.q = Some(value),
+                "d" => params.d = Some(value),
+                "phi" => params.phi = Some(value),
+                "dp" | "dmp1" => params.dp = Some(value),
+                "dq" | "dmq1" => params.dq = Some(value),
+                "qinv" | "iqmp" => params.qinv = Some(value),
+                "pinv" | "ipmq" => params.pinv = Some(value),
+                "sumpq" => params.sum_pq = Some(value),
+                _ => {}
+            }
+        }
+
+        params
+    }
+
     /// Create parameters from public key
     pub fn from_public_key(key: &[u8]) -> Option<Self> {
         Self::from_rsa_public_key(key)

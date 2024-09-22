@@ -22,9 +22,12 @@ Note: To build on windows, you need to use [MSYS2](https://www.msys2.org/). This
 ## Usage
 
 ```text
+Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
+
 Usage: rsacracker [OPTIONS]
 
 Options:
+  -r, --raw <RAW>                  Retrieve values from raw file
   -c, --cipher <CIPHER>            Cipher message: the message to uncipher
   -f, --cipherfile <CIPHERFILE>    Cipher message file: the file to uncipher
   -n <N>                           Modulus
@@ -54,6 +57,19 @@ Options:
       --list                       List all available attacks
   -h, --help                       Print help
   -V, --version                    Print version
+```
+
+You can also use a dump as input:
+
+```console
+$ rsacracker [OPTIONS] < challenge.txt
+[RESULTS]
+$ cat challenge.txt | rsacracker [OPTIONS]
+[RESULTS]
+$ cat challenge.txt
+c: 7839407718[...]0577093673
+n = 9359619564[...]3745124619
+e= 1595235523[...]6275096193
 ```
 
 ## Examples

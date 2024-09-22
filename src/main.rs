@@ -8,7 +8,7 @@ use rug::{
     Integer,
 };
 use std::{
-    io::{self, Read},
+    io::{self, IsTerminal, Read},
     sync::Arc,
     time::Duration,
 };
@@ -175,10 +175,11 @@ fn main() -> Result<(), MainError> {
     };
 
     // Parse raw
-    let mut params = if !atty::is(atty::Stream::Stdin) {
+    let mut stdin = io::stdin();
+    let mut params = if !stdin.is_terminal() {
         // Piped input
         let mut raw = String::new();
-        io::stdin().read_to_string(&mut raw)?;
+        stdin.read_to_string(&mut raw)?;
         Parameters::from_raw(&raw)
     } else if let Some(raw) = args.raw.as_ref() {
         // rsacracker --raw

@@ -54,6 +54,7 @@ indicatif = "0.17"
 itertools = "0.13"
 discrete-logarithm = "1.0"
 base64 = "0.22"
+atty = "0.2.14"
 
 [dependencies.rug]
 version = "1"

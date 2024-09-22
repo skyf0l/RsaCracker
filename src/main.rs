@@ -1,4 +1,3 @@
-use base64::{engine::general_purpose, Engine};
 use clap::{command, Parser};
 use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
@@ -8,42 +7,14 @@ use rug::{
     integer::{IsPrime, Order},
     Integer,
 };
-use std::{sync::Arc, time::Duration};
+use std::{
+    io::{self, Read},
+    sync::Arc,
+    time::Duration,
+};
 
-use rsacracker::{integer_to_bytes, integer_to_string, Attack, Parameters, ATTACKS};
+use rsacracker::{integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, ATTACKS};
 use update_informer::{registry, Check};
-
-#[derive(Debug, Clone)]
-struct IntegerArg(Integer);
-
-impl std::str::FromStr for IntegerArg {
-    type Err = String;
-
-    fn from_str(n: &str) -> Result<Self, Self::Err> {
-        if let Some(n) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
-            Ok(Self(
-                Integer::from_str_radix(n, 16).or(Err("Invalid hex number".to_string()))?,
-            ))
-        } else if let Some(n) = n.strip_prefix("0b").or_else(|| n.strip_prefix("0B")) {
-            Ok(Self(
-                Integer::from_str_radix(n, 2).or(Err("Invalid binary number".to_string()))?,
-            ))
-        } else if let Some(n) = n.strip_prefix("0o").or_else(|| n.strip_prefix("0O")) {
-            Ok(Self(
-                Integer::from_str_radix(n, 8).or(Err("Invalid octal number".to_string()))?,
-            ))
-        } else if let Some(n) = n.strip_prefix("b64").or_else(|| n.strip_prefix("B64")) {
-            let bytes = general_purpose::STANDARD
-                .decode(n.as_bytes())
-                .or(Err("Invalid base64 number".to_string()))?;
-            Ok(Self(Integer::from_digits(&bytes, rug::integer::Order::Msf)))
-        } else {
-            Ok(Self(
-                Integer::from_str(n).or(Err("Invalid number".to_string()))?,
-            ))
-        }
-    }
-}
 
 #[derive(Debug, Clone)]
 struct AttackArg(Arc<dyn Attack + Sync + Send>);
@@ -63,6 +34,9 @@ impl std::str::FromStr for AttackArg {
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 struct Args {
+    /// Retrieve values from raw file
+    #[clap(short, long)]
+    raw: Option<String>,
     /// Cipher message: the message to uncipher.
     #[clap(short, long)]
     cipher: Option<IntegerArg>,
@@ -200,13 +174,27 @@ fn main() -> Result<(), MainError> {
         None
     };
 
+    // Parse raw
+    let mut params = if !atty::is(atty::Stream::Stdin) {
+        // Piped input
+        let mut raw = String::new();
+        io::stdin().read_to_string(&mut raw)?;
+        Parameters::from_raw(&raw)
+    } else if let Some(raw) = args.raw.as_ref() {
+        // rsacracker --raw
+        let raw = std::fs::read_to_string(raw)?;
+        Parameters::from_raw(&raw)
+    } else {
+        Parameters::default()
+    };
+
     // Check if discrete logarithm can be computed
     if args.dlog && c.is_none() {
         return Err("Discrete logarithm requires a cipher".into());
     }
 
     // Build parameters
-    let mut params = Parameters {
+    params += Parameters {
         c,
         n: args.n.map(|n| n.0),
         e: args.e.0,

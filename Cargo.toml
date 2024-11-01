@@ -36,9 +36,9 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-thiserror = "1"
-lazy_static = "1"
-clap = { version = "4", features = ["derive", "env"] }
+thiserror = "1.0"
+lazy_static = "1.5"
+clap = { version = "4.5", features = ["derive", "env"] }
 main_error = "0.1"
 primal = "0.3"
 ecm = { version = "1.0", features = ["progress-bar"] }
@@ -49,14 +49,14 @@ ssh-key = { version = "0.6", features = ["encryption"] }
 tokio = { version = "1.40", features = ["rt", "rt-multi-thread"], optional = true }
 mpsc = { version = "0.2", optional = true }
 num_cpus = { version = "1.15", optional = true }
-update-informer = "1"
+update-informer = "1.1"
 indicatif = "0.17"
 itertools = "0.13"
 discrete-logarithm = "1.0"
 base64 = "0.22"
 
 [dependencies.rug]
-version = "1"
+version = "1.26"
 default-features = false
 features = ["integer", "rand", "std"]
 

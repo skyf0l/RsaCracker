@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
   pull_request:
     branches: [main]
 
@@ -17,15 +17,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - name: Stable toolchain with rustfmt
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        components: rustfmt
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+      - uses: actions/checkout@v4
+      - name: Stable toolchain with rustfmt
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - uses: swatinem/rust-cache@v2
 
-    - name: Check coding style
-      run: cargo fmt --check --all
+      - name: Check coding style
+        run: cargo fmt --check --all
 
   clippy:
     name: Clippy
@@ -33,15 +33,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - name: Stable toolchain with clippy
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        components: clippy
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+      - uses: actions/checkout@v4
+      - name: Stable toolchain with clippy
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: swatinem/rust-cache@v2
 
-    - name: Lint
-      run: cargo clippy --all-targets  --all-features -- -D warnings
+      - name: Lint
+        run: cargo clippy --all-targets  --all-features -- -D warnings
 
   docs:
     name: Docs
@@ -51,11 +51,11 @@ jobs:
       RUSTDOCFLAGS: "-Dwarnings"
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
 
-    - run: cargo doc --no-deps
+      - run: cargo doc --no-deps
 
   tests:
     name: Tests
@@ -63,15 +63,13 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@42c270942d62c8642a0086bc5854743d9a9c510d # v2.44.17
-      with:
-        tool: cargo-nextest
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
 
-    - name: Test
-      run: cargo nextest run --all-features --lib --bins --test keys
+      - name: Test
+        run: cargo nextest run --all-features --lib --bins --test keys
 
   ctf-challenges:
     name: CTF challenges
@@ -79,15 +77,13 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@42c270942d62c8642a0086bc5854743d9a9c510d # v2.44.17
-      with:
-        tool: cargo-nextest
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest
 
-    - name: Test
-      run: cargo nextest run --release --all-features --test "ctf_*"
+      - name: Test
+        run: cargo nextest run --release --all-features --test "ctf_*"
 
   coverage:
     name: Coverage
@@ -95,23 +91,21 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - uses: dtolnay/rust-toolchain@nightly
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
-    - uses: taiki-e/install-action@42c270942d62c8642a0086bc5854743d9a9c510d # v2.44.17
-      with:
-        tool: cargo-nextest,cargo-llvm-cov
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: swatinem/rust-cache@v2
+      - uses: taiki-e/install-action@nextest,cargo-llvm-cov
 
-    - name: Tests
-      run: cargo llvm-cov nextest --lcov --output-path lcov.info --all-features --lib --bins --test keys
+      - name: Tests
+        run: cargo llvm-cov nextest --lcov --output-path lcov.info --all-features --lib --bins --test keys
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
-      with:
-        files: lcov.info
-        flags: rust
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: lcov.info
+          flags: rust
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build
@@ -123,28 +117,28 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84 # v2.7.3
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
 
-    # msys2 required by rug on windows
-    - name: Setup msys2 (windows)
-      uses: msys2/setup-msys2@ddf331adaebd714795f1042345e6ca57bd66cea8 # v2.24.1
-      if: matrix.os == 'windows-latest'
-      with:
-        install: base-devel pacman-mirrors diffutils m4 make openssl openssl-devel
-        pacboy: gcc:p rust:p
+      # msys2 required by rug on windows
+      - name: Setup msys2 (windows)
+        uses: msys2/setup-msys2@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          install: base-devel pacman-mirrors diffutils m4 make openssl openssl-devel
+          pacboy: gcc:p rust:p
 
-    # Only for windows
-    - name: Msys2 build (windows)
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      run: |
-        cargo build
+      # Only for windows
+      - name: Msys2 build (windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: |
+          cargo build
 
-    - name: Build
-      if: matrix.os != 'windows-latest'
-      run: cargo build
+      - name: Build
+        if: matrix.os != 'windows-latest'
+        run: cargo build
 
   docker-build:
     name: Docker build
@@ -155,105 +149,107 @@ jobs:
       CACHE_VERSION: v1
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+      - uses: actions/checkout@v4
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Cache
-      uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
-      id: cache
-      with:
-        path: |
-          /tmp/cache/rsacracker/target
-          /tmp/cache/cargo/registry
-        key: ${{ runner.os }}-rust-${{ env.CACHE_VERSION }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-rust-${{ env.CACHE_VERSION }}-${{ github.job }}-
+      - name: Cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: |
+            /tmp/cache/rsacracker/target
+            /tmp/cache/cargo/registry
+          key: ${{ runner.os }}-rust-${{ env.CACHE_VERSION }}-${{ github.job }}-${{ hashFiles('**/Cargo.toml', '**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rust-${{ env.CACHE_VERSION }}-${{ github.job }}-
 
-    - name: Inject cache into docker
-      uses: reproducible-containers/buildkit-cache-dance@5b6db76d1da5c8b307d5d2e0706d266521b710de # v3.1.2
-      with:
-        cache-map: |
-          {
-            "/tmp/cache/rsacracker/target": "/usr/src/rsacracker/target",
-            "/tmp/cache/cargo/registry": "/usr/local/cargo/registry"
-          }
-        skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+      - name: Inject cache into docker
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          cache-map: |
+            {
+              "/tmp/cache/rsacracker/target": "/usr/src/rsacracker/target",
+              "/tmp/cache/cargo/registry": "/usr/local/cargo/registry"
+            }
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
-    - name: Build
-      uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
-      with:
-        tags: rsacracker:test
-        outputs: type=docker
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          tags: rsacracker:test
+          outputs: type=docker
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    - name: Test the Docker image
-      run: docker run --rm -v $PWD:/data rsacracker:test -n 323 --attack small_prime --factors
+      - name: Test the Docker image
+        run: docker run --rm -v $PWD:/data rsacracker:test -n 323 --attack small_prime --factors
 
   publish-crates_io:
     name: Publish to crates.io
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    needs: [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
+    needs:
+      [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+      - name: Checkout sources
+        uses: actions/checkout@v4
 
-    - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-    - run: cargo publish --token ${CRATES_TOKEN}
-      env:
-        CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+      - run: cargo publish --token ${CRATES_TOKEN}
+        env:
+          CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
   publish-docker_hub:
     name: Publish to hub.docker.com
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
-    needs: [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
+    needs:
+      [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     env:
       IMAGE_NAME: skyf0l/rsacracker
 
     steps:
-    - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+      - uses: actions/checkout@v4
 
-    - name: Install yq
-      run: |
-        sudo wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq
-        sudo chmod +x /usr/bin/yq
-      env:
-        VERSION: v4.40.5
-        BINARY: yq_linux_amd64
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+        env:
+          VERSION: v4.40.5
+          BINARY: yq_linux_amd64
 
-    - name: Get package version
-      id: get_version
-      run: echo VERSION=$(yq ".package.version" Cargo.toml) >> $GITHUB_OUTPUT
+      - name: Get package version
+        id: get_version
+        run: echo VERSION=$(yq ".package.version" Cargo.toml) >> $GITHUB_OUTPUT
 
-    - name: Setup Docker Buildx
-      uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Setup multi-platform
-      uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3.2.0
+      - name: Setup multi-platform
+        uses: docker/setup-qemu-action@v3
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push
-      uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
-      with:
-        push: true
-        tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest
-        platforms: linux/amd64,linux/arm64
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest
+          platforms: linux/amd64,linux/arm64
 
   release:
     name: GitHub Release
@@ -264,8 +260,7 @@ jobs:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     steps:
-    - name: Create Release
-      uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
-      with:
-        make_latest: "true"
-
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: "true"

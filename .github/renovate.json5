@@ -5,6 +5,6 @@
     ":configMigration",
     ":label(dependencies)",
     ":automergeMajor",
-    "::maintainLockFilesWeekly",
+    ":maintainLockFilesWeekly",
   ],
 }

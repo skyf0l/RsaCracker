@@ -5,6 +5,7 @@ use lazy_static::lazy_static;
 mod brent;
 mod cunningham_chain;
 mod ecm;
+mod factordb;
 mod fermat;
 mod hart;
 mod known_factors;
@@ -23,6 +24,7 @@ mod twin_prime;
 pub use self::ecm::EcmAttack;
 pub use brent::BrentAttack;
 pub use cunningham_chain::CunninghamChainAttack;
+pub use factordb::FactorDbAttack;
 pub use fermat::FermatAttack;
 pub use hart::HartAttack;
 pub use known_factors::KnownFactorsAttack;
@@ -45,6 +47,7 @@ lazy_static! {
         Arc::new(BrentAttack),
         Arc::new(CunninghamChainAttack),
         Arc::new(EcmAttack),
+        Arc::new(FactorDbAttack),
         Arc::new(FermatAttack),
         Arc::new(HartAttack),
         Arc::new(KnownFactorsAttack),

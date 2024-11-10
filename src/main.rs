@@ -37,12 +37,13 @@ struct Args {
     /// Retrieve values from raw file
     #[clap(short, long)]
     raw: Option<String>,
-    /// Cipher message: the message to uncipher.
+    /// Cipher: the message to uncipher.
     #[clap(short, long)]
     cipher: Option<IntegerArg>,
-    /// Cipher message file: the file to uncipher.
+    /// Cipher file: the file to uncipher.
     #[clap(short = 'f', long)]
     cipherfile: Option<std::path::PathBuf>,
+    /// Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
     #[clap(short = 'o', long)]
     outfile: Option<std::path::PathBuf>,
     /// Modulus.
@@ -142,6 +143,37 @@ fn display_unciphered_data(uncipher: &Integer) {
     }
 }
 
+fn display_or_output(
+    uncipher: &Integer,
+    outfile: &Option<std::path::PathBuf>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if let Some(outfile) = outfile {
+        println!(
+            "Write unciphered data to file: {}",
+            outfile.to_string_lossy()
+        );
+        std::fs::write(outfile, integer_to_bytes(&uncipher))?;
+    } else {
+        println!("Unciphered data:");
+        display_unciphered_data(&uncipher);
+    }
+
+    Ok(())
+}
+
+/// Add a suffix to the file path, before the extension.
+fn suffix_path(path: &std::path::PathBuf, suffix: &str) -> std::path::PathBuf {
+    let mut path = path.clone();
+    if let Some(ext) = path.extension() {
+        let ext = ext.to_str().unwrap();
+        let stem = path.file_stem().unwrap().to_str().unwrap();
+        path.set_file_name(format!("{}{}.{}", stem, suffix, ext));
+    } else {
+        path.set_file_name(format!("{}{}", path.to_string_lossy(), suffix));
+    }
+    path
+}
+
 fn main() -> Result<(), MainError> {
     let pkg_name = env!("CARGO_PKG_NAME");
     let current_version = env!("CARGO_PKG_VERSION");
@@ -191,11 +223,6 @@ fn main() -> Result<(), MainError> {
         Parameters::default()
     };
 
-    // Check if discrete logarithm can be computed
-    if args.dlog && c.is_none() {
-        return Err("Discrete logarithm requires a cipher".into());
-    }
-
     // Build parameters
     params += Parameters {
         c,
@@ -224,6 +251,11 @@ fn main() -> Result<(), MainError> {
     if args.showinputs {
         println!("{params}");
         return Ok(());
+    }
+
+    // Check if discrete logarithm can be computed
+    if args.dlog && params.c.is_none() {
+        return Err("Discrete logarithm requires a cipher".into());
     }
 
     // Print public key
@@ -348,12 +380,7 @@ fn main() -> Result<(), MainError> {
 
     // Print unciphered data
     if let Some(uncipher) = solution.m {
-        println!("Unciphered data:");
-        display_unciphered_data(&uncipher);
-
-        if let Some(outfile) = args.outfile {
-            std::fs::write(outfile, integer_to_bytes(&uncipher))?;
-        }
+        display_or_output(&uncipher, &args.outfile)?;
 
         // Print discrete logarithm
         if args.dlog {
@@ -365,7 +392,7 @@ fn main() -> Result<(), MainError> {
                     &pk.e,
                     &pk.factors.to_hash_map(),
                 ) {
-                    display_unciphered_data(&dlog);
+                    display_or_output(&dlog, &args.outfile.map(|f| suffix_path(&f, "_dlog")))?;
                 } else {
                     return Err("Discrete logarithm failed".into());
                 }
@@ -374,13 +401,18 @@ fn main() -> Result<(), MainError> {
             }
         }
     }
-
     // Print multiple unciphered data
-    if !solution.ms.is_empty() {
+    else if !solution.ms.is_empty() {
         println!("Multiple unciphered data found:");
-        for uncipher in solution.ms {
+        for (uncipher, i) in solution.ms.iter().zip(1..) {
             println!();
-            display_unciphered_data(&uncipher);
+            display_or_output(
+                uncipher,
+                &args
+                    .outfile
+                    .clone()
+                    .map(|f| suffix_path(&f, &format!("_{i}"))),
+            )?;
         }
     }
 

@@ -28,8 +28,9 @@ Usage: rsacracker [OPTIONS]
 
 Options:
   -r, --raw <RAW>                  Retrieve values from raw file
-  -c, --cipher <CIPHER>            Cipher message: the message to uncipher
-  -f, --cipherfile <CIPHERFILE>    Cipher message file: the file to uncipher
+  -c, --cipher <CIPHER>            Cipher: the message to uncipher
+  -f, --cipherfile <CIPHERFILE>    Cipher file: the file to uncipher
+  -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus
   -e <E>                           Public exponent. Default: 65537 [default: 65537]
   -p <P>                           Prime number p
@@ -74,10 +75,10 @@ e= 1595235523[...]6275096193
 
 ## Examples
 
-### Uncipher a message from a public key
+### Uncipher a message from a public key and write it to a file
 
 ```console
-rsacracker --key public.pem -c 0xdeadbeef
+rsacracker --key public.pem -c 0xdeadbeef -o result.txt
 ```
 
 ### Uncipher a message from n and e

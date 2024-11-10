@@ -1745,7 +1745,7 @@ dependencies = [
 
 [[package]]
 name = "rsacracker"
-version = "0.6.10"
+version = "0.6.11"
 dependencies = [
  "base-x",
  "base64 0.22.1",

@@ -96,13 +96,13 @@ struct Args {
     addpassword: Option<String>,
     /// Print all the input parameters.
     #[clap(long)]
-    dump: bool,
+    showinputs: bool,
     /// Print the private RSA key variables n, e, p, q and d.
     #[clap(long)]
-    dumpkey: bool,
+    dump: bool,
     /// Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv.
     #[clap(long)]
-    dumpextkey: bool,
+    dumpext: bool,
     /// Print all factors of n.
     #[clap(long)]
     factors: bool,
@@ -219,7 +219,7 @@ fn main() -> Result<(), MainError> {
             .ok_or("Invalid key")?;
     };
 
-    if args.dump {
+    if args.showinputs {
         println!("{params}");
         return Ok(());
     }
@@ -309,12 +309,12 @@ fn main() -> Result<(), MainError> {
     }
 
     // Print private key
-    if args.private || args.dumpkey || args.dumpextkey {
+    if args.private || args.dump || args.dumpext {
         if let Some(private_key) = &solution.pk {
             if args.private {
                 print!("{}", private_key.to_pem(&args.addpassword).unwrap());
             }
-            if args.dumpkey || args.dumpextkey {
+            if args.dump || args.dumpext {
                 println!("Private key:");
                 println!("n = {}", private_key.n);
                 println!("e = {}", private_key.e);
@@ -330,7 +330,7 @@ fn main() -> Result<(), MainError> {
                 }
                 println!("d = {}", private_key.d);
             }
-            if args.dumpextkey {
+            if args.dumpext {
                 println!("Extended private key:");
                 println!("phi = {}", private_key.phi());
                 println!("dP = {}", private_key.dp());

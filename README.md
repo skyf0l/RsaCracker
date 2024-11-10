@@ -47,9 +47,9 @@ Options:
       --public                     Print the public key in PEM format
       --private                    Print the private key in PEM format
       --addpassword <ADDPASSWORD>  Add a password/passphrase to the private key
-      --dump                       Print all the input parameters
-      --dumpkey                    Print the private RSA key variables n, e, p, q and d
-      --dumpextkey                 Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv
+      --showinputs                 Print all the input parameters
+      --dump                       Print the private RSA key variables n, e, p, q and d
+      --dumpext                    Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv
       --factors                    Print all factors of n
   -t, --threads <THREADS>          Number of threads to use. Default: number of CPUs [default: 12]
   -a, --attack <ATTACK>            Specify attacks to run. Default: all. (e.g. --attacks ecm,wiener,sparse)
@@ -62,7 +62,7 @@ Options:
 You can also use a dump as input:
 
 ```console
-$ rsacracker [OPTIONS] < challenge.txt
+rsacracker [OPTIONS] < challenge.txt
 [RESULTS]
 $ cat challenge.txt | rsacracker [OPTIONS]
 [RESULTS]
@@ -77,74 +77,74 @@ e= 1595235523[...]6275096193
 ### Uncipher a message from a public key
 
 ```console
-$ rsacracker --key public.pem -c 0xdeadbeef
+rsacracker --key public.pem -c 0xdeadbeef
 ```
 
 ### Uncipher a message from n and e
 
 ```console
-$ rsacracker -c 0xdeadbeef -n 123...789 -e 65537
+rsacracker -c 0xdeadbeef -n 123...789 -e 65537
 ```
 
 ### Uncipher a message from n, e and other known values
 
 ```console
-$ rsacracker -c 0xdeadbeef -n 123...789 -e 65537 --phi 123 --dp 123 --dq 123 --qinv 123 --pinv 123
+rsacracker -c 0xdeadbeef -n 123...789 -e 65537 --phi 123 --dp 123 --dq 123 --qinv 123 --pinv 123
 ```
 
 ### Uncipher a file from a public key
 
 ```console
-$ rsacracker --key public.pem -f secret.txt.enc
+rsacracker --key public.pem -f secret.txt.enc
 ```
 
 ### Run a specific attack with arguments
 
 ```console
-$ rsacracker --attack known_phi -n 123...789 -e 65537 --phi 0xdeadbeef
+rsacracker --attack known_phi -n 123...789 -e 65537 --phi 0xdeadbeef
 ```
 
 ### Generate a private key from a public key
 
 ```console
-$ rsacracker --key public.pem --private
+rsacracker --key public.pem --private
 ```
 
 ### Generate a public key from e and n
 
 ```console
-$ rsacracker -e 65537 -n 0xdeadbeef --public
+rsacracker -e 65537 -n 0xdeadbeef --public
 ```
 
 ### Dump private key secrets
 
 ```console
-$ rsacracker --key private.pem --dumpkey
-$ rsacracker --key private.pem --dumpextkey
+rsacracker --key private.pem --dump
+$ rsacracker --key private.pem --dumpext
 ```
 
 ### Remove password from a private key
 
 ```console
-$ rsacracker --key private.pem --password R54Cr4ck3R --private
+rsacracker --key private.pem --password R54Cr4ck3R --private
 ```
 
 ### Add password to a private key
 
 ```console
-$ rsacracker --key private.pem --addpassword R54Cr4ck3R --private
+rsacracker --key private.pem --addpassword R54Cr4ck3R --private
 ```
 
 ### Show all factors of n
 
 ```console
-$ rsacracker -n 123...789 --factors
+rsacracker -n 123...789 --factors
 ```
 
 ### Run discrete logarithm attack: when c and e are swapped in the RSA encryption formula (e^c mod n)
 
 ```console
-$ rsacracker --key public.pem -c 0xdeadbeef --dlog
+rsacracker --key public.pem -c 0xdeadbeef --dlog
 ```
 
 ## Docker

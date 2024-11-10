@@ -18,12 +18,21 @@ impl Factors {
             .product()
     }
 
-    /// Returns the totient of the factors.
+    /// Returns the Euler totient of the factors.
+    ///
+    /// Note:
+    /// - phi(a*b) = phi(a) * phi(b)
+    /// - phi(p^k) = (p-1) * p^(k-1)
     pub fn phi(&self) -> Integer {
+        self.phis().into_iter().product()
+    }
+
+    /// Returns the Euler totient of each unique factor (phi(p^k)).
+    pub fn phis(&self) -> Vec<Integer> {
         self.0
             .iter()
-            .map(|(f, p)| (f.clone() - 1u64).pow(*p as u32))
-            .product()
+            .map(|(f, p)| (f.clone()).pow(*p as u32 - 1u32) * (f.clone() - 1))
+            .collect()
     }
 
     /// Returns unique factors.

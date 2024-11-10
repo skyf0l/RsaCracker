@@ -55,6 +55,7 @@ itertools = "0.13"
 discrete-logarithm = "1.0"
 base64 = "0.22"
 factordb = { version = "0.3.0", features = ["blocking"] }
+rayon = "1.10.0"
 
 [dependencies.rug]
 version = "1.26"

@@ -152,18 +152,18 @@ fn display_or_output(
             "Write unciphered data to file: {}",
             outfile.to_string_lossy()
         );
-        std::fs::write(outfile, integer_to_bytes(&uncipher))?;
+        std::fs::write(outfile, integer_to_bytes(uncipher))?;
     } else {
         println!("Unciphered data:");
-        display_unciphered_data(&uncipher);
+        display_unciphered_data(uncipher);
     }
 
     Ok(())
 }
 
 /// Add a suffix to the file path, before the extension.
-fn suffix_path(path: &std::path::PathBuf, suffix: &str) -> std::path::PathBuf {
-    let mut path = path.clone();
+fn suffix_path(path: &std::path::Path, suffix: &str) -> std::path::PathBuf {
+    let mut path = path.to_path_buf();
     if let Some(ext) = path.extension() {
         let ext = ext.to_str().unwrap();
         let stem = path.file_stem().unwrap().to_str().unwrap();

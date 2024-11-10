@@ -43,6 +43,8 @@ struct Args {
     /// Cipher message file: the file to uncipher.
     #[clap(short = 'f', long)]
     cipherfile: Option<std::path::PathBuf>,
+    #[clap(short = 'o', long)]
+    outfile: Option<std::path::PathBuf>,
     /// Modulus.
     #[clap(short)]
     n: Option<IntegerArg>,
@@ -348,6 +350,10 @@ fn main() -> Result<(), MainError> {
     if let Some(uncipher) = solution.m {
         println!("Unciphered data:");
         display_unciphered_data(&uncipher);
+
+        if let Some(outfile) = args.outfile {
+            std::fs::write(outfile, integer_to_bytes(&uncipher))?;
+        }
 
         // Print discrete logarithm
         if args.dlog {

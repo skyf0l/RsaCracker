@@ -58,7 +58,7 @@ impl Attack for GaaAttack {
                     if p.clone() * &q == *n {
                         return Ok(Solution::new_pk(
                             self.name(),
-                            PrivateKey::from_p_q(p, q, e.clone())?,
+                            PrivateKey::from_p_q(p, q, e)?,
                         ));
                     }
                 }
@@ -68,7 +68,7 @@ impl Attack for GaaAttack {
                     if p.clone() * &q == *n {
                         return Ok(Solution::new_pk(
                             self.name(),
-                            PrivateKey::from_p_q(p, q, e.clone())?,
+                            PrivateKey::from_p_q(p, q, e)?,
                         ));
                     }
                 }

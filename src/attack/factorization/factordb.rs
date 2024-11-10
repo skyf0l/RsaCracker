@@ -43,7 +43,7 @@ impl Attack for FactorDbAttack {
 
         Ok(Solution::new_pk(
             self.name(),
-            PrivateKey::from_factors(factors, e.clone())?,
+            PrivateKey::from_factors(factors, e)?,
         ))
     }
 }

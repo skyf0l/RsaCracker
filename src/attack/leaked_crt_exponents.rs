@@ -65,7 +65,7 @@ impl Attack for LeakedCrtExponentsAttack {
                                 {
                                     return Ok(Solution::new_pk(
                                         self.name(),
-                                        PrivateKey::from_p_q(p, q, e.into())?,
+                                        PrivateKey::from_p_q(p, q, e)?,
                                     ));
                                 }
                             }

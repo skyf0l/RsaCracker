@@ -36,7 +36,7 @@ impl Attack for LeakedPQAttack {
 
             Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_p_q(p.clone(), q.clone(), e.clone())?,
+                PrivateKey::from_p_q(p, q, e)?,
             ))
         } else if let (Some(p), Some(n)) = (p, n) {
             let q = match n.div_rem_ref(p).complete() {
@@ -45,7 +45,7 @@ impl Attack for LeakedPQAttack {
             };
             Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_p_q(p.clone(), q, e.clone())?,
+                PrivateKey::from_p_q(p, q, e)?,
             ))
         } else if let (Some(q), Some(n)) = (q, n) {
             let p = match n.div_rem_ref(q).complete() {
@@ -54,7 +54,7 @@ impl Attack for LeakedPQAttack {
             };
             Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_p_q(p, q.clone(), e.clone())?,
+                PrivateKey::from_p_q(p, q, e)?,
             ))
         } else {
             Err(Error::MissingParameters)

@@ -123,8 +123,9 @@ impl Index<usize> for Factors {
     }
 }
 
-impl From<BTreeMap<Integer, usize>> for Factors {
-    fn from(factors: BTreeMap<Integer, usize>) -> Self {
+impl<T: Clone + Into<Integer>> From<BTreeMap<T, usize>> for Factors {
+    fn from(factors: BTreeMap<T, usize>) -> Self {
+        let factors = factors.into_iter().map(|(k, v)| (k.into(), v)).collect();
         let mut factors = Self(factors);
 
         factors.optimize();
@@ -132,36 +133,36 @@ impl From<BTreeMap<Integer, usize>> for Factors {
     }
 }
 
-impl From<HashMap<Integer, usize>> for Factors {
-    fn from(factors: HashMap<Integer, usize>) -> Self {
+impl<T: Clone + Into<Integer> + Ord> From<HashMap<T, usize>> for Factors {
+    fn from(factors: HashMap<T, usize>) -> Self {
         Self::from(factors.into_iter().collect::<BTreeMap<_, _>>())
     }
 }
 
-impl From<&[Integer]> for Factors {
-    fn from(factors: &[Integer]) -> Self {
+impl<T: Clone + Into<Integer>> From<&[T]> for Factors {
+    fn from(factors: &[T]) -> Self {
         let mut map = HashMap::new();
         for factor in factors {
-            *map.entry(factor.clone()).or_insert(0) += 1;
+            *map.entry(factor.clone().into()).or_insert(0) += 1;
         }
         Self::from(map)
     }
 }
 
-impl<const N: usize> From<&[rug::Integer; N]> for Factors {
-    fn from(factors: &[rug::Integer; N]) -> Self {
-        Self::from(factors as &[rug::Integer])
+impl<T: Clone + Into<Integer>, const N: usize> From<&[T; N]> for Factors {
+    fn from(factors: &[T; N]) -> Self {
+        Self::from(factors as &[T])
     }
 }
 
-impl<const N: usize> From<[rug::Integer; N]> for Factors {
-    fn from(factors: [rug::Integer; N]) -> Self {
+impl<T: Clone + Into<Integer>, const N: usize> From<[T; N]> for Factors {
+    fn from(factors: [T; N]) -> Self {
         Self::from(&factors)
     }
 }
 
-impl From<Vec<Integer>> for Factors {
-    fn from(factors: Vec<Integer>) -> Self {
+impl<T: Clone + Into<Integer>> From<Vec<T>> for Factors {
+    fn from(factors: Vec<T>) -> Self {
         Self::from(factors.as_slice())
     }
 }
@@ -198,67 +199,47 @@ mod tests {
 
     #[test]
     fn optimize_1() {
-        let mut factors = Factors::from(HashMap::from([(2.into(), 3), (8.into(), 9)]));
+        let mut factors = Factors::from(HashMap::from([(2, 3), (8, 9)]));
 
         factors.optimize();
-        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+        assert_eq!(factors, Factors::from(HashMap::from([(2, 30)])));
     }
 
     #[test]
     fn optimize_2() {
-        let mut factors =
-            Factors::from(HashMap::from([(2.into(), 1), (4.into(), 1), (8.into(), 9)]));
+        let mut factors = Factors::from(HashMap::from([(2, 1), (4, 1), (8, 9)]));
 
         factors.optimize();
-        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+        assert_eq!(factors, Factors::from(HashMap::from([(2, 30)])));
     }
 
     #[test]
     fn merge() {
-        let mut factors = Factors::from([30555.into()]);
+        let mut factors = Factors::from([30555]);
 
-        factors.merge(&Factors::from([5.into(), 6111.into()]));
-        assert_eq!(factors, Factors::from([5.into(), 6111.into()]));
-        factors.merge(&Factors::from([7.into(), 4365.into()]));
-        assert_eq!(factors, Factors::from([5.into(), 7.into(), 873.into()]));
-        factors.merge(&Factors::from([3.into(), 7.into(), 1455.into()]));
-        assert_eq!(
-            factors,
-            Factors::from([3.into(), 3.into(), 5.into(), 7.into(), 97.into()])
-        );
-        factors.merge(&Factors::from([
-            3.into(),
-            3.into(),
-            5.into(),
-            7.into(),
-            97.into(),
-        ]));
-        assert_eq!(
-            factors,
-            Factors::from([3.into(), 3.into(), 5.into(), 7.into(), 97.into()])
-        );
+        factors.merge(&Factors::from([5, 6111]));
+        assert_eq!(factors, Factors::from([5, 6111]));
+        factors.merge(&Factors::from([7, 4365]));
+        assert_eq!(factors, Factors::from([5, 7, 873]));
+        factors.merge(&Factors::from([3, 7, 1455]));
+        assert_eq!(factors, Factors::from([3, 3, 5, 7, 97]));
+        factors.merge(&Factors::from([3, 3, 5, 7, 97]));
+        assert_eq!(factors, Factors::from([3, 3, 5, 7, 97]));
     }
 
     #[test]
     fn multiple_merge_1() {
-        let mut factors = Factors::from(HashMap::from([(8.into(), 10)]));
+        let mut factors = Factors::from(HashMap::from([(8, 10)]));
 
-        factors.merge(&Factors::from(HashMap::from([
-            (2.into(), 3),
-            (8.into(), 9),
-        ])));
-        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+        factors.merge(&Factors::from(HashMap::from([(2, 3), (8, 9)])));
+        assert_eq!(factors, Factors::from(HashMap::from([(2, 30)])));
     }
 
     #[test]
     fn multiple_merge_2() {
-        let mut factors = Factors::from(HashMap::from([(8.into(), 10)]));
+        let mut factors = Factors::from(HashMap::from([(8, 10)]));
 
-        factors.merge(&Factors::from(HashMap::from([
-            (2.into(), 1),
-            (4.into(), 1),
-            (8.into(), 9),
-        ])));
-        assert_eq!(factors, Factors::from(HashMap::from([(2.into(), 30)])));
+        factors.merge(&Factors::from(HashMap::from([(2, 1), (4, 1), (8, 9)])));
+        assert_eq!(factors, Factors::from(HashMap::from([(2, 30)])));
     }
 }

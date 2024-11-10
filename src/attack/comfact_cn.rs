@@ -1,4 +1,5 @@
 use indicatif::ProgressBar;
+use rug::Integer;
 
 use crate::{key::PrivateKey, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
@@ -26,14 +27,14 @@ impl Attack for ComfactCnAttack {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
         let c = params.c.as_ref().ok_or(Error::MissingParameters)?;
 
-        let p = c.gcd_ref(n).into();
+        let p = Integer::from(c.gcd_ref(n));
 
         if p != 1 {
             let q = n.clone() / &p;
 
             Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_factors(&[p, q], e.clone())?,
+                PrivateKey::from_p_q(p, q, e)?,
             ))
         } else {
             Err(Error::NotFound)

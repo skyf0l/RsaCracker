@@ -32,13 +32,21 @@ pub struct PrivateKey {
 
 impl PrivateKey {
     /// Create private key from p and q
-    pub fn from_p_q(p: Integer, q: Integer, e: Integer) -> Result<Self, KeyError> {
-        Self::from_factors([p, q], e)
+    pub fn from_p_q(
+        p: impl Into<Integer>,
+        q: impl Into<Integer>,
+        e: impl Into<Integer>,
+    ) -> Result<Self, KeyError> {
+        Self::from_factors([Into::<Integer>::into(p), Into::<Integer>::into(q)], e)
     }
 
     /// Create private key from multiple factors
-    pub fn from_factors(factors: impl Into<Factors>, e: Integer) -> Result<Self, KeyError> {
+    pub fn from_factors(
+        factors: impl Into<Factors>,
+        e: impl Into<Integer>,
+    ) -> Result<Self, KeyError> {
         let factors = Into::<Factors>::into(factors);
+        let e = Into::<Integer>::into(e);
 
         // Check if factors are prime numbers
         if factors

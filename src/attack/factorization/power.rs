@@ -34,7 +34,7 @@ impl Attack for PowerAttack {
             let factors = HashMap::from([(root, power as usize)]);
             return Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_factors(factors, e.clone())?,
+                PrivateKey::from_factors(factors, e)?,
             ));
         }
 

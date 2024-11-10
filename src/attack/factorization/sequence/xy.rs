@@ -61,7 +61,7 @@ impl Attack for XYGcdAttack {
             if let Some((p, q)) = factor_xy(n, base) {
                 return Ok(Solution::new_pk(
                     self.name(),
-                    PrivateKey::from_p_q(p, q, e.clone())?,
+                    PrivateKey::from_p_q(p, q, e)?,
                 ));
             }
 

@@ -46,7 +46,7 @@ impl Attack for SparseAttack {
                         let q = Integer::from(n / &root);
                         return Ok(Solution::new_pk(
                             self.name(),
-                            PrivateKey::from_p_q(root, q, e.clone())?,
+                            PrivateKey::from_p_q(root, q, e)?,
                         ));
                     }
                 }

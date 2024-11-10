@@ -55,7 +55,7 @@ impl Attack for SmallPrimeAttack {
 
             return Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_factors(factors, e.clone())?,
+                PrivateKey::from_factors(factors, e)?,
             ));
         }
 
@@ -87,17 +87,8 @@ mod tests {
 
     #[test]
     fn many_factors() {
-        let factors = Factors::from(vec![
-            38921.into(),
-            18041.into(),
-            55619.into(),
-            89561.into(),
-            84389.into(),
-            81563.into(),
-            90107.into(),
-            70067.into(),
-            36677.into(),
-            65413.into(),
+        let factors = Factors::from([
+            38921, 18041, 55619, 89561, 84389, 81563, 90107, 70067, 36677, 65413,
         ]);
 
         let params = Parameters {

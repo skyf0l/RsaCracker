@@ -53,7 +53,7 @@ impl Attack for WienerAttack {
                         if let Some((p, q)) = trivial_factorization_with_n_phi(n, &phi) {
                             return Ok(Solution::new_pk(
                                 self.name(),
-                                PrivateKey::from_p_q(p, q, e.clone())?,
+                                PrivateKey::from_p_q(p, q, e)?,
                             ));
                         }
                     }

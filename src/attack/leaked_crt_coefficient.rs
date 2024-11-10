@@ -61,14 +61,14 @@ impl Attack for LeakedCrtCoefficientAttack {
             let (p, q) = find_p_q_from_phi(phi, qinv, pinv).ok_or(Error::NotFound)?;
             return Ok(Solution::new_pk(
                 self.name(),
-                PrivateKey::from_p_q(p, q, e.clone())?,
+                PrivateKey::from_p_q(p, q, e)?,
             ));
         } else if let Some(d) = params.d.as_ref() {
             for phi in find_phi(e, d) {
                 if let Some((p, q)) = find_p_q_from_phi(&phi, qinv, pinv) {
                     return Ok(Solution::new_pk(
                         self.name(),
-                        PrivateKey::from_p_q(p, q, e.clone())?,
+                        PrivateKey::from_p_q(p, q, e)?,
                     ));
                 }
             }

@@ -77,7 +77,7 @@ impl Attack for KnownFactorsAttack {
             if rem == Integer::ZERO {
                 return Ok(Solution::new_pk(
                     self.name(),
-                    PrivateKey::from_p_q(factor.clone(), q, e.clone())?,
+                    PrivateKey::from_p_q(factor, q, e)?,
                 ));
             }
         }

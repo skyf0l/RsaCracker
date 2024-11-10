@@ -398,7 +398,7 @@ impl Attack for CunninghamChainAttack {
                     let q = n.clone() / &p;
                     return Ok(Solution::new_pk(
                         self.name(),
-                        PrivateKey::from_factors(&[p, q], e.clone())?,
+                        PrivateKey::from_p_q(p, q, e)?,
                     ));
                 }
             }

@@ -110,7 +110,6 @@ struct Args {
     #[clap(long)]
     factors: bool,
     /// Number of threads to use. Default: number of CPUs
-    #[cfg(feature = "parallel")]
     #[clap(short, long, default_value_t = num_cpus::get())]
     threads: usize,
     /// Specify attacks to run. Default: all. (e.g. --attacks ecm,wiener,sparse)
@@ -301,10 +300,7 @@ fn main() -> Result<(), MainError> {
         .collect::<Vec<_>>();
 
     // Run attacks
-    #[cfg(feature = "parallel")]
-    let res = rsacracker::run_parallel_attacks(&params, &attacks, args.threads);
-    #[cfg(not(feature = "parallel"))]
-    let res = rsacracker::run_sequence_attacks(&params, &attacks);
+    let res = rsacracker::run_specific_attacks_with_threads(&params, &attacks, args.threads);
     let solution = match res {
         Ok(solution) => solution,
         Err(partial_factors) => {

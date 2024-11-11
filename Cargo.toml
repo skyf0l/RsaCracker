@@ -21,10 +21,6 @@ members = [
   "tools/gen_keys",
 ]
 
-[features]
-default = ["parallel"]
-parallel = ["tokio", "mpsc", "num_cpus"]
-
 [profile.dev]
 opt-level = 1
 
@@ -46,9 +42,9 @@ openssl = "0.10"
 base-x = "0.2"
 display_bytes = "0.2"
 ssh-key = { version = "0.6", features = ["encryption"] }
-tokio = { version = "1.40", features = ["rt", "rt-multi-thread"], optional = true }
-mpsc = { version = "0.2", optional = true }
-num_cpus = { version = "1.15", optional = true }
+tokio = { version = "1.40", features = ["rt", "rt-multi-thread"] }
+mpsc = "0.2"
+num_cpus = "1.15"
 update-informer = "1.1"
 indicatif = "0.17"
 itertools = "0.13"

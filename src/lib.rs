@@ -8,9 +8,7 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rug::integer::IsPrime;
 use rug::Integer;
 use std::cell::RefCell;
-#[cfg(feature = "parallel")]
 use std::sync::mpsc;
-#[cfg(feature = "parallel")]
 use std::sync::Arc;
 
 mod attack;
@@ -66,31 +64,6 @@ pub fn run_attack(
     Ok(solution)
 }
 
-/// Run all attacks.
-///
-/// When the `parallel` feature is enabled, this function will run all attacks in parallel using all available CPU cores.
-/// Else, it will run all attacks in sequence (single-threaded).
-pub fn run_attacks(params: &Parameters) -> Result<Solution, Option<Factors>> {
-    #[cfg(feature = "parallel")]
-    return run_parallel_attacks(params, &ATTACKS, num_cpus::get());
-    #[cfg(not(feature = "parallel"))]
-    run_sequence_attacks(params, &ATTACKS)
-}
-
-/// Run specific attacks.
-///
-/// When the `parallel` feature is enabled, this function will run all attacks in parallel using all available CPU cores.
-/// Else, it will run all attacks in sequence (single-threaded).
-pub fn run_specific_attacks(
-    params: &Parameters,
-    attacks: &[Arc<dyn Attack + Sync + Send>],
-) -> Result<Solution, Option<Factors>> {
-    #[cfg(feature = "parallel")]
-    return run_parallel_attacks(params, attacks, num_cpus::get());
-    #[cfg(not(feature = "parallel"))]
-    run_sequence_attacks(params, attacks)
-}
-
 fn check_n_prime(n: &Option<Integer>) -> bool {
     if let Some(n) = &n {
         match n.is_probably_prime(100) {
@@ -133,54 +106,6 @@ fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
     pb
 }
 
-/// Run all attacks in sequence, from fastest to slowest (single-threaded)
-pub fn run_sequence_attacks(
-    params: &Parameters,
-    attacks: &[Arc<dyn Attack + Sync + Send>],
-) -> Result<Solution, Option<Factors>> {
-    if check_n_prime(&params.n) {
-        return Err(None);
-    }
-
-    let mut partial_factors: Option<Factors> = None;
-    let (mp, pb_main) = create_multi_progress(attacks.len());
-    for attack in attacks.iter() {
-        match if attack.speed() == AttackSpeed::Fast {
-            // No progress bar for fast attacks
-            run_attack(attack.clone(), params, None)
-        } else {
-            let pb = create_progress_bar(&mp);
-            run_attack(attack.clone(), params, Some(&pb))
-        } {
-            Ok(solution) => return Ok(solution),
-            Err(Error::PartialFactorization(factor)) => {
-                if let Some(partial_factors) = &mut partial_factors {
-                    partial_factors.merge(&factor);
-                } else {
-                    partial_factors = Some(factor);
-                }
-
-                // Try to create a private key from the partial factors
-                if let Ok(private_key) = PrivateKey::from_factors(
-                    partial_factors.as_ref().unwrap().clone(),
-                    params.e.clone(),
-                ) {
-                    return Ok(Solution::new_pk("Partial factors", private_key));
-                }
-                pb_main.set_message(format!(
-                    "({} factors found) ",
-                    partial_factors.as_ref().unwrap().len()
-                ));
-            }
-            _ => {}
-        }
-        pb_main.inc(1);
-    }
-
-    Err(partial_factors)
-}
-
-#[cfg(feature = "parallel")]
 async fn _run_parallel_attacks<'a>(
     params: Arc<Parameters>,
     attacks: &[Arc<dyn Attack + Sync + Send>],
@@ -220,19 +145,35 @@ async fn _run_parallel_attacks<'a>(
     }
 }
 
-/// Run all attacks in parallel, from fastest to slowest (multi-threaded)
-#[cfg(feature = "parallel")]
-pub fn run_parallel_attacks(
+/// Run all attacks on all available CPU cores.
+pub fn run_attacks(params: &Parameters) -> Result<Solution, Option<Factors>> {
+    run_specific_attacks_with_threads(params, &ATTACKS, num_cpus::get())
+}
+
+/// Run specific attacks on all available CPU cores.
+pub fn run_specific_attacks(
+    params: &Parameters,
+    attacks: &[Arc<dyn Attack + Sync + Send>],
+) -> Result<Solution, Option<Factors>> {
+    run_specific_attacks_with_threads(params, attacks, num_cpus::get())
+}
+
+/// Run all attacks on a given number of threads.
+pub fn run_attacks_with_threads(
+    params: &Parameters,
+    threads: usize,
+) -> Result<Solution, Option<Factors>> {
+    run_specific_attacks_with_threads(params, &ATTACKS, threads)
+}
+
+/// Run specific attacks on a given number of threads.
+pub fn run_specific_attacks_with_threads(
     params: &Parameters,
     attacks: &[Arc<dyn Attack + Sync + Send>],
     threads: usize,
 ) -> Result<Solution, Option<Factors>> {
     if check_n_prime(&params.n) {
         return Err(None);
-    }
-
-    if threads <= 1 {
-        return run_sequence_attacks(params, attacks);
     }
 
     // User for key build from partial factors
@@ -270,10 +211,9 @@ pub fn run_parallel_attacks(
                 }
 
                 // Try to create a private key from the partial factors
-                if let Ok(private_key) = PrivateKey::from_factors(
-                    partial_factors.as_ref().unwrap().clone(),
-                    param_e.clone(),
-                ) {
+                if let Ok(private_key) =
+                    PrivateKey::from_factors(partial_factors.as_ref().unwrap().clone(), &param_e)
+                {
                     break Some(Solution::new_pk("Partial factors", private_key));
                 }
                 pb_main.set_message(format!(

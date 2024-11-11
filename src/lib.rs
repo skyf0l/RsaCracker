@@ -24,26 +24,7 @@ pub use factors::*;
 pub use key::*;
 pub use params::*;
 pub use solution::*;
-
-/// Convert a `rug::Integer` to a byte vector.
-pub fn integer_to_bytes(i: &Integer) -> Vec<u8> {
-    base_x::decode("0123456789", &i.to_string()).unwrap()
-}
-
-/// Convert a `rug::Integer` to a string.
-pub fn integer_to_string(i: &Integer) -> Option<String> {
-    String::from_utf8(integer_to_bytes(i)).ok()
-}
-
-/// Convert a byte vector to a `rug::Integer`.
-pub fn bytes_to_integer(bytes: &[u8]) -> Integer {
-    Integer::from_str_radix(&base_x::encode("0123456789", bytes), 10).unwrap()
-}
-
-/// Convert a string to a `rug::Integer`.
-pub fn string_to_integer(s: &str) -> Integer {
-    bytes_to_integer(s.as_bytes())
-}
+pub use utils::{bytes_to_integer, integer_to_bytes, integer_to_string, string_to_integer};
 
 /// Run a single attack.
 pub fn run_attack(

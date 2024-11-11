@@ -1,8 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![deny(rust_2018_idioms)]
 #![warn(missing_docs)]
-// Clippy lints
-#![allow(clippy::assigning_clones)]
 
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use rug::integer::IsPrime;
@@ -25,25 +23,6 @@ pub use key::*;
 pub use params::*;
 pub use solution::*;
 pub use utils::{bytes_to_integer, integer_to_bytes, integer_to_string, string_to_integer};
-
-/// Run a single attack.
-pub fn run_attack(
-    attack: Arc<dyn Attack + Sync + Send>,
-    params: &Parameters,
-    pb: Option<&ProgressBar>,
-) -> Result<Solution, Error> {
-    if let Some(pb) = pb {
-        pb.set_prefix(attack.name());
-    }
-
-    let mut solution = attack.run(params, pb)?;
-    // Try to decrypt the cipher if no message was found
-    if let (Some(pk), None, Some(c)) = (&solution.pk, &solution.m, &params.c) {
-        solution.m = Some(pk.decrypt(c))
-    }
-
-    Ok(solution)
-}
 
 fn check_n_prime(n: &Option<Integer>) -> bool {
     if let Some(n) = &n {
@@ -87,7 +66,7 @@ fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
     pb
 }
 
-async fn _run_parallel_attacks<'a>(
+async fn _run_attacks<'a>(
     params: Arc<Parameters>,
     attacks: &[Arc<dyn Attack + Sync + Send>],
     sender: mpsc::Sender<Result<Solution, Error>>,
@@ -108,12 +87,21 @@ async fn _run_parallel_attacks<'a>(
 
         // Spawn attack as a task
         tokio::task::spawn(async move {
-            let res = run_attack(attack, &params, Some(&pb));
+            // This unhide the progress bar
+            pb.set_prefix(attack.name());
+
+            let solution = attack.run(&params, Some(&pb)).map(|mut solution| {
+                // Try to decrypt the cipher if no message was found
+                if let (Some(pk), None, Some(c)) = (&solution.pk, &solution.m, &params.c) {
+                    solution.m = Some(pk.decrypt(c))
+                }
+                solution
+            });
 
             // Remove progress bar from list
             mp.remove(&pb);
             // If attack was successful, clear all progress bars
-            if res.is_ok() {
+            if solution.is_ok() {
                 for pb in pbs.borrow().iter() {
                     pb.finish_and_clear();
                 }
@@ -121,7 +109,7 @@ async fn _run_parallel_attacks<'a>(
 
             // Send result to main thread
             // Note: error if channel closed
-            sender.send(res).ok();
+            sender.send(solution).ok();
         });
     }
 }
@@ -176,7 +164,7 @@ pub fn run_specific_attacks_with_threads(
 
     // Spawn attacks in background
     let attacks = attacks.to_vec();
-    r.spawn(async move { _run_parallel_attacks(params, &attacks, sender, mp).await });
+    r.spawn(async move { _run_attacks(params, &attacks, sender, mp).await });
 
     // Retrieve result
     let mut partial_factors: Option<Factors> = None;

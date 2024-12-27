@@ -63,7 +63,7 @@ Options:
 You can also use a dump as input:
 
 ```console
-rsacracker [OPTIONS] < challenge.txt
+$ rsacracker [OPTIONS] < challenge.txt
 [RESULTS]
 $ cat challenge.txt | rsacracker [OPTIONS]
 [RESULTS]

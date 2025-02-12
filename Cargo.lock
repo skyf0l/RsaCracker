@@ -1056,7 +1056,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
 dependencies = [
  "bytes",
- "hyper 0.14.31",
+ "hyper 0.14.32",
  "native-tls",
  "tokio",
  "tokio-native-tls",
@@ -1820,7 +1820,7 @@ dependencies = [
  "rustc-hash",
  "rustls",
  "socket2",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tokio",
  "tracing",
 ]
@@ -1839,7 +1839,7 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "slab",
- "thiserror 2.0.8",
+ "thiserror 2.0.9",
  "tinyvec",
  "tracing",
  "web-time",
@@ -1941,7 +1941,7 @@ dependencies = [
  "h2",
  "http 0.2.12",
  "http-body 0.4.6",
- "hyper 0.14.31",
+ "hyper 0.14.32",
  "hyper-tls",
  "ipnet",
  "js-sys",
@@ -2085,9 +2085,9 @@ dependencies = [
 
 [[package]]
 name = "rug"
-version = "1.26.1"
+version = "1.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97ae2c1089ec0575193eb9222881310cc1ed8bce3646ef8b81b44b518595b79d"
+checksum = "4207e8d668e5b8eb574bda8322088ccd0d7782d3d03c7e8d562e82ed82bdcbc3"
 dependencies = [
  "az",
  "gmp-mpfr-sys",

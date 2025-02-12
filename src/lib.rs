@@ -66,7 +66,7 @@ fn create_progress_bar(mp: &MultiProgress) -> ProgressBar {
     pb
 }
 
-async fn _run_attacks<'a>(
+async fn _run_attacks(
     params: Arc<Parameters>,
     attacks: &[Arc<dyn Attack + Sync + Send>],
     sender: mpsc::Sender<Result<Solution, Error>>,

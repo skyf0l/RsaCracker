@@ -75,7 +75,7 @@ impl Attack for EcmAttack {
         let factors = ecm(n, pb, 1234, 0)
             .or(Err(Error::NotFound))?
             .iter()
-            .flat_map(|(p, e)| std::iter::repeat(p).take(*e))
+            .flat_map(|(p, e)| std::iter::repeat_n(p, *e))
             .cloned()
             .collect::<Vec<_>>();
 

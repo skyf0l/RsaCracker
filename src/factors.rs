@@ -50,7 +50,7 @@ impl Factors {
     pub fn as_vec(&self) -> Vec<&Integer> {
         self.0
             .iter()
-            .flat_map(|(f, p)| std::iter::repeat(f).take(*p))
+            .flat_map(|(f, p)| std::iter::repeat_n(f, *p))
             .collect()
     }
 
@@ -58,7 +58,7 @@ impl Factors {
     pub fn to_vec(&self) -> Vec<Integer> {
         self.0
             .iter()
-            .flat_map(|(f, p)| std::iter::repeat(f.clone()).take(*p))
+            .flat_map(|(f, p)| std::iter::repeat_n(f.clone(), *p))
             .collect()
     }
 

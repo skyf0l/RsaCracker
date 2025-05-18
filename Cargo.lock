@@ -1369,9 +1369,9 @@ dependencies = [
 
 [[package]]
 name = "mpsc"
-version = "0.2.5"
+version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee983d1276a0671e9b81c97a31a8f9bf68e834cd30fb5e72d339e9666a232f52"
+checksum = "09063ffbeb8d9545183d05bd5097ec8f0c7a0d6f81638bbbddfadee10ec0229f"
 dependencies = [
  "ahash",
  "dashmap",

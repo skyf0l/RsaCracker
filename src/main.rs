@@ -27,7 +27,7 @@ impl std::str::FromStr for AttackArg {
             .iter()
             .find(|a| a.name() == attack)
             .map(|a| Self(a.clone()))
-            .ok_or_else(|| format!("Unknown attack: {}", attack))
+            .ok_or_else(|| format!("Unknown attack: {attack}"))
     }
 }
 
@@ -166,7 +166,7 @@ fn suffix_path(path: &std::path::Path, suffix: &str) -> std::path::PathBuf {
     if let Some(ext) = path.extension() {
         let ext = ext.to_str().unwrap();
         let stem = path.file_stem().unwrap().to_str().unwrap();
-        path.set_file_name(format!("{}{}.{}", stem, suffix, ext));
+        path.set_file_name(format!("{stem}{suffix}.{ext}"));
     } else {
         path.set_file_name(format!("{}{}", path.to_string_lossy(), suffix));
     }

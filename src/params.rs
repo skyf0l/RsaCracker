@@ -92,38 +92,38 @@ impl Display for Parameters {
         let mut s = String::new();
 
         if let Some(n) = &self.n {
-            s += &format!("n = {}\n", n);
+            s += &format!("n = {n}\n");
         }
         s += &format!("e = {}\n", self.e);
         if let Some(c) = &self.c {
-            s += &format!("c = {}\n", c);
+            s += &format!("c = {c}\n");
         }
         if let Some(p) = &self.p {
-            s += &format!("p = {}\n", p);
+            s += &format!("p = {p}\n");
         }
         if let Some(q) = &self.q {
-            s += &format!("q = {}\n", q);
+            s += &format!("q = {q}\n");
         }
         if let Some(d) = &self.d {
-            s += &format!("d = {}\n", d);
+            s += &format!("d = {d}\n");
         }
         if let Some(phi) = &self.phi {
-            s += &format!("phi = {}\n", phi);
+            s += &format!("phi = {phi}\n");
         }
         if let Some(dp) = &self.dp {
-            s += &format!("dp = {}\n", dp);
+            s += &format!("dp = {dp}\n");
         }
         if let Some(dq) = &self.dq {
-            s += &format!("dq = {}\n", dq);
+            s += &format!("dq = {dq}\n");
         }
         if let Some(qinv) = &self.qinv {
-            s += &format!("qinv = {}\n", qinv);
+            s += &format!("qinv = {qinv}\n");
         }
         if let Some(pinv) = &self.pinv {
-            s += &format!("pinv = {}\n", pinv);
+            s += &format!("pinv = {pinv}\n");
         }
         if let Some(sum_pq) = &self.sum_pq {
-            s += &format!("sum_pq = {}\n", sum_pq);
+            s += &format!("sum_pq = {sum_pq}\n");
         }
 
         // Remove trailing newline
@@ -131,7 +131,7 @@ impl Display for Parameters {
             s.pop();
         }
 
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -173,7 +173,7 @@ impl Parameters {
             let value = if let Ok(value) = IntegerArg::from_str(value) {
                 value.0
             } else {
-                eprintln!("Warning: Failed to parse {} value: {}", key, value);
+                eprintln!("Warning: Failed to parse {key} value: {value}");
                 continue;
             };
 

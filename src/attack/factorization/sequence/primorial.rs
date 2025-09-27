@@ -51,7 +51,7 @@ impl Attack for PrimorialGcdAttack {
                 ));
             }
 
-            if i as u64 % TICK_SIZE == 0 {
+            if (i as u64).is_multiple_of(TICK_SIZE) {
                 if let Some(pb) = pb {
                     pb.inc(TICK_SIZE);
                 }

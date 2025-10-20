@@ -3,7 +3,7 @@ use rug::{Complete, Integer};
 
 use crate::{Attack, AttackKind, AttackSpeed, Error, Parameters, PrivateKey, Solution};
 
-/// Partial p leaked attack (MSB or LSB of p is known)
+/// Partial p or q leaked attack (MSB or LSB of p or q is known)
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PartialPAttack;
 
@@ -22,26 +22,35 @@ impl Attack for PartialPAttack {
 
     fn run(&self, params: &Parameters, pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
-        let p_partial = params.p.as_ref().ok_or(Error::MissingParameters)?;
+        
+        // Try with partial p first, then partial q
+        let p_partial = params.p.as_ref();
+        let q_partial = params.q.as_ref();
+        
+        if p_partial.is_none() && q_partial.is_none() {
+            return Err(Error::MissingParameters);
+        }
+        
+        let prime_partial = p_partial.or(q_partial).unwrap();
 
         // Determine if we have LSB or MSB based on the trailing zeros
         // If p_partial has trailing zeros, assume it's MSB (lower bits cleared)
         // Otherwise, assume it's LSB
         
         let sqrt_n = n.sqrt_ref().complete();
-        let p_bits = sqrt_n.significant_bits();
-        let known_bits = p_partial.significant_bits();
+        let prime_bits = sqrt_n.significant_bits();
+        let known_bits = prime_partial.significant_bits();
         
         // Check if lower bits are zero (MSB case)
-        let trailing_zeros = p_partial.find_one(0);
+        let trailing_zeros = prime_partial.find_one(0);
         
         if trailing_zeros.is_some() && trailing_zeros.unwrap() > 10 {
             // MSB known - brute force LSB
             let unknown_bits = trailing_zeros.unwrap();
-            self.recover_from_msb(n, p_partial, unknown_bits, p_bits, pb, params)
+            self.recover_from_msb(n, prime_partial, unknown_bits, prime_bits, pb, params)
         } else {
             // LSB known - brute force MSB
-            self.recover_from_lsb(n, p_partial, known_bits, p_bits, pb, params)
+            self.recover_from_lsb(n, prime_partial, known_bits, prime_bits, pb, params)
         }
     }
 }
@@ -50,7 +59,7 @@ impl PartialPAttack {
     fn recover_from_lsb(
         &self,
         n: &Integer,
-        p_lsb: &Integer,
+        prime_lsb: &Integer,
         known_bits: u32,
         total_bits: u32,
         pb: Option<&ProgressBar>,
@@ -75,16 +84,16 @@ impl PartialPAttack {
             }
 
             let msb_guess = Integer::from(i) << known_bits;
-            let p_candidate = Integer::from(&msb_guess | p_lsb);
+            let prime_candidate = Integer::from(&msb_guess | prime_lsb);
 
-            if &p_candidate > &Integer::from(1) && Integer::from(n % &p_candidate) == 0 {
-                let q = n.clone() / &p_candidate;
+            if &prime_candidate > &Integer::from(1) && Integer::from(n % &prime_candidate) == 0 {
+                let q = n.clone() / &prime_candidate;
                 
                 return Ok(Solution {
                     m: None,
                     ms: Vec::new(),
                     pk: Some(PrivateKey::from_factors(
-                        [p_candidate, q],
+                        [prime_candidate, q],
                         &params.e,
                     )?),
                     attack: self.name(),
@@ -98,7 +107,7 @@ impl PartialPAttack {
     fn recover_from_msb(
         &self,
         n: &Integer,
-        p_msb: &Integer,
+        prime_msb: &Integer,
         unknown_bits: u32,
         _total_bits: u32,
         pb: Option<&ProgressBar>,
@@ -124,16 +133,16 @@ impl PartialPAttack {
             }
 
             let lsb_guess = Integer::from(i) & &mask;
-            let p_candidate = Integer::from(p_msb.clone() | lsb_guess);
+            let prime_candidate = Integer::from(prime_msb.clone() | lsb_guess);
 
-            if &p_candidate > &Integer::from(1) && Integer::from(n % &p_candidate) == 0 {
-                let q = n.clone() / &p_candidate;
+            if &prime_candidate > &Integer::from(1) && Integer::from(n % &prime_candidate) == 0 {
+                let q = n.clone() / &prime_candidate;
                 
                 return Ok(Solution {
                     m: None,
                     ms: Vec::new(),
                     pk: Some(PrivateKey::from_factors(
-                        [p_candidate, q],
+                        [prime_candidate, q],
                         &params.e,
                     )?),
                     attack: self.name(),
@@ -197,6 +206,34 @@ mod tests {
         let params = Parameters {
             n: Some(n.clone()),
             p: Some(p_msb),
+            ..Default::default()
+        };
+
+        let solution = PartialPAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        // Factors might be swapped
+        assert!(
+            (pk.p() == p && pk.q() == q) || (pk.p() == q && pk.q() == p),
+            "Factors don't match"
+        );
+    }
+
+    #[test]
+    fn attack_with_q() {
+        let p = Integer::from_str("9485522408934452514497044544810262480219745706849418879270371628992124322819346141601819527980635764688643085219938447441208608456294814911374531750726029").unwrap();
+        let q = Integer::from_str("7236301337700681229488657348010407616853701897387177738886248001234670489179740400338396954495791474380867863525254462520148880017031349131800301481151767").unwrap();
+        
+        let n = p.clone() * &q;
+        
+        // Take lower bits of q as known, leaving only 20 unknown MSB bits
+        let q_bits = q.significant_bits();
+        let known_bits = q_bits - 20;
+        let q_lsb = q.clone() % Integer::from(2).pow(known_bits);
+        
+        let params = Parameters {
+            n: Some(n.clone()),
+            q: Some(q_lsb),
             ..Default::default()
         };
 

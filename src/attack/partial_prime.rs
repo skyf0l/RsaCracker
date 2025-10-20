@@ -94,6 +94,16 @@ impl Attack for PartialPrimeAttack {
         // Try to recover q from partial_q
         let q = params.partial_q.as_ref().map(recover_prime).transpose()?;
 
+        // Helper to compute the other prime from n given one prime
+        let compute_other_prime = |known: &Integer| -> Result<Integer, Error> {
+            let (other, rem) = n.div_rem_ref(known).complete();
+            if rem == 0 {
+                Ok(other)
+            } else {
+                Err(Error::NotFound)
+            }
+        };
+
         // If we recovered both p and q, create a private key
         match (p, q) {
             (Some(p), Some(q)) => Ok(Solution::new_pk(
@@ -101,28 +111,18 @@ impl Attack for PartialPrimeAttack {
                 PrivateKey::from_p_q(&p, &q, e)?,
             )),
             (Some(p), None) => {
-                // If we only have p, try to compute q from n
-                let (q, rem) = n.div_rem_ref(&p).complete();
-                if rem == 0 {
-                    Ok(Solution::new_pk(
-                        self.name(),
-                        PrivateKey::from_p_q(&p, &q, e)?,
-                    ))
-                } else {
-                    Err(Error::NotFound)
-                }
+                let q = compute_other_prime(&p)?;
+                Ok(Solution::new_pk(
+                    self.name(),
+                    PrivateKey::from_p_q(&p, &q, e)?,
+                ))
             }
             (None, Some(q)) => {
-                // If we only have q, try to compute p from n
-                let (p, rem) = n.div_rem_ref(&q).complete();
-                if rem == 0 {
-                    Ok(Solution::new_pk(
-                        self.name(),
-                        PrivateKey::from_p_q(&p, &q, e)?,
-                    ))
-                } else {
-                    Err(Error::NotFound)
-                }
+                let p = compute_other_prime(&q)?;
+                Ok(Solution::new_pk(
+                    self.name(),
+                    PrivateKey::from_p_q(&p, &q, e)?,
+                ))
             }
             (None, None) => Err(Error::MissingParameters),
         }

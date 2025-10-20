@@ -12,62 +12,46 @@ pub struct PartialPrimeAttack;
 
 impl PartialPrimeAttack {
     /// Recover prime when LSB is known
+    /// Generic algorithm: p = known_lsb + base^k * x
     fn recover_lsb_known(
         known_lsb: &Integer,
-        unknown_bits: u32,
-        is_decimal: bool,
+        unknown_count: u32,
+        base: u32,
         n: &Integer,
         _e: &Integer,
         _pb: Option<&ProgressBar>,
     ) -> Result<Integer, Error> {
-        // When LSB is known, we have: p = known_lsb + base^k * x
-        // For hex: base = 2, k = unknown_bits
-        // For decimal: base = 10, k = number of unknown digits
+        // p = known_lsb + base^k * x
+        let base_k = Integer::from(base).pow(unknown_count);
 
-        if is_decimal {
-            // Decimal case: p = known_lsb + 10^k * x
-            // For decimal, unknown_bits directly represents the digit count
-            let unknown_digits = unknown_bits;
-            let ten_k = Integer::from(10).pow(unknown_digits);
-
-            // Brute force search for small unknown_digits
-            if unknown_digits <= 7 {
-                // 10^7 = 10 million iterations max
-                let max_x: Integer = Integer::from(10).pow(unknown_digits) - 1;
-                for x in 0..=max_x.to_u64().unwrap_or(u64::MAX) {
-                    let p_candidate = Integer::from(known_lsb + &ten_k * x);
-                    if &p_candidate > n {
-                        break;
-                    }
-
-                    let (q, rem) = n.div_rem_ref(&p_candidate).complete();
-                    if rem == 0 && q > 1 {
-                        return Ok(p_candidate);
-                    }
-                }
+        // Determine max iterations based on base and unknown_count
+        let max_iterations = if base == 2 {
+            // Binary: 2^24 = ~16 million max
+            if unknown_count <= 24 {
+                1u64 << unknown_count
             } else {
                 return Err(Error::NotFound);
             }
         } else {
-            // Binary case: p = known_lsb + 2^k * x
-            let two_k = Integer::from(2).pow(unknown_bits);
-
-            // Brute force search for small unknown_bits
-            if unknown_bits <= 24 {
-                let max_x = (1u64 << unknown_bits) - 1;
-                for x in 0..=max_x {
-                    let p_candidate = Integer::from(known_lsb + &two_k * x);
-                    if &p_candidate > n {
-                        break;
-                    }
-
-                    let (q, rem) = n.div_rem_ref(&p_candidate).complete();
-                    if rem == 0 && q > 1 {
-                        return Ok(p_candidate);
-                    }
-                }
+            // Decimal or other base: 10^7 = 10 million max
+            if unknown_count <= 7 {
+                let max_x: Integer = Integer::from(base).pow(unknown_count);
+                max_x.to_u64().unwrap_or(u64::MAX)
             } else {
                 return Err(Error::NotFound);
+            }
+        };
+
+        // Brute force search
+        for x in 0..max_iterations {
+            let p_candidate = Integer::from(known_lsb + &base_k * x);
+            if &p_candidate > n {
+                break;
+            }
+
+            let (q, rem) = n.div_rem_ref(&p_candidate).complete();
+            if rem == 0 && q > 1 {
+                return Ok(p_candidate);
             }
         }
 
@@ -75,64 +59,47 @@ impl PartialPrimeAttack {
     }
 
     /// Recover prime when MSB is known
+    /// Generic algorithm: p = known_msb * base^k + x
     fn recover_msb_known(
         known_msb: &Integer,
-        unknown_bits: u32,
-        is_decimal: bool,
+        unknown_count: u32,
+        base: u32,
         n: &Integer,
         _e: &Integer,
         _pb: Option<&ProgressBar>,
     ) -> Result<Integer, Error> {
-        // When MSB is known, we have: p = known_msb * base^k + x
-        // For hex: base = 2, k = unknown_bits
-        // For decimal: base = 10, k = number of unknown digits
+        // p = known_msb * base^k + x
+        let base_k = Integer::from(base).pow(unknown_count);
+        let base_value = Integer::from(known_msb * &base_k);
 
-        if is_decimal {
-            // Decimal case: p = known_msb * 10^k + x
-            // For decimal, unknown_bits directly represents the digit count
-            let unknown_digits = unknown_bits;
-            let ten_k = Integer::from(10).pow(unknown_digits);
-            let base = Integer::from(known_msb * &ten_k);
-
-            // Brute force search for small unknown_digits
-            if unknown_digits <= 7 {
-                // 10^7 = 10 million iterations max
-                let max_x: Integer = Integer::from(10).pow(unknown_digits) - 1;
-                for x in 0..=max_x.to_u64().unwrap_or(u64::MAX) {
-                    let p_candidate = Integer::from(&base + x);
-                    if &p_candidate > n {
-                        break;
-                    }
-
-                    let (q, rem) = n.div_rem_ref(&p_candidate).complete();
-                    if rem == 0 && q > 1 {
-                        return Ok(p_candidate);
-                    }
-                }
+        // Determine max iterations based on base and unknown_count
+        let max_iterations = if base == 2 {
+            // Binary: 2^24 = ~16 million max
+            if unknown_count <= 24 {
+                1u64 << unknown_count
             } else {
                 return Err(Error::NotFound);
             }
         } else {
-            // Binary case: p = known_msb * 2^k + x
-            let two_k = Integer::from(2).pow(unknown_bits);
-            let base = Integer::from(known_msb * &two_k);
-
-            // Brute force search for small unknown_bits
-            if unknown_bits <= 24 {
-                let max_x = (1u64 << unknown_bits) - 1;
-                for x in 0..=max_x {
-                    let p_candidate = Integer::from(&base + x);
-                    if &p_candidate > n {
-                        break;
-                    }
-
-                    let (q, rem) = n.div_rem_ref(&p_candidate).complete();
-                    if rem == 0 && q > 1 {
-                        return Ok(p_candidate);
-                    }
-                }
+            // Decimal or other base: 10^7 = 10 million max
+            if unknown_count <= 7 {
+                let max_x: Integer = Integer::from(base).pow(unknown_count);
+                max_x.to_u64().unwrap_or(u64::MAX)
             } else {
                 return Err(Error::NotFound);
+            }
+        };
+
+        // Brute force search
+        for x in 0..max_iterations {
+            let p_candidate = Integer::from(&base_value + x);
+            if &p_candidate > n {
+                break;
+            }
+
+            let (q, rem) = n.div_rem_ref(&p_candidate).complete();
+            if rem == 0 && q > 1 {
+                return Ok(p_candidate);
             }
         }
 
@@ -166,24 +133,24 @@ impl Attack for PartialPrimeAttack {
                 PartialPrime::Full(p) => Some(p.clone()),
                 PartialPrime::LsbKnown {
                     known_lsb,
-                    unknown_bits,
-                    is_decimal,
+                    unknown_count,
+                    base,
                 } => Some(Self::recover_lsb_known(
                     known_lsb,
-                    *unknown_bits,
-                    *is_decimal,
+                    *unknown_count,
+                    *base,
                     n,
                     e,
                     pb,
                 )?),
                 PartialPrime::MsbKnown {
                     known_msb,
-                    unknown_bits,
-                    is_decimal,
+                    unknown_count,
+                    base,
                 } => Some(Self::recover_msb_known(
                     known_msb,
-                    *unknown_bits,
-                    *is_decimal,
+                    *unknown_count,
+                    *base,
                     n,
                     e,
                     pb,
@@ -199,24 +166,24 @@ impl Attack for PartialPrimeAttack {
                 PartialPrime::Full(q) => Some(q.clone()),
                 PartialPrime::LsbKnown {
                     known_lsb,
-                    unknown_bits,
-                    is_decimal,
+                    unknown_count,
+                    base,
                 } => Some(Self::recover_lsb_known(
                     known_lsb,
-                    *unknown_bits,
-                    *is_decimal,
+                    *unknown_count,
+                    *base,
                     n,
                     e,
                     pb,
                 )?),
                 PartialPrime::MsbKnown {
                     known_msb,
-                    unknown_bits,
-                    is_decimal,
+                    unknown_count,
+                    base,
                 } => Some(Self::recover_msb_known(
                     known_msb,
-                    *unknown_bits,
-                    *is_decimal,
+                    *unknown_count,
+                    *base,
                     n,
                     e,
                     pb,
@@ -277,16 +244,16 @@ mod tests {
         let n = Integer::from(&p * &q);
 
         // Extract LSB (lower 20 bits known, upper bits unknown)
-        let unknown_bits = 20u32;
-        let mask = (Integer::from(1) << (p.significant_bits() - unknown_bits)) - 1;
+        let unknown_count = 20u32;
+        let mask = (Integer::from(1) << (p.significant_bits() - unknown_count)) - 1;
         let known_lsb = p.clone() & mask;
 
         let params = Parameters {
             n: Some(n),
             partial_p: Some(PartialPrime::LsbKnown {
                 known_lsb,
-                unknown_bits,
-                is_decimal: false,
+                unknown_count,
+                base: 2,
             }),
             ..Default::default()
         };
@@ -308,15 +275,15 @@ mod tests {
         let n = Integer::from(&p * &q);
 
         // Extract MSB (upper bits known, lower 20 bits unknown)
-        let unknown_bits = 20u32;
-        let known_msb = p.clone() >> unknown_bits;
+        let unknown_count = 20u32;
+        let known_msb = p.clone() >> unknown_count;
 
         let params = Parameters {
             n: Some(n),
             partial_p: Some(PartialPrime::MsbKnown {
                 known_msb,
-                unknown_bits,
-                is_decimal: false,
+                unknown_count,
+                base: 2,
             }),
             ..Default::default()
         };

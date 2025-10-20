@@ -7,27 +7,27 @@ use std::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Represents a partial prime with known and unknown bits
+/// Represents a partial prime with known and unknown bits/digits
 pub enum PartialPrime {
     /// Full prime value is known
     Full(Integer),
-    /// MSB known (trailing wildcards): value contains known bits shifted left, unknown_bits is count
+    /// MSB known (trailing wildcards): value contains known bits shifted left
     MsbKnown {
-        /// Known most significant bits
+        /// Known most significant bits/digits
         known_msb: Integer,
-        /// Number of unknown bits
-        unknown_bits: u32,
-        /// Whether this was parsed from decimal (affects recovery strategy)
-        is_decimal: bool,
+        /// Number of unknown positions (bits for hex, digits for decimal)
+        unknown_count: u32,
+        /// Base for arithmetic (2 for hex, 10 for decimal)
+        base: u32,
     },
-    /// LSB known (leading wildcards): value contains known bits, unknown_bits is count
+    /// LSB known (leading wildcards): value contains known bits
     LsbKnown {
-        /// Known least significant bits
+        /// Known least significant bits/digits
         known_lsb: Integer,
-        /// Number of unknown bits
-        unknown_bits: u32,
-        /// Whether this was parsed from decimal (affects recovery strategy)
-        is_decimal: bool,
+        /// Number of unknown positions (bits for hex, digits for decimal)
+        unknown_count: u32,
+        /// Base for arithmetic (2 for hex, 10 for decimal)
+        base: u32,
     },
 }
 
@@ -137,8 +137,8 @@ impl PartialPrimeArg {
                 .or(Err("Invalid hex number in known part".to_string()))?;
             Ok(Self(PartialPrime::LsbKnown {
                 known_lsb,
-                unknown_bits: (leading_wildcards * 4) as u32,
-                is_decimal: false,
+                unknown_count: (leading_wildcards * 4) as u32,
+                base: 2,
             }))
         } else if trailing_wildcards > 0 {
             // MSB known: trailing wildcards mean low bits are unknown
@@ -153,8 +153,8 @@ impl PartialPrimeArg {
                 .or(Err("Invalid hex number in known part".to_string()))?;
             Ok(Self(PartialPrime::MsbKnown {
                 known_msb,
-                unknown_bits: (trailing_wildcards * 4) as u32,
-                is_decimal: false,
+                unknown_count: (trailing_wildcards * 4) as u32,
+                base: 2,
             }))
         } else {
             // Both are 0 but string contains wildcards - must be non-contiguous
@@ -184,14 +184,10 @@ impl PartialPrimeArg {
             let known_lsb = Integer::from_str(known_part)
                 .or(Err("Invalid decimal number in known part".to_string()))?;
 
-            // For decimal, we store the number of decimal digits as "unknown_bits"
-            // (even though it's not technically bits - it's the count we'll use)
-            let unknown_bits = leading_wildcards as u32;
-
             Ok(Self(PartialPrime::LsbKnown {
                 known_lsb,
-                unknown_bits,
-                is_decimal: true,
+                unknown_count: leading_wildcards as u32,
+                base: 10,
             }))
         } else if trailing_wildcards > 0 {
             // MSB known: trailing wildcards mean low digits are unknown
@@ -205,13 +201,10 @@ impl PartialPrimeArg {
             let known_msb = Integer::from_str(known_part)
                 .or(Err("Invalid decimal number in known part".to_string()))?;
 
-            // For decimal, we store the number of decimal digits as "unknown_bits"
-            let unknown_bits = trailing_wildcards as u32;
-
             Ok(Self(PartialPrime::MsbKnown {
                 known_msb,
-                unknown_bits,
-                is_decimal: true,
+                unknown_count: trailing_wildcards as u32,
+                base: 10,
             }))
         } else {
             // Both are 0 but string contains wildcards - must be non-contiguous
@@ -644,12 +637,12 @@ mod tests {
         match arg.0 {
             PartialPrime::MsbKnown {
                 known_msb,
-                unknown_bits,
-                is_decimal,
+                unknown_count,
+                base,
             } => {
                 assert_eq!(known_msb, Integer::from(0xDEADBEEFu64));
-                assert_eq!(unknown_bits, 16); // 4 hex digits = 16 bits
-                assert!(!is_decimal);
+                assert_eq!(unknown_count, 16); // 4 hex digits = 16 bits
+                assert_eq!(base, 2);
             }
             _ => panic!("Expected MsbKnown"),
         }
@@ -661,12 +654,12 @@ mod tests {
         match arg.0 {
             PartialPrime::LsbKnown {
                 known_lsb,
-                unknown_bits,
-                is_decimal,
+                unknown_count,
+                base,
             } => {
                 assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
-                assert_eq!(unknown_bits, 16); // 4 hex digits = 16 bits
-                assert!(!is_decimal);
+                assert_eq!(unknown_count, 16); // 4 hex digits = 16 bits
+                assert_eq!(base, 2);
             }
             _ => panic!("Expected LsbKnown"),
         }
@@ -678,12 +671,12 @@ mod tests {
         match arg.0 {
             PartialPrime::MsbKnown {
                 known_msb,
-                unknown_bits,
-                is_decimal,
+                unknown_count,
+                base,
             } => {
                 assert_eq!(known_msb, Integer::from(12345));
-                assert_eq!(unknown_bits, 4); // 4 decimal digits
-                assert!(is_decimal);
+                assert_eq!(unknown_count, 4); // 4 decimal digits
+                assert_eq!(base, 10);
             }
             _ => panic!("Expected MsbKnown"),
         }
@@ -695,12 +688,12 @@ mod tests {
         match arg.0 {
             PartialPrime::LsbKnown {
                 known_lsb,
-                unknown_bits,
-                is_decimal,
+                unknown_count,
+                base,
             } => {
                 assert_eq!(known_lsb, Integer::from(6789));
-                assert_eq!(unknown_bits, 4); // 4 decimal digits
-                assert!(is_decimal);
+                assert_eq!(unknown_count, 4); // 4 decimal digits
+                assert_eq!(base, 10);
             }
             _ => panic!("Expected LsbKnown"),
         }

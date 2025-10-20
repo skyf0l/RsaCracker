@@ -30,14 +30,14 @@ impl PartialPrimeAttack {
         let unknown_bits = (k as f64 * (radix as f64).log2()).ceil() as u32;
         let n_bits = n.significant_bits();
         let known_bits_approx = (n_bits / 2).saturating_sub(unknown_bits);
-        
+
         // Log info about the search space
         if let Some(pb) = pb {
             pb.println(format!(
                 "Partial prime recovery: ~{} unknown bits, ~{} known bits (n has {} bits)",
                 unknown_bits, known_bits_approx, n_bits
             ));
-            
+
             // Warn if below the n/4 threshold
             if known_bits_approx < n_bits / 4 {
                 pb.println(format!(
@@ -46,7 +46,7 @@ impl PartialPrimeAttack {
                 ));
             }
         }
-        
+
         // We limit to approximately 2^28 (~268 million) iterations for practical brute force
         // This allows us to handle cases near the n/4 threshold
         if unknown_bits > 28 {
@@ -131,10 +131,10 @@ impl Attack for PartialPrimeAttack {
                     // For ellipsis, we need to infer the unknown length from N
                     let n_bits = n.significant_bits();
                     let p_bits = n_bits / 2; // Approximate p size (could be off by 1)
-                    
+
                     // known.significant_bits() tells us how many bits are in the known value
                     let known_bits = known.significant_bits();
-                    
+
                     // Calculate unknown bits based on orientation
                     let unknown_bits = match orient {
                         Orientation::LsbKnown => {
@@ -149,10 +149,10 @@ impl Attack for PartialPrimeAttack {
                             p_bits.saturating_sub(known_bits)
                         }
                     };
-                    
+
                     // Convert unknown bits to radix digits
                     let k_base = (unknown_bits as f64 / (*radix as f64).log2()).ceil() as usize;
-                    
+
                     // Try a small range of k values around the calculated k_base
                     // This handles rounding issues and edge cases
                     for k_offset in &[0, -1, 1, -2] {
@@ -160,12 +160,12 @@ impl Attack for PartialPrimeAttack {
                         if k > 7 {
                             continue; // Skip if too large
                         }
-                        
+
                         if let Ok(result) = Self::recover(known, *radix, k, orient, n, e, None) {
                             return Ok(result);
                         }
                     }
-                    
+
                     // If none worked, return error
                     Err(Error::NotFound)
                 }

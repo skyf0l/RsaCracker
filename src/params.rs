@@ -104,7 +104,7 @@ impl std::str::FromStr for PartialPrimeArg {
     fn from_str(n: &str) -> Result<Self, Self::Err> {
         // Normalize "..." to "…" (Unicode ellipsis)
         let n = n.replace("...", "…");
-        
+
         // Check for wildcards and ellipsis
         let has_wildcards = n.contains('?');
         let has_ellipsis = n.contains('…');
@@ -155,21 +155,21 @@ impl PartialPrimeArg {
         // Check if ellipsis is at start or end
         let starts_with_ellipsis = s.starts_with('…');
         let ends_with_ellipsis = s.ends_with('…');
-        
+
         if starts_with_ellipsis && ends_with_ellipsis {
             return Err("Ellipsis must be either at start or end, not both".to_string());
         }
-        
+
         if !starts_with_ellipsis && !ends_with_ellipsis {
             return Err("Ellipsis not found".to_string());
         }
-        
+
         // Count ellipsis occurrences - should be exactly one run
         let ellipsis_count = s.chars().filter(|&c| c == '…').count();
         if ellipsis_count > 1 {
             return Err("Only one ellipsis run is allowed".to_string());
         }
-        
+
         if starts_with_ellipsis {
             // LSB known (ellipsis at start means MSB is unknown)
             let known_part = &s[3..]; // '…' is 3 bytes in UTF-8
@@ -202,7 +202,7 @@ impl PartialPrimeArg {
             }))
         }
     }
-    
+
     fn parse_with_wildcards(s: &str, radix: u32) -> Result<Self, String> {
         // Count leading wildcards (LSB unknown)
         let leading_wildcards = s.chars().take_while(|&c| c == '?').count();

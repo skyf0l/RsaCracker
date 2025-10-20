@@ -33,8 +33,8 @@ Options:
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus
   -e <E>                           Public exponent. Default: 65537 [default: 65537]
-  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF???? or 0x????C0FFEE)
-  -q <Q>                           Prime number q (supports wildcards: 0xDEADBEEF???? or 0x????C0FFEE)
+  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
+  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
   -d <D>                           Private exponent
       --phi <PHI>                  Phi or Euler's totient function of n. (p-1)(q-1)
       --dp <DP>                    dP or dmp1 CRT exponent. (d mod p-1)
@@ -101,20 +101,28 @@ rsacracker --key public.pem -f secret.txt.enc
 
 ### Recover private key from partial prime information
 
-When you know some bits of a prime (MSB or LSB), you can use wildcards (`?` or `…`) in hex notation:
+When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?` or `…`) in hex or decimal notation:
 
 ```console
-# MSB known (trailing wildcards) - high bits known, low bits unknown
+# Hexadecimal: MSB known (trailing wildcards) - high bits known, low bits unknown
 rsacracker -n 123...789 -p 0xDEADBEEF????
 
-# LSB known (leading wildcards) - low bits known, high bits unknown  
+# Hexadecimal: LSB known (leading wildcards) - low bits known, high bits unknown  
 rsacracker -n 123...789 -p 0x????C0FFEE
+
+# Decimal: MSB known - high digits known, low digits unknown
+rsacracker -n 2305843027467304993 -p 10737418??
+
+# Decimal: LSB known - low digits known, high digits unknown
+rsacracker -n 123...789 -p ??741827
 
 # Using ellipsis notation (equivalent to ????)
 rsacracker -n 123...789 -p 0xDEADBEEF…
 ```
 
-Each `?` represents 4 bits (1 hex digit) of unknown data. The attack currently supports up to 24 unknown bits via brute force.
+For hex, each `?` represents 4 bits (1 hex digit). For decimal, each `?` represents 1 decimal digit. The attack currently supports:
+- Up to 24 unknown bits (6 hex digits) via brute force  
+- Up to 7 unknown decimal digits via brute force
 
 ### Run a specific attack with arguments
 

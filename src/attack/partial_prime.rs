@@ -85,6 +85,32 @@ impl Attack for PartialPrimeAttack {
                     orient,
                     known,
                 } => Self::recover(known, *radix, *k, orient, n, e, pb),
+                PartialPrime::Ellipsis {
+                    orient,
+                    known,
+                    radix,
+                } => {
+                    // For ellipsis, we need to infer the unknown length from N
+                    // For now, convert ellipsis to a fixed-length partial based on N's bit size
+                    let n_bits = n.significant_bits();
+                    let p_bits = n_bits / 2; // Approximate p size
+                    let known_bits = match radix {
+                        2 => known.significant_bits(),
+                        8 => known.significant_bits(), // rough approximation
+                        10 => (known.to_string().len() as f64 * 3.32193).ceil() as u32, // log2(10) ≈ 3.32193
+                        16 => known.significant_bits(),
+                        _ => known.significant_bits(),
+                    };
+                    
+                    // Calculate unknown bits
+                    let unknown_bits = p_bits.saturating_sub(known_bits);
+                    
+                    // Convert to radix digits
+                    let k = (unknown_bits as f64 / (*radix as f64).log2()).ceil() as usize;
+                    
+                    // Use the regular recover function
+                    Self::recover(known, *radix, k, orient, n, e, pb)
+                }
             }
         };
 

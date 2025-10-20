@@ -125,6 +125,18 @@ rsacracker -n 123...789 -p 0x????C0FFEE
 
 Each `?` represents one digit in the specified radix.
 
+You can also use ellipsis (`…` or `...`) when the unknown length should be inferred from the modulus size:
+
+```console
+# Hexadecimal: LSB known (MSB length inferred)
+rsacracker -n 123...789 -p 0x…C0FFEE
+
+# Hexadecimal: MSB known (LSB length inferred)
+rsacracker -n 123...789 -p 0xDEADBEEF…
+```
+
+For partial primes with enough known bits (typically ≥ n/4), Coppersmith's small-root methods are used for efficient recovery.
+
 ### Run a specific attack with arguments
 
 ```console

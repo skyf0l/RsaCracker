@@ -33,8 +33,8 @@ Options:
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus
   -e <E>                           Public exponent. Default: 65537 [default: 65537]
-  -p <P>                           Prime number p
-  -q <Q>                           Prime number q
+  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF???? or 0x????C0FFEE)
+  -q <Q>                           Prime number q (supports wildcards: 0xDEADBEEF???? or 0x????C0FFEE)
   -d <D>                           Private exponent
       --phi <PHI>                  Phi or Euler's totient function of n. (p-1)(q-1)
       --dp <DP>                    dP or dmp1 CRT exponent. (d mod p-1)
@@ -98,6 +98,23 @@ rsacracker -c 0xdeadbeef -n 123...789 -e 65537 --phi 123 --dp 123 --dq 123 --qin
 ```console
 rsacracker --key public.pem -f secret.txt.enc
 ```
+
+### Recover private key from partial prime information
+
+When you know some bits of a prime (MSB or LSB), you can use wildcards (`?` or `…`) in hex notation:
+
+```console
+# MSB known (trailing wildcards) - high bits known, low bits unknown
+rsacracker -n 123...789 -p 0xDEADBEEF????
+
+# LSB known (leading wildcards) - low bits known, high bits unknown  
+rsacracker -n 123...789 -p 0x????C0FFEE
+
+# Using ellipsis notation (equivalent to ????)
+rsacracker -n 123...789 -p 0xDEADBEEF…
+```
+
+Each `?` represents 4 bits (1 hex digit) of unknown data. The attack currently supports up to 24 unknown bits via brute force.
 
 ### Run a specific attack with arguments
 

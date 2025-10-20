@@ -33,8 +33,8 @@ Options:
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus
   -e <E>                           Public exponent. Default: 65537 [default: 65537]
-  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
-  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
+  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 0xDEADBEEF..., 10737418??, etc.)
+  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, 0x...C0FFEE, ??741827, etc.)
   -d <D>                           Private exponent
       --phi <PHI>                  Phi or Euler's totient function of n. (p-1)(q-1)
       --dp <DP>                    dP or dmp1 CRT exponent. (d mod p-1)

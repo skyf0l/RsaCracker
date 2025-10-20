@@ -148,6 +148,24 @@ rsacracker -n 123...789 --factors
 rsacracker --key public.pem -c 0xdeadbeef --dlog
 ```
 
+### Factor N when partial bits of prime p are known
+
+When you know some bits (MSB or LSB) of one of the prime factors, you can use the `partial_p` attack. The attack supports up to 40 unknown bits.
+
+**LSB known (lower bits):**
+```console
+# If you know the lower 492 bits of p (leaving 20 unknown MSB bits)
+rsacracker -n <modulus> -p <p_lsb> --attack partial_p --dump
+```
+
+**MSB known (upper bits):**
+```console
+# If you know the upper bits of p with lower 16 bits cleared (set to zero)
+rsacracker -n <modulus> -p <p_msb> --attack partial_p --dump
+```
+
+The attack automatically detects whether you have MSB or LSB based on the trailing zeros in the provided value.
+
 ## Docker
 
 From dockerhub:

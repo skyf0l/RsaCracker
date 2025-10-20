@@ -322,7 +322,7 @@ mod tests {
         // Use ellipsis to indicate unknown MSB
         // p = 0x40000003, so LSB (lower 24 bits) is 0x000003
         // We'll use a smaller known part: just the lowest byte 0x03
-        let arg = PartialPrimeArg::from_str("0x…03").unwrap();
+        let arg = PartialPrimeArg::from_str("0x...03").unwrap();
 
         let params = Parameters {
             n: Some(n),
@@ -350,7 +350,7 @@ mod tests {
         // Use ellipsis to indicate unknown LSB
         // p = 0x40000003, so MSB (upper bits) after shifting right by 24 is 0x40
         // We'll use upper 2 bytes: 0x4000
-        let arg = PartialPrimeArg::from_str("0x4000…").unwrap();
+        let arg = PartialPrimeArg::from_str("0x4000...").unwrap();
 
         let params = Parameters {
             n: Some(n),

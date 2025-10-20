@@ -102,20 +102,17 @@ impl std::str::FromStr for PartialPrimeArg {
     type Err = String;
 
     fn from_str(n: &str) -> Result<Self, Self::Err> {
-        // Normalize "..." to "…" (Unicode ellipsis)
-        let n = n.replace("...", "…");
-
         // Check for wildcards and ellipsis
         let has_wildcards = n.contains('?');
-        let has_ellipsis = n.contains('…');
+        let has_ellipsis = n.contains("...");
 
         if has_wildcards && has_ellipsis {
-            return Err("Cannot mix ? wildcards and ellipsis (…)".to_string());
+            return Err("Cannot mix ? wildcards and ellipsis (...)".to_string());
         }
 
         if !has_wildcards && !has_ellipsis {
             // No wildcards - try parsing as regular integer
-            if let Ok(IntegerArg(num)) = IntegerArg::from_str(&n) {
+            if let Ok(IntegerArg(num)) = IntegerArg::from_str(n) {
                 return Ok(Self(PartialPrime::Full(num)));
             }
             return Err("Invalid number".to_string());
@@ -131,7 +128,7 @@ impl std::str::FromStr for PartialPrimeArg {
                 Self::parse_with_ellipsis(s, 8)
             } else {
                 // Default to decimal (radix 10)
-                Self::parse_with_ellipsis(&n, 10)
+                Self::parse_with_ellipsis(n, 10)
             }
         } else {
             // Has wildcards - determine radix based on prefix
@@ -144,7 +141,7 @@ impl std::str::FromStr for PartialPrimeArg {
                 Self::parse_with_wildcards(s, 8)
             } else {
                 // Default to decimal (radix 10)
-                Self::parse_with_wildcards(&n, 10)
+                Self::parse_with_wildcards(n, 10)
             }
         }
     }
@@ -153,8 +150,8 @@ impl std::str::FromStr for PartialPrimeArg {
 impl PartialPrimeArg {
     fn parse_with_ellipsis(s: &str, radix: u32) -> Result<Self, String> {
         // Check if ellipsis is at start or end
-        let starts_with_ellipsis = s.starts_with('…');
-        let ends_with_ellipsis = s.ends_with('…');
+        let starts_with_ellipsis = s.starts_with("...");
+        let ends_with_ellipsis = s.ends_with("...");
 
         if starts_with_ellipsis && ends_with_ellipsis {
             return Err("Ellipsis must be either at start or end, not both".to_string());
@@ -165,14 +162,14 @@ impl PartialPrimeArg {
         }
 
         // Count ellipsis occurrences - should be exactly one run
-        let ellipsis_count = s.chars().filter(|&c| c == '…').count();
+        let ellipsis_count = s.matches("...").count();
         if ellipsis_count > 1 {
             return Err("Only one ellipsis run is allowed".to_string());
         }
 
         if starts_with_ellipsis {
             // LSB known (ellipsis at start means MSB is unknown)
-            let known_part = &s[3..]; // '…' is 3 bytes in UTF-8
+            let known_part = &s[3..]; // "..." is 3 bytes
             if known_part.is_empty() {
                 return Err("Must have some known digits after ellipsis".to_string());
             }
@@ -187,7 +184,7 @@ impl PartialPrimeArg {
             }))
         } else {
             // MSB known (ellipsis at end means LSB is unknown)
-            let known_part = &s[..s.len() - 3]; // '…' is 3 bytes in UTF-8
+            let known_part = &s[..s.len() - 3]; // "..." is 3 bytes
             if known_part.is_empty() {
                 return Err("Must have some known digits before ellipsis".to_string());
             }
@@ -768,22 +765,7 @@ mod tests {
 
     #[test]
     fn parse_ellipsis_lsb_known() {
-        // Test Unicode ellipsis
-        let arg = PartialPrimeArg::from_str("0x…C0FFEE").unwrap();
-        match arg.0 {
-            PartialPrime::Ellipsis {
-                orient,
-                known,
-                radix,
-            } => {
-                assert_eq!(radix, 16);
-                assert!(matches!(orient, Orientation::LsbKnown));
-                assert_eq!(known, Integer::from(0xC0FFEEu64));
-            }
-            _ => panic!("Expected Ellipsis with LsbKnown"),
-        }
-
-        // Test ASCII "..." normalized to ellipsis
+        // Test ASCII ellipsis
         let arg = PartialPrimeArg::from_str("0x...C0FFEE").unwrap();
         match arg.0 {
             PartialPrime::Ellipsis {
@@ -801,22 +783,7 @@ mod tests {
 
     #[test]
     fn parse_ellipsis_msb_known() {
-        // Test Unicode ellipsis
-        let arg = PartialPrimeArg::from_str("0xDEADBEEF…").unwrap();
-        match arg.0 {
-            PartialPrime::Ellipsis {
-                orient,
-                known,
-                radix,
-            } => {
-                assert_eq!(radix, 16);
-                assert!(matches!(orient, Orientation::MsbKnown));
-                assert_eq!(known, Integer::from(0xDEADBEEFu64));
-            }
-            _ => panic!("Expected Ellipsis with MsbKnown"),
-        }
-
-        // Test ASCII "..." normalized to ellipsis
+        // Test ASCII ellipsis
         let arg = PartialPrimeArg::from_str("0xDEADBEEF...").unwrap();
         match arg.0 {
             PartialPrime::Ellipsis {
@@ -834,14 +801,14 @@ mod tests {
 
     #[test]
     fn parse_ellipsis_both_error() {
-        let result = PartialPrimeArg::from_str("0x…DEAD…");
+        let result = PartialPrimeArg::from_str("0x...DEAD...");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("both"));
     }
 
     #[test]
     fn parse_mixed_wildcards_ellipsis_error() {
-        let result = PartialPrimeArg::from_str("0x…C0FF??");
+        let result = PartialPrimeArg::from_str("0x...C0FF??");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("mix"));
     }

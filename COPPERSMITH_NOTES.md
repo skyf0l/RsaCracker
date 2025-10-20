@@ -3,7 +3,7 @@
 ## Overview
 
 This implementation extends RsaCracker's partial prime attack to support:
-1. **Ellipsis wildcards** (`…` or `...`) for unknown-length partial primes
+1. **Ellipsis wildcards** (`...`) for unknown-length partial primes
 2. **Length inference** from the modulus N
 3. **Improved brute-force** with better threshold warnings
 
@@ -12,17 +12,17 @@ This implementation extends RsaCracker's partial prime attack to support:
 ### 1. Parser Extensions (src/params.rs)
 
 - Added `PartialPrime::Ellipsis` variant to represent ellipsis-based partials
-- Support for both Unicode `…` and ASCII `"..."` (normalized to `…`)
+- Support for ASCII `"..."` ellipsis
 - Ellipsis can be at start (LSB known, MSB unknown) or end (MSB known, LSB unknown)
 - Existing `?` wildcard support remains unchanged
 
 **Examples:**
 ```bash
 # LSB known (MSB length inferred from N):
-rsacracker -n <N> -p 0x…C0FFEE
+rsacracker -n <N> -p 0x...C0FFEE
 
 # MSB known (LSB length inferred from N):
-rsacracker -n <N> -p 0xDEADBEEF…
+rsacracker -n <N> -p 0xDEADBEEF...
 
 # Traditional ? wildcards still work:
 rsacracker -n <N> -p 0xDEADBEEF????
@@ -95,8 +95,8 @@ The problem statement mentions implementing full Coppersmith lattice-based solve
 
 Comprehensive tests in `src/attack/partial_prime.rs`:
 - Parsing: ellipsis forms, mixed wildcards, error cases
-- LSB-known recovery with both `?` and `…`
-- MSB-known recovery with both `?` and `…`
+- LSB-known recovery with both `?` and `...`
+- MSB-known recovery with both `?` and `...`
 - Decimal wildcards
 - Edge cases (rounding, bit/digit conversions)
 

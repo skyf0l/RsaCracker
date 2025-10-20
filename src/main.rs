@@ -13,7 +13,9 @@ use std::{
     time::Duration,
 };
 
-use rsacracker::{integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, ATTACKS};
+use rsacracker::{
+    integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, PartialPrimeArg, ATTACKS,
+};
 use update_informer::{registry, Check};
 
 #[derive(Debug, Clone)]
@@ -52,12 +54,12 @@ struct Args {
     /// Public exponent. Default: 65537
     #[clap(short, default_value = "65537")]
     e: IntegerArg,
-    /// Prime number p.
+    /// Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
     #[clap(short)]
-    p: Option<IntegerArg>,
-    /// Prime number q.
+    p: Option<PartialPrimeArg>,
+    /// Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
     #[clap(short)]
-    q: Option<IntegerArg>,
+    q: Option<PartialPrimeArg>,
     /// Private exponent.
     #[clap(short)]
     d: Option<IntegerArg>,
@@ -227,8 +229,8 @@ fn main() -> Result<(), MainError> {
         c,
         n: args.n.map(|n| n.0),
         e: args.e.0,
-        p: args.p.map(|n| n.0),
-        q: args.q.map(|n| n.0),
+        p: args.p.as_ref().and_then(|p| p.0.full().cloned()),
+        q: args.q.as_ref().and_then(|q| q.0.full().cloned()),
         d: args.d.map(|n| n.0),
         phi: args.phi.map(|n| n.0),
         dp: args.dp.map(|n| n.0),
@@ -236,6 +238,20 @@ fn main() -> Result<(), MainError> {
         qinv: args.qinv.map(|n| n.0),
         pinv: args.pinv.map(|n| n.0),
         sum_pq: args.sum_pq.map(|n| n.0),
+        partial_p: args.p.as_ref().and_then(|p| {
+            if p.0.is_partial() {
+                Some(p.0.clone())
+            } else {
+                None
+            }
+        }),
+        partial_q: args.q.as_ref().and_then(|q| {
+            if q.0.is_partial() {
+                Some(q.0.clone())
+            } else {
+                None
+            }
+        }),
     };
 
     // Read public and private keys

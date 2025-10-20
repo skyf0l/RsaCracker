@@ -33,8 +33,8 @@ Options:
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus
   -e <E>                           Public exponent. Default: 65537 [default: 65537]
-  -p <P>                           Prime number p
-  -q <Q>                           Prime number q
+  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
+  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
   -d <D>                           Private exponent
       --phi <PHI>                  Phi or Euler's totient function of n. (p-1)(q-1)
       --dp <DP>                    dP or dmp1 CRT exponent. (d mod p-1)
@@ -98,6 +98,32 @@ rsacracker -c 0xdeadbeef -n 123...789 -e 65537 --phi 123 --dp 123 --dq 123 --qin
 ```console
 rsacracker --key public.pem -f secret.txt.enc
 ```
+
+### Recover private key from partial prime information
+
+When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?`) in binary, octal, decimal, or hexadecimal notation:
+
+```console
+# Binary: MSB known (trailing wildcards)
+rsacracker -n 123...789 -p 0b1101010???
+
+# Octal: LSB known (leading wildcards)
+rsacracker -n 123...789 -p 0o???777
+
+# Decimal: MSB known (trailing wildcards)
+rsacracker -n 2305843027467304993 -p 10737418??
+
+# Decimal: LSB known (leading wildcards)
+rsacracker -n 123...789 -p ??741827
+
+# Hexadecimal: MSB known (trailing wildcards)
+rsacracker -n 123...789 -p 0xDEADBEEF????
+
+# Hexadecimal: LSB known (leading wildcards)  
+rsacracker -n 123...789 -p 0x????C0FFEE
+```
+
+Each `?` represents one digit in the specified radix.
 
 ### Run a specific attack with arguments
 

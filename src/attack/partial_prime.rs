@@ -26,45 +26,14 @@ impl PartialPrimeAttack {
         // Calculate radix^k
         let radix_k = Integer::from(radix).pow(k as u32);
 
-        // Determine max iterations based on radix and k
-        let max_iterations = match radix {
-            2 => {
-                // Binary: allow up to 24 bits (2^24 = ~16 million)
-                if k <= 24 {
-                    1u64 << k
-                } else {
-                    return Err(Error::NotFound);
-                }
-            }
-            8 => {
-                // Octal: allow up to 8 digits (8^8 = ~16 million)
-                if k <= 8 {
-                    let max_x: Integer = Integer::from(radix).pow(k as u32);
-                    max_x.to_u64().unwrap_or(u64::MAX)
-                } else {
-                    return Err(Error::NotFound);
-                }
-            }
-            10 => {
-                // Decimal: allow up to 7 digits (10^7 = 10 million)
-                if k <= 7 {
-                    let max_x: Integer = Integer::from(radix).pow(k as u32);
-                    max_x.to_u64().unwrap_or(u64::MAX)
-                } else {
-                    return Err(Error::NotFound);
-                }
-            }
-            16 => {
-                // Hexadecimal: allow up to 6 digits (16^6 = ~16 million)
-                if k <= 6 {
-                    let max_x: Integer = Integer::from(radix).pow(k as u32);
-                    max_x.to_u64().unwrap_or(u64::MAX)
-                } else {
-                    return Err(Error::NotFound);
-                }
-            }
-            _ => return Err(Error::NotFound),
-        };
+        // Determine max iterations based on unknown bit count
+        // We limit to approximately 2^24 (~16 million) iterations for practical brute force
+        let unknown_bits = (k as f64 * (radix as f64).log2()).ceil() as u32;
+        if unknown_bits > 24 {
+            return Err(Error::NotFound);
+        }
+
+        let max_iterations = radix_k.to_u64().unwrap_or(u64::MAX);
 
         // Brute force search
         for x in 0..max_iterations {
@@ -106,38 +75,32 @@ impl Attack for PartialPrimeAttack {
         let e = &params.e;
         let n = params.n.as_ref().ok_or(Error::MissingParameters)?;
 
-        let partial_p = params.partial_p.as_ref();
-        let partial_q = params.partial_q.as_ref();
+        // Helper function to recover prime from partial information
+        let recover_prime = |partial: &PartialPrime| -> Result<Integer, Error> {
+            match partial {
+                PartialPrime::Full(value) => Ok(value.clone()),
+                PartialPrime::Partial {
+                    radix,
+                    k,
+                    orient,
+                    known,
+                } => Self::recover(known, *radix, *k, orient, n, e, pb),
+            }
+        };
 
         // Try to recover p from partial_p
-        let p = if let Some(partial_p) = partial_p {
-            match partial_p {
-                PartialPrime::Full(p) => Some(p.clone()),
-                PartialPrime::Partial {
-                    radix,
-                    k,
-                    orient,
-                    known,
-                } => Some(Self::recover(known, *radix, *k, orient, n, e, pb)?),
-            }
-        } else {
-            None
-        };
+        let p = params
+            .partial_p
+            .as_ref()
+            .map(recover_prime)
+            .transpose()?;
 
         // Try to recover q from partial_q
-        let q = if let Some(partial_q) = partial_q {
-            match partial_q {
-                PartialPrime::Full(q) => Some(q.clone()),
-                PartialPrime::Partial {
-                    radix,
-                    k,
-                    orient,
-                    known,
-                } => Some(Self::recover(known, *radix, *k, orient, n, e, pb)?),
-            }
-        } else {
-            None
-        };
+        let q = params
+            .partial_q
+            .as_ref()
+            .map(recover_prime)
+            .transpose()?;
 
         // If we recovered both p and q, create a private key
         match (p, q) {

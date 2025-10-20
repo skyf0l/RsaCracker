@@ -33,7 +33,7 @@ impl PartialPrimeAttack {
             return Err(Error::NotFound);
         }
 
-        let max_iterations = radix_k.to_u64().unwrap_or(u64::MAX);
+        let max_iterations = radix_k.to_u64().unwrap();
 
         // Brute force search
         for x in 0..max_iterations {
@@ -89,18 +89,10 @@ impl Attack for PartialPrimeAttack {
         };
 
         // Try to recover p from partial_p
-        let p = params
-            .partial_p
-            .as_ref()
-            .map(recover_prime)
-            .transpose()?;
+        let p = params.partial_p.as_ref().map(recover_prime).transpose()?;
 
         // Try to recover q from partial_q
-        let q = params
-            .partial_q
-            .as_ref()
-            .map(recover_prime)
-            .transpose()?;
+        let q = params.partial_q.as_ref().map(recover_prime).transpose()?;
 
         // If we recovered both p and q, create a private key
         match (p, q) {

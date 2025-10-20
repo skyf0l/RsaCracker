@@ -15,6 +15,7 @@ mod leaked_crt_exponents;
 mod leaked_pq;
 mod non_coprime_exp;
 mod partial_d;
+mod partial_p;
 mod prime_modulus;
 mod small_e;
 mod sum_pq;
@@ -36,6 +37,7 @@ pub use leaked_crt_exponents::LeakedCrtExponentsAttack;
 pub use leaked_pq::LeakedPQAttack;
 pub use non_coprime_exp::NonCoprimeExpAttack;
 pub use partial_d::PartialDAttack;
+pub use partial_p::PartialPAttack;
 pub use prime_modulus::PrimeModulusAttack;
 pub use small_e::SmallEAttack;
 pub use sum_pq::SumPQAttack;
@@ -164,6 +166,7 @@ lazy_static! {
         Arc::new(LeakedPQAttack),
         Arc::new(NonCoprimeExpAttack),
         Arc::new(PartialDAttack),
+        Arc::new(PartialPAttack),
         Arc::new(PrimeModulusAttack),
         Arc::new(SmallEAttack),
         Arc::new(SumPQAttack),

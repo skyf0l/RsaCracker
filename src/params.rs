@@ -268,7 +268,7 @@ impl Parameters {
     ///
     /// # Example
     ///
-    /// ```
+    /// ```text
     /// // Example of a raw file
     /// n = 1
     /// # This is a comment

@@ -21,19 +21,54 @@ impl PartialPrimeAttack {
         orient: &Orientation,
         n: &Integer,
         _e: &Integer,
-        _pb: Option<&ProgressBar>,
+        pb: Option<&ProgressBar>,
     ) -> Result<Integer, Error> {
         // Calculate radix^k
         let radix_k = Integer::from(radix).pow(k as u32);
 
         // Determine max iterations based on unknown bit count
-        // We limit to approximately 2^24 (~16 million) iterations for practical brute force
         let unknown_bits = (k as f64 * (radix as f64).log2()).ceil() as u32;
-        if unknown_bits > 24 {
+        let n_bits = n.significant_bits();
+        let known_bits_approx = (n_bits / 2).saturating_sub(unknown_bits);
+        
+        // Log info about the search space
+        if let Some(pb) = pb {
+            pb.println(format!(
+                "Partial prime recovery: ~{} unknown bits, ~{} known bits (n has {} bits)",
+                unknown_bits, known_bits_approx, n_bits
+            ));
+            
+            // Warn if below the n/4 threshold
+            if known_bits_approx < n_bits / 4 {
+                pb.println(format!(
+                    "Warning: Known bits ({}) < n/4 ({}). Success not guaranteed (trying heuristically).",
+                    known_bits_approx, n_bits / 4
+                ));
+            }
+        }
+        
+        // We limit to approximately 2^28 (~268 million) iterations for practical brute force
+        // This allows us to handle cases near the n/4 threshold
+        if unknown_bits > 28 {
+            if let Some(pb) = pb {
+                pb.println(format!(
+                    "Search space too large (~2^{} iterations). For cases with > n/4 unknown bits, \
+                     Coppersmith's lattice-based methods would be needed.",
+                    unknown_bits
+                ));
+            }
             return Err(Error::NotFound);
         }
 
-        let max_iterations = radix_k.to_u64().unwrap();
+        let max_iterations = if let Some(val) = radix_k.to_u64() {
+            val
+        } else {
+            // radix^k is too large for u64
+            if let Some(pb) = pb {
+                pb.println("Search space too large for brute force.");
+            }
+            return Err(Error::NotFound);
+        };
 
         // Brute force search
         for x in 0..max_iterations {
@@ -50,6 +85,9 @@ impl PartialPrimeAttack {
 
             let (q, rem) = n.div_rem_ref(&p_candidate).complete();
             if rem == 0 && q > 1 {
+                if let Some(pb) = pb {
+                    pb.println(format!("Found prime factor after {} iterations!", x + 1));
+                }
                 return Ok(p_candidate);
             }
         }
@@ -91,25 +129,45 @@ impl Attack for PartialPrimeAttack {
                     radix,
                 } => {
                     // For ellipsis, we need to infer the unknown length from N
-                    // For now, convert ellipsis to a fixed-length partial based on N's bit size
                     let n_bits = n.significant_bits();
-                    let p_bits = n_bits / 2; // Approximate p size
-                    let known_bits = match radix {
-                        2 => known.significant_bits(),
-                        8 => known.significant_bits(), // rough approximation
-                        10 => (known.to_string().len() as f64 * 3.32193).ceil() as u32, // log2(10) ≈ 3.32193
-                        16 => known.significant_bits(),
-                        _ => known.significant_bits(),
+                    let p_bits = n_bits / 2; // Approximate p size (could be off by 1)
+                    
+                    // known.significant_bits() tells us how many bits are in the known value
+                    let known_bits = known.significant_bits();
+                    
+                    // Calculate unknown bits based on orientation
+                    let unknown_bits = match orient {
+                        Orientation::LsbKnown => {
+                            // LSB known: p = known + radix^k * x
+                            // The unknown part is in the MSB, so we subtract known bits from total
+                            p_bits.saturating_sub(known_bits)
+                        }
+                        Orientation::MsbKnown => {
+                            // MSB known: p = known * radix^k + x
+                            // The unknown part is in the LSB
+                            // We need to figure out how many bits the unknown LSB part has
+                            p_bits.saturating_sub(known_bits)
+                        }
                     };
                     
-                    // Calculate unknown bits
-                    let unknown_bits = p_bits.saturating_sub(known_bits);
+                    // Convert unknown bits to radix digits
+                    let k_base = (unknown_bits as f64 / (*radix as f64).log2()).ceil() as usize;
                     
-                    // Convert to radix digits
-                    let k = (unknown_bits as f64 / (*radix as f64).log2()).ceil() as usize;
+                    // Try a small range of k values around the calculated k_base
+                    // This handles rounding issues and edge cases
+                    for k_offset in &[0, -1, 1, -2] {
+                        let k = ((k_base as i32) + k_offset).max(1) as usize;
+                        if k > 7 {
+                            continue; // Skip if too large
+                        }
+                        
+                        if let Ok(result) = Self::recover(known, *radix, k, orient, n, e, None) {
+                            return Ok(result);
+                        }
+                    }
                     
-                    // Use the regular recover function
-                    Self::recover(known, *radix, k, orient, n, e, pb)
+                    // If none worked, return error
+                    Err(Error::NotFound)
                 }
             }
         };
@@ -237,6 +295,62 @@ mod tests {
 
         // Parse "10737418??" which represents p with 2 unknown digits
         let arg = PartialPrimeArg::from_str("10737418??").unwrap();
+
+        let params = Parameters {
+            n: Some(n),
+            partial_p: Some(arg.0),
+            ..Default::default()
+        };
+
+        let solution = PartialPrimeAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
+    }
+
+    #[test]
+    fn ellipsis_lsb_known() {
+        // Test ellipsis with LSB known
+        use crate::PartialPrimeArg;
+        use std::str::FromStr;
+
+        let p = Integer::from(1073741827u64); // 0x40000003
+        let q = Integer::from(2147483659u64);
+        let n = Integer::from(&p * &q);
+
+        // Use ellipsis to indicate unknown MSB
+        // p = 0x40000003, so LSB (lower 24 bits) is 0x000003
+        // We'll use a smaller known part: just the lowest byte 0x03
+        let arg = PartialPrimeArg::from_str("0x…03").unwrap();
+
+        let params = Parameters {
+            n: Some(n),
+            partial_p: Some(arg.0),
+            ..Default::default()
+        };
+
+        let solution = PartialPrimeAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.p(), p);
+        assert_eq!(pk.q(), q);
+    }
+
+    #[test]
+    fn ellipsis_msb_known() {
+        // Test ellipsis with MSB known
+        use crate::PartialPrimeArg;
+        use std::str::FromStr;
+
+        let p = Integer::from(1073741827u64); // 0x40000003
+        let q = Integer::from(2147483659u64);
+        let n = Integer::from(&p * &q);
+
+        // Use ellipsis to indicate unknown LSB
+        // p = 0x40000003, so MSB (upper bits) after shifting right by 24 is 0x40
+        // We'll use upper 2 bytes: 0x4000
+        let arg = PartialPrimeArg::from_str("0x4000…").unwrap();
 
         let params = Parameters {
             n: Some(n),

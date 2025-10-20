@@ -13,7 +13,9 @@ use std::{
     time::Duration,
 };
 
-use rsacracker::{integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, PartialPrimeArg, ATTACKS};
+use rsacracker::{
+    integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, PartialPrimeArg, ATTACKS,
+};
 use update_informer::{registry, Check};
 
 #[derive(Debug, Clone)]

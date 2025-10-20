@@ -20,25 +20,16 @@ pub enum Orientation {
 pub enum PartialPrime {
     /// Full prime value is known
     Full(Integer),
-    /// Partial prime with wildcards
+    /// Partial prime with wildcards (? or ...)
     Partial {
         /// The radix/base: 2 (0b), 8 (0o), 10 (default), 16 (0x)
         radix: u32,
-        /// Count of ? digits in that radix
-        k: usize,
-        /// Where the ? run sits (start = LsbKnown, end = MsbKnown)
+        /// Count of ? digits in that radix (None for ellipsis, inferred from N)
+        k: Option<usize>,
+        /// Where the wildcard run sits (start = LsbKnown, end = MsbKnown)
         orient: Orientation,
         /// The known digit run parsed in that radix
         known: Integer,
-    },
-    /// Ellipsis-based partial (unknown length inferred from N)
-    Ellipsis {
-        /// Where the ellipsis sits (start = LsbKnown, end = MsbKnown)
-        orient: Orientation,
-        /// The known value (interpreted as bits for binary, direct value otherwise)
-        known: Integer,
-        /// Radix/base: 2 (0b), 8 (0o), 10 (default), 16 (0x)
-        radix: u32,
     },
 }
 
@@ -177,10 +168,11 @@ impl PartialPrimeArg {
                 "Invalid number in known part (radix {})",
                 radix
             )))?;
-            Ok(Self(PartialPrime::Ellipsis {
+            Ok(Self(PartialPrime::Partial {
+                radix,
+                k: None,
                 orient: Orientation::LsbKnown,
                 known,
-                radix,
             }))
         } else {
             // MSB known (ellipsis at end means LSB is unknown)
@@ -192,10 +184,11 @@ impl PartialPrimeArg {
                 "Invalid number in known part (radix {})",
                 radix
             )))?;
-            Ok(Self(PartialPrime::Ellipsis {
+            Ok(Self(PartialPrime::Partial {
+                radix,
+                k: None,
                 orient: Orientation::MsbKnown,
                 known,
-                radix,
             }))
         }
     }
@@ -225,7 +218,7 @@ impl PartialPrimeArg {
             )))?;
             Ok(Self(PartialPrime::Partial {
                 radix,
-                k: leading_wildcards,
+                k: Some(leading_wildcards),
                 orient: Orientation::LsbKnown,
                 known,
             }))
@@ -244,7 +237,7 @@ impl PartialPrimeArg {
             )))?;
             Ok(Self(PartialPrime::Partial {
                 radix,
-                k: trailing_wildcards,
+                k: Some(trailing_wildcards),
                 orient: Orientation::MsbKnown,
                 known,
             }))
@@ -684,7 +677,7 @@ mod tests {
                 known,
             } => {
                 assert_eq!(radix, 16);
-                assert_eq!(k, 4); // 4 hex digits
+                assert_eq!(k, Some(4)); // 4 hex digits
                 assert!(matches!(orient, Orientation::MsbKnown));
                 assert_eq!(known, Integer::from(0xDEADBEEFu64));
             }
@@ -703,7 +696,7 @@ mod tests {
                 known,
             } => {
                 assert_eq!(radix, 16);
-                assert_eq!(k, 4); // 4 hex digits
+                assert_eq!(k, Some(4)); // 4 hex digits
                 assert!(matches!(orient, Orientation::LsbKnown));
                 assert_eq!(known, Integer::from(0xC0FFEEu64));
             }
@@ -722,7 +715,7 @@ mod tests {
                 known,
             } => {
                 assert_eq!(radix, 10);
-                assert_eq!(k, 4); // 4 decimal digits
+                assert_eq!(k, Some(4)); // 4 decimal digits
                 assert!(matches!(orient, Orientation::MsbKnown));
                 assert_eq!(known, Integer::from(12345));
             }
@@ -741,7 +734,7 @@ mod tests {
                 known,
             } => {
                 assert_eq!(radix, 10);
-                assert_eq!(k, 4); // 4 decimal digits
+                assert_eq!(k, Some(4)); // 4 decimal digits
                 assert!(matches!(orient, Orientation::LsbKnown));
                 assert_eq!(known, Integer::from(6789));
             }
@@ -768,16 +761,18 @@ mod tests {
         // Test ASCII ellipsis
         let arg = PartialPrimeArg::from_str("0x...C0FFEE").unwrap();
         match arg.0 {
-            PartialPrime::Ellipsis {
+            PartialPrime::Partial {
+                radix,
+                k,
                 orient,
                 known,
-                radix,
             } => {
                 assert_eq!(radix, 16);
+                assert_eq!(k, None);
                 assert!(matches!(orient, Orientation::LsbKnown));
                 assert_eq!(known, Integer::from(0xC0FFEEu64));
             }
-            _ => panic!("Expected Ellipsis with LsbKnown"),
+            _ => panic!("Expected Partial with LsbKnown and k=None"),
         }
     }
 
@@ -786,16 +781,18 @@ mod tests {
         // Test ASCII ellipsis
         let arg = PartialPrimeArg::from_str("0xDEADBEEF...").unwrap();
         match arg.0 {
-            PartialPrime::Ellipsis {
+            PartialPrime::Partial {
+                radix,
+                k,
                 orient,
                 known,
-                radix,
             } => {
                 assert_eq!(radix, 16);
+                assert_eq!(k, None);
                 assert!(matches!(orient, Orientation::MsbKnown));
                 assert_eq!(known, Integer::from(0xDEADBEEFu64));
             }
-            _ => panic!("Expected Ellipsis with MsbKnown"),
+            _ => panic!("Expected Partial with MsbKnown and k=None"),
         }
     }
 

@@ -135,8 +135,6 @@ rsacracker -n 123...789 -p 0x...C0FFEE
 rsacracker -n 123...789 -p 0xDEADBEEF...
 ```
 
-For partial primes with enough known bits (typically ≥ n/4), Coppersmith's small-root methods are used for efficient recovery.
-
 ### Run a specific attack with arguments
 
 ```console

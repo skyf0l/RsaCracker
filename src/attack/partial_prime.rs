@@ -122,52 +122,54 @@ impl Attack for PartialPrimeAttack {
                     k,
                     orient,
                     known,
-                } => Self::recover(known, *radix, *k, orient, n, e, pb),
-                PartialPrime::Ellipsis {
-                    orient,
-                    known,
-                    radix,
                 } => {
-                    // For ellipsis, we need to infer the unknown length from N
-                    let n_bits = n.significant_bits();
-                    let p_bits = n_bits / 2; // Approximate p size (could be off by 1)
+                    if let Some(k_val) = k {
+                        // Fixed k value (from ? wildcards)
+                        Self::recover(known, *radix, *k_val, orient, n, e, pb)
+                    } else {
+                        // Ellipsis - infer k from N
+                        let n_bits = n.significant_bits();
+                        let p_bits = n_bits / 2; // Approximate p size (could be off by 1)
 
-                    // known.significant_bits() tells us how many bits are in the known value
-                    let known_bits = known.significant_bits();
+                        // known.significant_bits() tells us how many bits are in the known value
+                        let known_bits = known.significant_bits();
 
-                    // Calculate unknown bits based on orientation
-                    let unknown_bits = match orient {
-                        Orientation::LsbKnown => {
-                            // LSB known: p = known + radix^k * x
-                            // The unknown part is in the MSB, so we subtract known bits from total
-                            p_bits.saturating_sub(known_bits)
+                        // Calculate unknown bits based on orientation
+                        let unknown_bits = match orient {
+                            Orientation::LsbKnown => {
+                                // LSB known: p = known + radix^k * x
+                                // The unknown part is in the MSB, so we subtract known bits from total
+                                p_bits.saturating_sub(known_bits)
+                            }
+                            Orientation::MsbKnown => {
+                                // MSB known: p = known * radix^k + x
+                                // The unknown part is in the LSB
+                                // We need to figure out how many bits the unknown LSB part has
+                                p_bits.saturating_sub(known_bits)
+                            }
+                        };
+
+                        // Convert unknown bits to radix digits
+                        let k_base = (unknown_bits as f64 / (*radix as f64).log2()).ceil() as usize;
+
+                        // Try a small range of k values around the calculated k_base
+                        // This handles rounding issues and edge cases
+                        for k_offset in &[0, -1, 1, -2] {
+                            let k_try = ((k_base as i32) + k_offset).max(1) as usize;
+                            if k_try > 7 {
+                                continue; // Skip if too large
+                            }
+
+                            if let Ok(result) =
+                                Self::recover(known, *radix, k_try, orient, n, e, None)
+                            {
+                                return Ok(result);
+                            }
                         }
-                        Orientation::MsbKnown => {
-                            // MSB known: p = known * radix^k + x
-                            // The unknown part is in the LSB
-                            // We need to figure out how many bits the unknown LSB part has
-                            p_bits.saturating_sub(known_bits)
-                        }
-                    };
 
-                    // Convert unknown bits to radix digits
-                    let k_base = (unknown_bits as f64 / (*radix as f64).log2()).ceil() as usize;
-
-                    // Try a small range of k values around the calculated k_base
-                    // This handles rounding issues and edge cases
-                    for k_offset in &[0, -1, 1, -2] {
-                        let k = ((k_base as i32) + k_offset).max(1) as usize;
-                        if k > 7 {
-                            continue; // Skip if too large
-                        }
-
-                        if let Ok(result) = Self::recover(known, *radix, k, orient, n, e, None) {
-                            return Ok(result);
-                        }
+                        // If none worked, return error
+                        Err(Error::NotFound)
                     }
-
-                    // If none worked, return error
-                    Err(Error::NotFound)
                 }
             }
         };
@@ -237,7 +239,7 @@ mod tests {
             n: Some(n),
             partial_p: Some(PartialPrime::Partial {
                 radix: 2,
-                k: unknown_count,
+                k: Some(unknown_count),
                 orient: Orientation::LsbKnown,
                 known: known_lsb,
             }),
@@ -268,7 +270,7 @@ mod tests {
             n: Some(n),
             partial_p: Some(PartialPrime::Partial {
                 radix: 2,
-                k: unknown_count,
+                k: Some(unknown_count),
                 orient: Orientation::MsbKnown,
                 known: known_msb,
             }),

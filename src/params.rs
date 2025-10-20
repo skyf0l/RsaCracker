@@ -655,7 +655,7 @@ mod tests {
             } => {
                 assert_eq!(known_msb, Integer::from(0xDEADBEEFu64));
                 assert_eq!(unknown_bits, 16); // 4 hex digits = 16 bits
-                assert_eq!(is_decimal, false);
+                assert!(!is_decimal);
             }
             _ => panic!("Expected MsbKnown"),
         }
@@ -672,7 +672,7 @@ mod tests {
             } => {
                 assert_eq!(known_msb, Integer::from(0xDEADBEEFu64));
                 assert_eq!(unknown_bits, 16); // ... is replaced with ????
-                assert_eq!(is_decimal, false);
+                assert!(!is_decimal);
             }
             _ => panic!("Expected MsbKnown"),
         }
@@ -689,7 +689,7 @@ mod tests {
             } => {
                 assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
                 assert_eq!(unknown_bits, 16); // 4 hex digits = 16 bits
-                assert_eq!(is_decimal, false);
+                assert!(!is_decimal);
             }
             _ => panic!("Expected LsbKnown"),
         }
@@ -706,7 +706,7 @@ mod tests {
             } => {
                 assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
                 assert_eq!(unknown_bits, 16); // ... is replaced with ????
-                assert_eq!(is_decimal, false);
+                assert!(!is_decimal);
             }
             _ => panic!("Expected LsbKnown"),
         }
@@ -723,7 +723,7 @@ mod tests {
             } => {
                 assert_eq!(known_msb, Integer::from(12345));
                 assert_eq!(unknown_bits, 4); // 4 decimal digits
-                assert_eq!(is_decimal, true);
+                assert!(is_decimal);
             }
             _ => panic!("Expected MsbKnown"),
         }
@@ -740,7 +740,7 @@ mod tests {
             } => {
                 assert_eq!(known_lsb, Integer::from(6789));
                 assert_eq!(unknown_bits, 4); // 4 decimal digits
-                assert_eq!(is_decimal, true);
+                assert!(is_decimal);
             }
             _ => panic!("Expected LsbKnown"),
         }

@@ -56,7 +56,7 @@ impl std::str::FromStr for IntegerArg {
     fn from_str(n: &str) -> Result<Self, Self::Err> {
         if let Some(n) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
             // Check for wildcards in hex numbers
-            if n.contains('?') || n.contains("...") {
+            if n.contains('?') {
                 return Err("Use PartialPrimeArg for wildcard numbers".to_string());
             }
             Ok(Self(
@@ -92,7 +92,7 @@ impl std::str::FromStr for PartialPrimeArg {
 
     fn from_str(n: &str) -> Result<Self, Self::Err> {
         // Check for wildcards first
-        let has_wildcards = n.contains('?') || n.contains("...");
+        let has_wildcards = n.contains('?');
 
         if !has_wildcards {
             // No wildcards - try parsing as regular integer
@@ -115,13 +115,10 @@ impl std::str::FromStr for PartialPrimeArg {
 
 impl PartialPrimeArg {
     fn parse_hex_with_wildcards(hex: &str) -> Result<Self, String> {
-        // Normalize wildcards: replace ... with ????
-        let normalized = hex.replace("...", "????");
-
         // Count leading wildcards (LSB unknown)
-        let leading_wildcards = normalized.chars().take_while(|&c| c == '?').count();
+        let leading_wildcards = hex.chars().take_while(|&c| c == '?').count();
         // Count trailing wildcards (MSB unknown)
-        let trailing_wildcards = normalized.chars().rev().take_while(|&c| c == '?').count();
+        let trailing_wildcards = hex.chars().rev().take_while(|&c| c == '?').count();
 
         if leading_wildcards > 0 && trailing_wildcards > 0 {
             return Err("Wildcards must be either leading or trailing, not both".to_string());
@@ -129,7 +126,7 @@ impl PartialPrimeArg {
 
         if leading_wildcards > 0 {
             // LSB known: leading wildcards mean high bits are unknown
-            let known_part = &normalized[leading_wildcards..];
+            let known_part = &hex[leading_wildcards..];
             if known_part.is_empty() {
                 return Err("Must have some known bits".to_string());
             }
@@ -145,7 +142,7 @@ impl PartialPrimeArg {
             }))
         } else if trailing_wildcards > 0 {
             // MSB known: trailing wildcards mean low bits are unknown
-            let known_part = &normalized[..normalized.len() - trailing_wildcards];
+            let known_part = &hex[..hex.len() - trailing_wildcards];
             if known_part.is_empty() {
                 return Err("Must have some known bits".to_string());
             }
@@ -166,13 +163,10 @@ impl PartialPrimeArg {
     }
 
     fn parse_decimal_with_wildcards(s: &str) -> Result<Self, String> {
-        // Normalize wildcards: replace ... with ?
-        let normalized = s.replace("...", "?");
-
         // Count leading wildcards
-        let leading_wildcards = normalized.chars().take_while(|&c| c == '?').count();
+        let leading_wildcards = s.chars().take_while(|&c| c == '?').count();
         // Count trailing wildcards
-        let trailing_wildcards = normalized.chars().rev().take_while(|&c| c == '?').count();
+        let trailing_wildcards = s.chars().rev().take_while(|&c| c == '?').count();
 
         if leading_wildcards > 0 && trailing_wildcards > 0 {
             return Err("Wildcards must be either leading or trailing, not both".to_string());
@@ -180,7 +174,7 @@ impl PartialPrimeArg {
 
         if leading_wildcards > 0 {
             // LSB known: leading wildcards mean high digits are unknown
-            let known_part = &normalized[leading_wildcards..];
+            let known_part = &s[leading_wildcards..];
             if known_part.is_empty() {
                 return Err("Must have some known digits".to_string());
             }
@@ -201,7 +195,7 @@ impl PartialPrimeArg {
             }))
         } else if trailing_wildcards > 0 {
             // MSB known: trailing wildcards mean low digits are unknown
-            let known_part = &normalized[..normalized.len() - trailing_wildcards];
+            let known_part = &s[..s.len() - trailing_wildcards];
             if known_part.is_empty() {
                 return Err("Must have some known digits".to_string());
             }
@@ -662,23 +656,6 @@ mod tests {
     }
 
     #[test]
-    fn parse_msb_known_ellipsis() {
-        let arg = PartialPrimeArg::from_str("0xDEADBEEF...").unwrap();
-        match arg.0 {
-            PartialPrime::MsbKnown {
-                known_msb,
-                unknown_bits,
-                is_decimal,
-            } => {
-                assert_eq!(known_msb, Integer::from(0xDEADBEEFu64));
-                assert_eq!(unknown_bits, 16); // ... is replaced with ????
-                assert!(!is_decimal);
-            }
-            _ => panic!("Expected MsbKnown"),
-        }
-    }
-
-    #[test]
     fn parse_lsb_known_question_marks() {
         let arg = PartialPrimeArg::from_str("0x????C0FFEE").unwrap();
         match arg.0 {
@@ -689,23 +666,6 @@ mod tests {
             } => {
                 assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
                 assert_eq!(unknown_bits, 16); // 4 hex digits = 16 bits
-                assert!(!is_decimal);
-            }
-            _ => panic!("Expected LsbKnown"),
-        }
-    }
-
-    #[test]
-    fn parse_lsb_known_ellipsis() {
-        let arg = PartialPrimeArg::from_str("0x...C0FFEE").unwrap();
-        match arg.0 {
-            PartialPrime::LsbKnown {
-                known_lsb,
-                unknown_bits,
-                is_decimal,
-            } => {
-                assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
-                assert_eq!(unknown_bits, 16); // ... is replaced with ????
                 assert!(!is_decimal);
             }
             _ => panic!("Expected LsbKnown"),

@@ -33,8 +33,8 @@ Options:
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus
   -e <E>                           Public exponent. Default: 65537 [default: 65537]
-  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 0xDEADBEEF..., 10737418??, etc.)
-  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, 0x...C0FFEE, ??741827, etc.)
+  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
+  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
   -d <D>                           Private exponent
       --phi <PHI>                  Phi or Euler's totient function of n. (p-1)(q-1)
       --dp <DP>                    dP or dmp1 CRT exponent. (d mod p-1)
@@ -101,7 +101,7 @@ rsacracker --key public.pem -f secret.txt.enc
 
 ### Recover private key from partial prime information
 
-When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?` or `...`) in hex or decimal notation:
+When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?`) in hex or decimal notation:
 
 ```console
 # Hexadecimal: MSB known (trailing wildcards) - high bits known, low bits unknown
@@ -115,9 +115,6 @@ rsacracker -n 2305843027467304993 -p 10737418??
 
 # Decimal: LSB known - low digits known, high digits unknown
 rsacracker -n 123...789 -p ??741827
-
-# Using triple-dot notation (equivalent to ????)
-rsacracker -n 123...789 -p 0xDEADBEEF...
 ```
 
 For hex, each `?` represents 4 bits (1 hex digit). For decimal, each `?` represents 1 decimal digit. The attack currently supports:

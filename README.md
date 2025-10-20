@@ -101,7 +101,7 @@ rsacracker --key public.pem -f secret.txt.enc
 
 ### Recover private key from partial prime information
 
-When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?` or `…`) in hex or decimal notation:
+When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?` or `...`) in hex or decimal notation:
 
 ```console
 # Hexadecimal: MSB known (trailing wildcards) - high bits known, low bits unknown
@@ -116,8 +116,8 @@ rsacracker -n 2305843027467304993 -p 10737418??
 # Decimal: LSB known - low digits known, high digits unknown
 rsacracker -n 123...789 -p ??741827
 
-# Using ellipsis notation (equivalent to ????)
-rsacracker -n 123...789 -p 0xDEADBEEF…
+# Using triple-dot notation (equivalent to ????)
+rsacracker -n 123...789 -p 0xDEADBEEF...
 ```
 
 For hex, each `?` represents 4 bits (1 hex digit). For decimal, each `?` represents 1 decimal digit. The attack currently supports:

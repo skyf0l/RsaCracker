@@ -56,7 +56,7 @@ impl std::str::FromStr for IntegerArg {
     fn from_str(n: &str) -> Result<Self, Self::Err> {
         if let Some(n) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
             // Check for wildcards in hex numbers
-            if n.contains('?') || n.contains('…') {
+            if n.contains('?') || n.contains("...") {
                 return Err("Use PartialPrimeArg for wildcard numbers".to_string());
             }
             Ok(Self(
@@ -92,7 +92,7 @@ impl std::str::FromStr for PartialPrimeArg {
 
     fn from_str(n: &str) -> Result<Self, Self::Err> {
         // Check for wildcards first
-        let has_wildcards = n.contains('?') || n.contains('…');
+        let has_wildcards = n.contains('?') || n.contains("...");
         
         if !has_wildcards {
             // No wildcards - try parsing as regular integer
@@ -115,8 +115,8 @@ impl std::str::FromStr for PartialPrimeArg {
 
 impl PartialPrimeArg {
     fn parse_hex_with_wildcards(hex: &str) -> Result<Self, String> {
-        // Normalize wildcards: replace … with ????
-        let normalized = hex.replace('…', "????");
+        // Normalize wildcards: replace ... with ????
+        let normalized = hex.replace("...", "????");
         
         // Count leading wildcards (LSB unknown)
         let leading_wildcards = normalized.chars().take_while(|&c| c == '?').count();
@@ -166,8 +166,8 @@ impl PartialPrimeArg {
     }
 
     fn parse_decimal_with_wildcards(s: &str) -> Result<Self, String> {
-        // Normalize wildcards: replace … with ?
-        let normalized = s.replace('…', "?");
+        // Normalize wildcards: replace ... with ?
+        let normalized = s.replace("...", "?");
         
         // Count leading wildcards
         let leading_wildcards = normalized.chars().take_while(|&c| c == '?').count();
@@ -659,11 +659,11 @@ mod tests {
 
     #[test]
     fn parse_msb_known_ellipsis() {
-        let arg = PartialPrimeArg::from_str("0xDEADBEEF…").unwrap();
+        let arg = PartialPrimeArg::from_str("0xDEADBEEF...").unwrap();
         match arg.0 {
             PartialPrime::MsbKnown { known_msb, unknown_bits, is_decimal } => {
                 assert_eq!(known_msb, Integer::from(0xDEADBEEFu64));
-                assert_eq!(unknown_bits, 16); // … is replaced with ????
+                assert_eq!(unknown_bits, 16); // ... is replaced with ????
                 assert_eq!(is_decimal, false);
             }
             _ => panic!("Expected MsbKnown"),
@@ -685,11 +685,11 @@ mod tests {
 
     #[test]
     fn parse_lsb_known_ellipsis() {
-        let arg = PartialPrimeArg::from_str("0x…C0FFEE").unwrap();
+        let arg = PartialPrimeArg::from_str("0x...C0FFEE").unwrap();
         match arg.0 {
             PartialPrime::LsbKnown { known_lsb, unknown_bits, is_decimal } => {
                 assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
-                assert_eq!(unknown_bits, 16); // … is replaced with ????
+                assert_eq!(unknown_bits, 16); // ... is replaced with ????
                 assert_eq!(is_decimal, false);
             }
             _ => panic!("Expected LsbKnown"),

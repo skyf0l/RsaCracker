@@ -7,27 +7,29 @@ use std::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-/// Represents a partial prime with known and unknown bits/digits
+/// Orientation of the known digits (where the ? run sits)
+pub enum Orientation {
+    /// MSB known (trailing wildcards): ???? appears at the end
+    MsbKnown,
+    /// LSB known (leading wildcards): ???? appears at the start
+    LsbKnown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+/// Represents a partial prime with known and unknown digits
 pub enum PartialPrime {
     /// Full prime value is known
     Full(Integer),
-    /// MSB known (trailing wildcards): value contains known bits shifted left
-    MsbKnown {
-        /// Known most significant bits/digits
-        known_msb: Integer,
-        /// Number of unknown positions (bits for hex, digits for decimal)
-        unknown_count: u32,
-        /// Base for arithmetic (2 for hex, 10 for decimal)
-        base: u32,
-    },
-    /// LSB known (leading wildcards): value contains known bits
-    LsbKnown {
-        /// Known least significant bits/digits
-        known_lsb: Integer,
-        /// Number of unknown positions (bits for hex, digits for decimal)
-        unknown_count: u32,
-        /// Base for arithmetic (2 for hex, 10 for decimal)
-        base: u32,
+    /// Partial prime with wildcards
+    Partial {
+        /// The radix/base: 2 (0b), 8 (0o), 10 (default), 16 (0x)
+        radix: u32,
+        /// Count of ? digits in that radix
+        k: usize,
+        /// Where the ? run sits (start = LsbKnown, end = MsbKnown)
+        orient: Orientation,
+        /// The known digit run parsed in that radix
+        known: Integer,
     },
 }
 
@@ -102,70 +104,26 @@ impl std::str::FromStr for PartialPrimeArg {
             return Err("Invalid number".to_string());
         }
 
-        // Has wildcards - determine if it's hex or decimal
-        if let Some(hex) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
-            // Hexadecimal with wildcards
-            Self::parse_hex_with_wildcards(hex)
+        // Has wildcards - determine radix based on prefix
+        // Bases: 0b→2, 0o→8, 0x→16; otherwise 10
+        if let Some(s) = n.strip_prefix("0x").or_else(|| n.strip_prefix("0X")) {
+            Self::parse_with_wildcards(s, 16)
+        } else if let Some(s) = n.strip_prefix("0b").or_else(|| n.strip_prefix("0B")) {
+            Self::parse_with_wildcards(s, 2)
+        } else if let Some(s) = n.strip_prefix("0o").or_else(|| n.strip_prefix("0O")) {
+            Self::parse_with_wildcards(s, 8)
         } else {
-            // Decimal with wildcards
-            Self::parse_decimal_with_wildcards(n)
+            // Default to decimal (radix 10)
+            Self::parse_with_wildcards(n, 10)
         }
     }
 }
 
 impl PartialPrimeArg {
-    fn parse_hex_with_wildcards(hex: &str) -> Result<Self, String> {
+    fn parse_with_wildcards(s: &str, radix: u32) -> Result<Self, String> {
         // Count leading wildcards (LSB unknown)
-        let leading_wildcards = hex.chars().take_while(|&c| c == '?').count();
-        // Count trailing wildcards (MSB unknown)
-        let trailing_wildcards = hex.chars().rev().take_while(|&c| c == '?').count();
-
-        if leading_wildcards > 0 && trailing_wildcards > 0 {
-            return Err("Wildcards must be either leading or trailing, not both".to_string());
-        }
-
-        if leading_wildcards > 0 {
-            // LSB known: leading wildcards mean high bits are unknown
-            let known_part = &hex[leading_wildcards..];
-            if known_part.is_empty() {
-                return Err("Must have some known bits".to_string());
-            }
-            if known_part.contains('?') {
-                return Err("Wildcards must be contiguous (leading or trailing only)".to_string());
-            }
-            let known_lsb = Integer::from_str_radix(known_part, 16)
-                .or(Err("Invalid hex number in known part".to_string()))?;
-            Ok(Self(PartialPrime::LsbKnown {
-                known_lsb,
-                unknown_count: (leading_wildcards * 4) as u32,
-                base: 2,
-            }))
-        } else if trailing_wildcards > 0 {
-            // MSB known: trailing wildcards mean low bits are unknown
-            let known_part = &hex[..hex.len() - trailing_wildcards];
-            if known_part.is_empty() {
-                return Err("Must have some known bits".to_string());
-            }
-            if known_part.contains('?') {
-                return Err("Wildcards must be contiguous (leading or trailing only)".to_string());
-            }
-            let known_msb = Integer::from_str_radix(known_part, 16)
-                .or(Err("Invalid hex number in known part".to_string()))?;
-            Ok(Self(PartialPrime::MsbKnown {
-                known_msb,
-                unknown_count: (trailing_wildcards * 4) as u32,
-                base: 2,
-            }))
-        } else {
-            // Both are 0 but string contains wildcards - must be non-contiguous
-            Err("Wildcards must be contiguous (leading or trailing only)".to_string())
-        }
-    }
-
-    fn parse_decimal_with_wildcards(s: &str) -> Result<Self, String> {
-        // Count leading wildcards
         let leading_wildcards = s.chars().take_while(|&c| c == '?').count();
-        // Count trailing wildcards
+        // Count trailing wildcards (MSB unknown)
         let trailing_wildcards = s.chars().rev().take_while(|&c| c == '?').count();
 
         if leading_wildcards > 0 && trailing_wildcards > 0 {
@@ -181,13 +139,15 @@ impl PartialPrimeArg {
             if known_part.contains('?') {
                 return Err("Wildcards must be contiguous (leading or trailing only)".to_string());
             }
-            let known_lsb = Integer::from_str(known_part)
-                .or(Err("Invalid decimal number in known part".to_string()))?;
-
-            Ok(Self(PartialPrime::LsbKnown {
-                known_lsb,
-                unknown_count: leading_wildcards as u32,
-                base: 10,
+            let known = Integer::from_str_radix(known_part, radix as i32).or(Err(format!(
+                "Invalid number in known part (radix {})",
+                radix
+            )))?;
+            Ok(Self(PartialPrime::Partial {
+                radix,
+                k: leading_wildcards,
+                orient: Orientation::LsbKnown,
+                known,
             }))
         } else if trailing_wildcards > 0 {
             // MSB known: trailing wildcards mean low digits are unknown
@@ -198,13 +158,15 @@ impl PartialPrimeArg {
             if known_part.contains('?') {
                 return Err("Wildcards must be contiguous (leading or trailing only)".to_string());
             }
-            let known_msb = Integer::from_str(known_part)
-                .or(Err("Invalid decimal number in known part".to_string()))?;
-
-            Ok(Self(PartialPrime::MsbKnown {
-                known_msb,
-                unknown_count: trailing_wildcards as u32,
-                base: 10,
+            let known = Integer::from_str_radix(known_part, radix as i32).or(Err(format!(
+                "Invalid number in known part (radix {})",
+                radix
+            )))?;
+            Ok(Self(PartialPrime::Partial {
+                radix,
+                k: trailing_wildcards,
+                orient: Orientation::MsbKnown,
+                known,
             }))
         } else {
             // Both are 0 but string contains wildcards - must be non-contiguous
@@ -635,16 +597,18 @@ mod tests {
     fn parse_msb_known_question_marks() {
         let arg = PartialPrimeArg::from_str("0xDEADBEEF????").unwrap();
         match arg.0 {
-            PartialPrime::MsbKnown {
-                known_msb,
-                unknown_count,
-                base,
+            PartialPrime::Partial {
+                radix,
+                k,
+                orient,
+                known,
             } => {
-                assert_eq!(known_msb, Integer::from(0xDEADBEEFu64));
-                assert_eq!(unknown_count, 16); // 4 hex digits = 16 bits
-                assert_eq!(base, 2);
+                assert_eq!(radix, 16);
+                assert_eq!(k, 4); // 4 hex digits
+                assert!(matches!(orient, Orientation::MsbKnown));
+                assert_eq!(known, Integer::from(0xDEADBEEFu64));
             }
-            _ => panic!("Expected MsbKnown"),
+            _ => panic!("Expected Partial with MsbKnown"),
         }
     }
 
@@ -652,16 +616,18 @@ mod tests {
     fn parse_lsb_known_question_marks() {
         let arg = PartialPrimeArg::from_str("0x????C0FFEE").unwrap();
         match arg.0 {
-            PartialPrime::LsbKnown {
-                known_lsb,
-                unknown_count,
-                base,
+            PartialPrime::Partial {
+                radix,
+                k,
+                orient,
+                known,
             } => {
-                assert_eq!(known_lsb, Integer::from(0xC0FFEEu64));
-                assert_eq!(unknown_count, 16); // 4 hex digits = 16 bits
-                assert_eq!(base, 2);
+                assert_eq!(radix, 16);
+                assert_eq!(k, 4); // 4 hex digits
+                assert!(matches!(orient, Orientation::LsbKnown));
+                assert_eq!(known, Integer::from(0xC0FFEEu64));
             }
-            _ => panic!("Expected LsbKnown"),
+            _ => panic!("Expected Partial with LsbKnown"),
         }
     }
 
@@ -669,16 +635,18 @@ mod tests {
     fn parse_decimal_msb_known() {
         let arg = PartialPrimeArg::from_str("12345????").unwrap();
         match arg.0 {
-            PartialPrime::MsbKnown {
-                known_msb,
-                unknown_count,
-                base,
+            PartialPrime::Partial {
+                radix,
+                k,
+                orient,
+                known,
             } => {
-                assert_eq!(known_msb, Integer::from(12345));
-                assert_eq!(unknown_count, 4); // 4 decimal digits
-                assert_eq!(base, 10);
+                assert_eq!(radix, 10);
+                assert_eq!(k, 4); // 4 decimal digits
+                assert!(matches!(orient, Orientation::MsbKnown));
+                assert_eq!(known, Integer::from(12345));
             }
-            _ => panic!("Expected MsbKnown"),
+            _ => panic!("Expected Partial with MsbKnown"),
         }
     }
 
@@ -686,16 +654,18 @@ mod tests {
     fn parse_decimal_lsb_known() {
         let arg = PartialPrimeArg::from_str("????6789").unwrap();
         match arg.0 {
-            PartialPrime::LsbKnown {
-                known_lsb,
-                unknown_count,
-                base,
+            PartialPrime::Partial {
+                radix,
+                k,
+                orient,
+                known,
             } => {
-                assert_eq!(known_lsb, Integer::from(6789));
-                assert_eq!(unknown_count, 4); // 4 decimal digits
-                assert_eq!(base, 10);
+                assert_eq!(radix, 10);
+                assert_eq!(k, 4); // 4 decimal digits
+                assert!(matches!(orient, Orientation::LsbKnown));
+                assert_eq!(known, Integer::from(6789));
             }
-            _ => panic!("Expected LsbKnown"),
+            _ => panic!("Expected Partial with LsbKnown"),
         }
     }
 

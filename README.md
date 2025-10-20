@@ -101,25 +101,29 @@ rsacracker --key public.pem -f secret.txt.enc
 
 ### Recover private key from partial prime information
 
-When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?`) in hex or decimal notation:
+When you know some bits/digits of a prime (MSB or LSB), you can use wildcards (`?`) in binary, octal, decimal, or hexadecimal notation:
 
 ```console
-# Hexadecimal: MSB known (trailing wildcards) - high bits known, low bits unknown
-rsacracker -n 123...789 -p 0xDEADBEEF????
+# Binary: MSB known (trailing wildcards)
+rsacracker -n 123...789 -p 0b1101010???
 
-# Hexadecimal: LSB known (leading wildcards) - low bits known, high bits unknown  
-rsacracker -n 123...789 -p 0x????C0FFEE
+# Octal: LSB known (leading wildcards)
+rsacracker -n 123...789 -p 0o???777
 
-# Decimal: MSB known - high digits known, low digits unknown
+# Decimal: MSB known (trailing wildcards)
 rsacracker -n 2305843027467304993 -p 10737418??
 
-# Decimal: LSB known - low digits known, high digits unknown
+# Decimal: LSB known (leading wildcards)
 rsacracker -n 123...789 -p ??741827
+
+# Hexadecimal: MSB known (trailing wildcards)
+rsacracker -n 123...789 -p 0xDEADBEEF????
+
+# Hexadecimal: LSB known (leading wildcards)  
+rsacracker -n 123...789 -p 0x????C0FFEE
 ```
 
-For hex, each `?` represents 4 bits (1 hex digit). For decimal, each `?` represents 1 decimal digit. The attack currently supports:
-- Up to 24 unknown bits (6 hex digits) via brute force  
-- Up to 7 unknown decimal digits via brute force
+Each `?` represents one digit in the specified radix. The attack uses brute force for small unknown digit counts (up to ~24 bits or ~16 million iterations).
 
 ### Run a specific attack with arguments
 

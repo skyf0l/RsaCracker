@@ -123,7 +123,7 @@ rsacracker -n 123...789 -p 0xDEADBEEF????
 rsacracker -n 123...789 -p 0x????C0FFEE
 ```
 
-Each `?` represents one digit in the specified radix. The attack uses brute force for small unknown digit counts (up to ~24 bits or ~16 million iterations).
+Each `?` represents one digit in the specified radix.
 
 ### Run a specific attack with arguments
 

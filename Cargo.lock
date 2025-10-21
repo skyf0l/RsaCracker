@@ -515,13 +515,13 @@ dependencies = [
 
 [[package]]
 name = "discrete-logarithm"
-version = "1.0.0"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40719d0398fbf7202e332c9caccc91d42a5da4e3f4bece86d823a75e0a73b34a"
+checksum = "daaf8351599beaf5bae495f84c2c7338db2f02b3b35cb6ba15b4c69b1de66208"
 dependencies = [
  "primal",
  "rug",
- "thiserror 1.0.69",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -821,7 +821,7 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "openssl",
- "rand_core 0.6.4",
+ "rand_core 0.9.3",
  "rug",
  "ssh-key",
 ]

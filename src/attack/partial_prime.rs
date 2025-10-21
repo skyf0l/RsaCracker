@@ -71,6 +71,10 @@ impl PartialPrimeAttack {
         };
 
         // Brute force search
+        let tick_size = max_iterations / 100;
+        if let Some(pb) = pb {
+            pb.set_length(max_iterations);
+        }
         for x in 0..max_iterations {
             let p_candidate = match orient {
                 // LSB known (leading wildcards): p = known + radix^k * x
@@ -89,6 +93,12 @@ impl PartialPrimeAttack {
                     pb.println(format!("Found prime factor after {} iterations!", x + 1));
                 }
                 return Ok(p_candidate);
+            }
+
+            if x % tick_size == 0 {
+                if let Some(pb) = pb {
+                    pb.inc(tick_size);
+                }
             }
         }
 
@@ -161,7 +171,7 @@ impl Attack for PartialPrimeAttack {
                             }
 
                             if let Ok(result) =
-                                Self::recover(known, *radix, k_try, orient, n, e, None)
+                                Self::recover(known, *radix, k_try, orient, n, e, pb)
                             {
                                 return Ok(result);
                             }

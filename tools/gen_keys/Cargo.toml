@@ -8,6 +8,7 @@ lazy_static = "1"
 openssl = "0.10"
 ssh-key = { version = "0.6", features = ["encryption"] }
 rand_core = { version = "0.9", features = ["os_rng"] }
+rand = "0.8"
 
 [dependencies.rug]
 version = "1"

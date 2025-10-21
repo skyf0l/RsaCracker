@@ -1,5 +1,6 @@
 use std::{fs, str::FromStr};
 
+use rand::rngs::OsRng;
 use rug::{integer::Order, Integer};
 
 const KEY_PASSPHRASE: &[u8] = b"Skyf0l";
@@ -170,9 +171,7 @@ fn openssh_keys() {
     .unwrap();
 
     // Encrypted OpenSSH private key
-    let private_key = private_key
-        .encrypt(&mut rand_core::OsRng, KEY_PASSPHRASE)
-        .unwrap();
+    let private_key = private_key.encrypt(&mut OsRng, KEY_PASSPHRASE).unwrap();
     fs::write(
         format!("{OUT_PATH}/private_openssh_passphrase.pem"),
         private_key.to_openssh(ssh_key::LineEnding::LF).unwrap(),

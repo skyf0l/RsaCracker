@@ -40,8 +40,8 @@ pub use partial_d::PartialDAttack;
 pub use partial_prime::PartialPrimeAttack;
 pub use prime_modulus::PrimeModulusAttack;
 pub use small_e::SmallEAttack;
-pub use sum_pq::SumPQAttack;
 pub use sum_pq::DiffPQAttack;
+pub use sum_pq::SumPQAttack;
 pub use wiener::WienerAttack;
 
 /// Attack error

@@ -70,7 +70,7 @@ impl Attack for DiffPQAttack {
         // Then solve: x^2 - sum_pq * x + n = 0
         let discriminant = diff_pq.clone().pow(2) + Integer::from(4) * n;
         let (sum_pq, rem) = discriminant.sqrt_rem(Integer::ZERO);
-        
+
         if rem != Integer::ZERO {
             return Err(Error::NotFound);
         }

@@ -41,6 +41,7 @@ pub use partial_prime::PartialPrimeAttack;
 pub use prime_modulus::PrimeModulusAttack;
 pub use small_e::SmallEAttack;
 pub use sum_pq::SumPQAttack;
+pub use sum_pq::DiffPQAttack;
 pub use wiener::WienerAttack;
 
 /// Attack error
@@ -157,6 +158,7 @@ lazy_static! {
         Arc::new(CipollaAttack),
         Arc::new(ComfactCnAttack),
         Arc::new(CubeRootAttack),
+        Arc::new(DiffPQAttack),
         Arc::new(GaaAttack),
         Arc::new(KnownDAttack),
         Arc::new(KnownPhiAttack),

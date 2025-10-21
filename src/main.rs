@@ -81,6 +81,9 @@ struct Args {
     /// The sum of the two primes p and q.
     #[clap(long)]
     sum_pq: Option<IntegerArg>,
+    /// The difference of the two primes p and q.
+    #[clap(long)]
+    diff_pq: Option<IntegerArg>,
     /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
     #[clap(long, alias = "dislog")]
     dlog: bool,
@@ -238,6 +241,7 @@ fn main() -> Result<(), MainError> {
         qinv: args.qinv.map(|n| n.0),
         pinv: args.pinv.map(|n| n.0),
         sum_pq: args.sum_pq.map(|n| n.0),
+        diff_pq: args.diff_pq.map(|n| n.0),
         partial_p: args.p.as_ref().and_then(|p| {
             if p.0.is_partial() {
                 Some(p.0.clone())

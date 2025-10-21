@@ -48,9 +48,9 @@ struct Args {
     /// Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
     #[clap(short = 'o', long)]
     outfile: Option<std::path::PathBuf>,
-    /// Modulus.
+    /// Modulus. Can be specified multiple times for multi-key attacks.
     #[clap(short)]
-    n: Option<IntegerArg>,
+    n: Vec<IntegerArg>,
     /// Public exponent. Default: 65537
     #[clap(short, default_value = "65537")]
     e: IntegerArg,
@@ -230,7 +230,7 @@ fn main() -> Result<(), MainError> {
     // Build parameters
     params += Parameters {
         c,
-        n: args.n.map(|n| n.0),
+        n: args.n.first().map(|n| n.0.clone()),
         e: args.e.0,
         p: args.p.as_ref().and_then(|p| p.0.full().cloned()),
         q: args.q.as_ref().and_then(|q| q.0.full().cloned()),
@@ -258,6 +258,15 @@ fn main() -> Result<(), MainError> {
         }),
         keys: Vec::new(),
     };
+
+    // Add additional N values as keys for multi-key attacks
+    for n_value in args.n.iter().skip(1) {
+        params.keys.push(KeyEntry {
+            n: Some(n_value.0.clone()),
+            e: params.e.clone(),
+            c: None,
+        });
+    }
 
     // Read public and private keys
     if !args.key.is_empty() {

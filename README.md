@@ -187,7 +187,7 @@ rsacracker --key public.pem -c 0xdeadbeef --dlog
 
 ### Multi-key attacks
 
-RsaCracker supports attacks that require multiple RSA keys. You can provide multiple keys in two ways:
+RsaCracker supports attacks that require multiple RSA keys. You can provide multiple keys in several ways:
 
 **Method 1: Via raw file with indexed notation**
 
@@ -213,6 +213,16 @@ rsacracker --key key1.pem --key key2.pem --dump
 
 # Works with any combination of key files
 rsacracker --key public1.pem --key public2.pem --key public3.pem
+```
+
+**Method 3: Via multiple -n parameters**
+
+```console
+# Provide multiple moduli directly for common factor attacks
+rsacracker -n 166209509310787961... -n 137801924148643799... --dump
+
+# Can combine with other parameters
+rsacracker -n 123456... -n 789012... -e 65537
 ```
 
 Supported multi-key attacks include:

@@ -225,6 +225,16 @@ rsacracker -n 166209509310787961... -n 137801924148643799... --dump
 rsacracker -n 123456... -n 789012... -e 65537
 ```
 
+**Method 4: Via multiple -c and -e parameters**
+
+```console
+# Common modulus attack with multiple ciphertexts and exponents
+rsacracker -n 166270918338126577... -e 65537 -e 65539 -c 136917880321258914... -c 46689866063983112...
+
+# Hastad's broadcast attack with multiple n, e, and c
+rsacracker -n 123... -n 456... -n 789... -e 3 -c 100... -c 200... -c 300...
+```
+
 Supported multi-key attacks include:
 - **Common Factor Attack**: When multiple RSA keys share a common prime factor, GCD reveals it
 - **Common Modulus Attack**: When the same modulus is used with different coprime exponents

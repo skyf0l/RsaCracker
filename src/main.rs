@@ -39,9 +39,9 @@ struct Args {
     /// Retrieve values from raw file
     #[clap(short, long)]
     raw: Option<String>,
-    /// Cipher: the message to uncipher.
+    /// Cipher: the message to uncipher. Can be specified multiple times for multi-key attacks.
     #[clap(short, long)]
-    cipher: Option<IntegerArg>,
+    cipher: Vec<IntegerArg>,
     /// Cipher file: the file to uncipher.
     #[clap(short = 'f', long)]
     cipherfile: Option<std::path::PathBuf>,
@@ -51,9 +51,9 @@ struct Args {
     /// Modulus. Can be specified multiple times for multi-key attacks.
     #[clap(short)]
     n: Vec<IntegerArg>,
-    /// Public exponent. Default: 65537
-    #[clap(short, default_value = "65537")]
-    e: IntegerArg,
+    /// Public exponent. Default: 65537. Can be specified multiple times for multi-key attacks.
+    #[clap(short)]
+    e: Vec<IntegerArg>,
     /// Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, 0x...C0FFEE, 0xDEADBEEF..., etc.)
     #[clap(short)]
     p: Option<PartialPrimeArg>,
@@ -201,8 +201,8 @@ fn main() -> Result<(), MainError> {
     }
 
     // Read cipher
-    let c = if args.cipher.is_some() {
-        args.cipher.map(|n| n.0)
+    let c = if !args.cipher.is_empty() {
+        args.cipher.first().map(|n| n.0.clone())
     } else if let Some(cipher_path) = args.cipherfile.as_ref() {
         match std::fs::read(cipher_path) {
             Ok(bytes) => Some(Integer::from_digits(&bytes, Order::Msf)),
@@ -231,7 +231,7 @@ fn main() -> Result<(), MainError> {
     params += Parameters {
         c,
         n: args.n.first().map(|n| n.0.clone()),
-        e: args.e.0,
+        e: args.e.first().map(|e| e.0.clone()).unwrap_or_else(|| Integer::from(65537)),
         p: args.p.as_ref().and_then(|p| p.0.full().cloned()),
         q: args.q.as_ref().and_then(|q| q.0.full().cloned()),
         d: args.d.map(|n| n.0),
@@ -259,13 +259,31 @@ fn main() -> Result<(), MainError> {
         keys: Vec::new(),
     };
 
-    // Add additional N values as keys for multi-key attacks
-    for n_value in args.n.iter().skip(1) {
-        params.keys.push(KeyEntry {
-            n: Some(n_value.0.clone()),
-            e: params.e.clone(),
-            c: None,
+    // Add additional keys from multiple N, E, and C parameters
+    // Determine the maximum number of keys to create
+    let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len());
+    
+    for i in 1..max_keys {
+        let n = args.n.get(i).map(|n| n.0.clone()).or_else(|| {
+            // If there's only one N, use it for all keys (common modulus attack)
+            if args.n.len() == 1 {
+                args.n.first().map(|n| n.0.clone())
+            } else {
+                None
+            }
         });
+        
+        let e = args.e.get(i).map(|e| e.0.clone()).unwrap_or_else(|| {
+            // Default to 65537 if not specified
+            Integer::from(65537)
+        });
+        
+        let c = args.cipher.get(i).map(|c| c.0.clone());
+        
+        // Only add if at least one of n, e, or c is different from the main key
+        if n.is_some() || c.is_some() || (i < args.e.len() && args.e.get(i).is_some()) {
+            params.keys.push(KeyEntry { n, e, c });
+        }
     }
 
     // Read public and private keys

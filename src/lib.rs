@@ -12,7 +12,7 @@ use std::sync::Arc;
 mod attack;
 mod factors;
 mod key;
-mod ntheory;
+pub mod ntheory;
 mod params;
 mod solution;
 mod utils;

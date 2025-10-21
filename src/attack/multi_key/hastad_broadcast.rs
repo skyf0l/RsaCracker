@@ -1,7 +1,7 @@
 use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
-use crate::{ntheory::crt, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
+use crate::{ntheory::{crt, nth_root}, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
 /// Hastad's broadcast attack
 ///
@@ -101,11 +101,6 @@ impl Attack for HastadBroadcastAttack {
             }
         }
     }
-}
-
-/// Compute the integer n-th root
-fn nth_root(x: &Integer, n: u32) -> Integer {
-    x.clone().root(n)
 }
 
 #[cfg(test)]

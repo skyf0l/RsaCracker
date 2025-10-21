@@ -192,7 +192,7 @@ RsaCracker supports attacks that require multiple RSA keys. You can provide mult
 **Method 1: Via raw file with indexed notation**
 
 ```console
-# Create a file with multiple keys
+# Create a file with multiple keys (multikeys.txt)
 # Common factor attack - when two keys share a common prime
 n1 = 166162630914502531310583922419891282066165820974633135604215723500594369488785155668770814942798477925368262423257419073645831352835527789101770856835355683177962166057699839663569971312562086050531058716298108813024798653596850452010850976880829077654912494652271256054564920903881745267063001869548202922099
 e1 = 65537
@@ -235,10 +235,7 @@ rsacracker -n 166270918338126577... -e 65537 -e 65539 -c 136917880321258914... -
 rsacracker -n 123... -n 456... -n 789... -e 3 -c 100... -c 200... -c 300...
 ```
 
-Supported multi-key attacks include:
-- **Common Factor Attack**: When multiple RSA keys share a common prime factor, GCD reveals it
-- **Common Modulus Attack**: When the same modulus is used with different coprime exponents
-- **Hastad's Broadcast Attack**: When the same message is sent to multiple recipients with low public exponent
+
 
 ## Docker
 

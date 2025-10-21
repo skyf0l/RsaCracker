@@ -4,9 +4,12 @@ use std::sync::Arc;
 
 mod cipolla;
 mod comfact_cn;
+mod common_factor;
+mod common_modulus;
 mod cube_root;
 mod factorization;
 mod gaa;
+mod hastad_broadcast;
 mod known_d;
 mod known_phi;
 mod leaked_crt_coefficient;
@@ -26,9 +29,12 @@ use crate::{Parameters, Solution};
 
 pub use cipolla::CipollaAttack;
 pub use comfact_cn::ComfactCnAttack;
+pub use common_factor::CommonFactorAttack;
+pub use common_modulus::CommonModulusAttack;
 pub use cube_root::CubeRootAttack;
 pub use factorization::*;
 pub use gaa::GaaAttack;
+pub use hastad_broadcast::HastadBroadcastAttack;
 pub use known_d::KnownDAttack;
 pub use known_phi::KnownPhiAttack;
 pub use leaked_crt_coefficient::LeakedCrtCoefficientAttack;
@@ -157,9 +163,12 @@ lazy_static! {
     static ref _ATTACKS: Vec<Arc<dyn Attack + Sync + Send>> = vec![
         Arc::new(CipollaAttack),
         Arc::new(ComfactCnAttack),
+        Arc::new(CommonFactorAttack),
+        Arc::new(CommonModulusAttack),
         Arc::new(CubeRootAttack),
         Arc::new(DiffPQAttack),
         Arc::new(GaaAttack),
+        Arc::new(HastadBroadcastAttack),
         Arc::new(KnownDAttack),
         Arc::new(KnownPhiAttack),
         Arc::new(LeakedCrtCoefficientAttack),

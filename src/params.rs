@@ -248,6 +248,17 @@ impl PartialPrimeArg {
     }
 }
 
+/// A single key entry for multi-key attacks
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeyEntry {
+    /// Cipher message for this key.
+    pub c: Option<Integer>,
+    /// Modulus.
+    pub n: Option<Integer>,
+    /// Public exponent.
+    pub e: Integer,
+}
+
 /// Known parameters
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Parameters {
@@ -281,6 +292,8 @@ pub struct Parameters {
     pub partial_p: Option<PartialPrime>,
     /// Partial prime q (with wildcards).
     pub partial_q: Option<PartialPrime>,
+    /// Additional keys for multi-key attacks.
+    pub keys: Vec<KeyEntry>,
 }
 
 impl Default for Parameters {
@@ -301,6 +314,7 @@ impl Default for Parameters {
             diff_pq: None,
             partial_p: None,
             partial_q: None,
+            keys: Vec::new(),
         }
     }
 }
@@ -352,6 +366,20 @@ impl Display for Parameters {
         if let Some(partial_q) = &self.partial_q {
             s += &format!("partial_q = {:?}\n", partial_q);
         }
+        if !self.keys.is_empty() {
+            s += &format!("keys = {} entries\n", self.keys.len());
+            for (i, key) in self.keys.iter().enumerate() {
+                s += &format!("  key[{}]: ", i);
+                if let Some(n) = &key.n {
+                    s += &format!("n={}, ", n);
+                }
+                s += &format!("e={}", key.e);
+                if let Some(c) = &key.c {
+                    s += &format!(", c={}", c);
+                }
+                s += "\n";
+            }
+        }
 
         // Remove trailing newline
         if s.ends_with('\n') {
@@ -374,9 +402,18 @@ impl Parameters {
     /// e: 0x1
     /// C 0x00
     /// phi: 0x1
+    /// 
+    /// // Multi-key support
+    /// n1 = 123
+    /// e1 = 65537
+    /// c1 = 456
+    /// n2 = 789
+    /// e2 = 3
+    /// c2 = 101112
     /// ```
     pub fn from_raw(raw: &str) -> Self {
         let mut params = Self::default();
+        let mut key_entries: std::collections::HashMap<usize, KeyEntry> = std::collections::HashMap::new();
 
         for line in raw.lines() {
             let line = line.trim();
@@ -394,8 +431,20 @@ impl Parameters {
                 continue;
             };
 
-            // Clean up key
-            let key = key.replace("_", "").replace("-", "");
+            // Clean up key and check for index suffix (e.g., n1, e2, c3)
+            let key_cleaned = key.replace("_", "").replace("-", "");
+            let (base_key, index) = if let Some(last_char) = key_cleaned.chars().last() {
+                if last_char.is_ascii_digit() {
+                    let mut chars = key_cleaned.chars();
+                    let digit = chars.next_back().unwrap();
+                    let base = chars.as_str().to_string();
+                    (base, Some(digit.to_digit(10).unwrap() as usize))
+                } else {
+                    (key_cleaned, None)
+                }
+            } else {
+                (key_cleaned, None)
+            };
 
             let value = if let Ok(value) = IntegerArg::from_str(value) {
                 value.0
@@ -404,22 +453,46 @@ impl Parameters {
                 continue;
             };
 
-            match key.to_lowercase().as_str() {
-                "n" => params.n = Some(value),
-                "e" => params.e = value,
-                "c" => params.c = Some(value),
-                "p" => params.p = Some(value),
-                "q" => params.q = Some(value),
-                "d" => params.d = Some(value),
-                "phi" => params.phi = Some(value),
-                "dp" | "dmp1" => params.dp = Some(value),
-                "dq" | "dmq1" => params.dq = Some(value),
-                "qinv" | "iqmp" => params.qinv = Some(value),
-                "pinv" | "ipmq" => params.pinv = Some(value),
-                "sumpq" => params.sum_pq = Some(value),
-                "diffpq" => params.diff_pq = Some(value),
-                _ => {}
+            if let Some(idx) = index {
+                // This is an indexed key (n1, e1, c1, etc.)
+                let entry = key_entries.entry(idx).or_insert_with(|| KeyEntry {
+                    n: None,
+                    e: 65537.into(),
+                    c: None,
+                });
+                
+                match base_key.to_lowercase().as_str() {
+                    "n" => entry.n = Some(value),
+                    "e" => entry.e = value,
+                    "c" => entry.c = Some(value),
+                    _ => {}
+                }
+            } else {
+                // This is a regular parameter (n, e, c, etc.)
+                match base_key.to_lowercase().as_str() {
+                    "n" => params.n = Some(value),
+                    "e" => params.e = value,
+                    "c" => params.c = Some(value),
+                    "p" => params.p = Some(value),
+                    "q" => params.q = Some(value),
+                    "d" => params.d = Some(value),
+                    "phi" => params.phi = Some(value),
+                    "dp" | "dmp1" => params.dp = Some(value),
+                    "dq" | "dmq1" => params.dq = Some(value),
+                    "qinv" | "iqmp" => params.qinv = Some(value),
+                    "pinv" | "ipmq" => params.pinv = Some(value),
+                    "sumpq" => params.sum_pq = Some(value),
+                    "diffpq" => params.diff_pq = Some(value),
+                    _ => {}
+                }
             }
+        }
+
+        // Convert the HashMap to a sorted Vec
+        if !key_entries.is_empty() {
+            let mut indices: Vec<_> = key_entries.keys().copied().collect();
+            indices.sort();
+            params.keys = indices.into_iter().filter_map(|i| key_entries.remove(&i)).collect();
         }
 
         params
@@ -658,6 +731,8 @@ impl AddAssign for Parameters {
         if self.partial_q.is_none() {
             self.partial_q = rhs.partial_q;
         }
+        // Extend keys vector with new keys
+        self.keys.extend(rhs.keys);
     }
 }
 

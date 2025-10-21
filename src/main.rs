@@ -256,6 +256,7 @@ fn main() -> Result<(), MainError> {
                 None
             }
         }),
+        keys: Vec::new(),
     };
 
     // Read public and private keys

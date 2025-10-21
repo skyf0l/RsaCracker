@@ -126,6 +126,16 @@ rsacracker -n 123...789 -p 0x????C0FFEE
 
 Each `?` represents one digit in the specified radix.
 
+You can also use ellipsis (`...`) when the unknown length should be inferred from the modulus size:
+
+```console
+# Hexadecimal: LSB known (MSB length inferred)
+rsacracker -n 123...789 -p 0x...C0FFEE
+
+# Hexadecimal: MSB known (LSB length inferred)
+rsacracker -n 123...789 -p 0xDEADBEEF...
+```
+
 ### Run a specific attack with arguments
 
 ```console

@@ -821,7 +821,7 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "openssl",
- "rand_core 0.9.3",
+ "rand_core 0.6.4",
  "rug",
  "ssh-key",
 ]

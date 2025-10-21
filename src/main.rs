@@ -14,7 +14,7 @@ use std::{
 };
 
 use rsacracker::{
-    integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, PartialPrimeArg, ATTACKS,
+    integer_to_bytes, integer_to_string, Attack, IntegerArg, KeyEntry, Parameters, PartialPrimeArg, ATTACKS,
 };
 use update_informer::{registry, Check};
 
@@ -87,9 +87,9 @@ struct Args {
     /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
     #[clap(long, alias = "dislog")]
     dlog: bool,
-    /// Public or private key file. (RSA, X509, OPENSSH in PEM and DER formats.)
+    /// Public or private key file(s). (RSA, X509, OPENSSH in PEM and DER formats.) Can be specified multiple times for multi-key attacks.
     #[clap(short, long)]
-    key: Option<String>,
+    key: Vec<String>,
     /// Private key password/passphrase if encrypted.
     #[clap(long)]
     password: Option<String>,
@@ -260,12 +260,31 @@ fn main() -> Result<(), MainError> {
     };
 
     // Read public and private keys
-    if let Some(key) = args.key {
-        let bytes = std::fs::read(key)?;
+    if !args.key.is_empty() {
+        // First key becomes the main key
+        if let Some(first_key) = args.key.first() {
+            let bytes = std::fs::read(first_key)?;
+            params += Parameters::from_private_key(&bytes, args.password.as_deref())
+                .or_else(|| Parameters::from_public_key(&bytes))
+                .ok_or("Invalid key")?;
+        }
 
-        params += Parameters::from_private_key(&bytes, args.password.as_deref())
-            .or_else(|| Parameters::from_public_key(&bytes))
-            .ok_or("Invalid key")?;
+        // Additional keys go into the keys vector for multi-key attacks
+        for key_path in args.key.iter().skip(1) {
+            let bytes = std::fs::read(key_path)?;
+            
+            if let Some(key_params) = Parameters::from_private_key(&bytes, args.password.as_deref())
+                .or_else(|| Parameters::from_public_key(&bytes))
+            {
+                params.keys.push(KeyEntry {
+                    n: key_params.n,
+                    e: key_params.e,
+                    c: None,
+                });
+            } else {
+                return Err(format!("Invalid key: {}", key_path).into());
+            }
+        }
     };
 
     if args.showinputs {

@@ -79,21 +79,21 @@ impl Attack for HastadBroadcastAttack {
         // Compute the e-th root of m_to_e
         // For small e, we can try to compute the integer e-th root directly
         let e_u32 = e.to_u32().ok_or(Error::NotFound)?;
-        
+
         // Try to compute the e-th root
         let m = m_to_e.clone().root(e_u32);
 
         // Verify the result - check if m^e equals m_to_e within some tolerance
         // The root might not be exact due to truncation
-        let m_pow = Integer::from(m.clone().pow(e_u32));
-        
+        let m_pow = m.clone().pow(e_u32);
+
         // For exact roots (typical in CTF challenges), m^e should equal m_to_e exactly
         if m_pow == m_to_e {
             Ok(Solution::new_m(self.name(), m))
         } else {
             // Try m+1 in case of rounding errors
             let m_plus_1: Integer = m.clone() + 1;
-            let m_pow_plus_1 = Integer::from(m_plus_1.clone().pow(e_u32));
+            let m_pow_plus_1 = m_plus_1.clone().pow(e_u32);
             if m_pow_plus_1 == m_to_e {
                 Ok(Solution::new_m(self.name(), m_plus_1))
             } else {

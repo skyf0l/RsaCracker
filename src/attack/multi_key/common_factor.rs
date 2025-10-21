@@ -50,13 +50,11 @@ impl Attack for CommonFactorAttack {
             for j in (i + 1)..moduli.len() {
                 let p = Integer::from(moduli[i].gcd_ref(&moduli[j]));
 
-                if p > 1 && &p != &moduli[i] && &p != &moduli[j] {
+                if p > 1 && p != moduli[i] && p != moduli[j] {
                     // Found a common factor!
                     // Use the first modulus (could be the main one or from keys)
                     let n = if i == 0 && params.n.is_some() {
                         params.n.as_ref().unwrap()
-                    } else if i == 0 {
-                        &moduli[0]
                     } else {
                         &moduli[0]
                     };

@@ -14,7 +14,8 @@ use std::{
 };
 
 use rsacracker::{
-    integer_to_bytes, integer_to_string, Attack, IntegerArg, KeyEntry, Parameters, PartialPrimeArg, ATTACKS,
+    integer_to_bytes, integer_to_string, Attack, IntegerArg, KeyEntry, Parameters, PartialPrimeArg,
+    ATTACKS,
 };
 use update_informer::{registry, Check};
 
@@ -231,7 +232,11 @@ fn main() -> Result<(), MainError> {
     params += Parameters {
         c,
         n: args.n.first().map(|n| n.0.clone()),
-        e: args.e.first().map(|e| e.0.clone()).unwrap_or_else(|| Integer::from(65537)),
+        e: args
+            .e
+            .first()
+            .map(|e| e.0.clone())
+            .unwrap_or_else(|| Integer::from(65537)),
         p: args.p.as_ref().and_then(|p| p.0.full().cloned()),
         q: args.q.as_ref().and_then(|q| q.0.full().cloned()),
         d: args.d.map(|n| n.0),
@@ -262,7 +267,7 @@ fn main() -> Result<(), MainError> {
     // Add additional keys from multiple N, E, and C parameters
     // Determine the maximum number of keys to create
     let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len());
-    
+
     for i in 1..max_keys {
         let n = args.n.get(i).map(|n| n.0.clone()).or_else(|| {
             // If there's only one N, use it for all keys (common modulus attack)
@@ -272,14 +277,14 @@ fn main() -> Result<(), MainError> {
                 None
             }
         });
-        
+
         let e = args.e.get(i).map(|e| e.0.clone()).unwrap_or_else(|| {
             // Default to 65537 if not specified
             Integer::from(65537)
         });
-        
+
         let c = args.cipher.get(i).map(|c| c.0.clone());
-        
+
         // Only add if at least one of n, e, or c is different from the main key
         if n.is_some() || c.is_some() || (i < args.e.len() && args.e.get(i).is_some()) {
             params.keys.push(KeyEntry { n, e, c });
@@ -299,7 +304,7 @@ fn main() -> Result<(), MainError> {
         // Additional keys go into the keys vector for multi-key attacks
         for key_path in args.key.iter().skip(1) {
             let bytes = std::fs::read(key_path)?;
-            
+
             if let Some(key_params) = Parameters::from_private_key(&bytes, args.password.as_deref())
                 .or_else(|| Parameters::from_public_key(&bytes))
             {

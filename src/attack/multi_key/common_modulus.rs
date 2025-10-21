@@ -67,8 +67,8 @@ impl Attack for CommonModulusAttack {
             // Compute m = c1^x * c2^y mod n
             let m = if x >= 0 && y >= 0 {
                 // Both positive
-                let m1 = c1.clone().pow_mod(&x.clone().into(), n).unwrap();
-                let m2 = c2.clone().pow_mod(&y.clone().into(), n).unwrap();
+                let m1 = c1.clone().pow_mod(&x.clone(), n).unwrap();
+                let m2 = c2.clone().pow_mod(&y.clone(), n).unwrap();
                 (m1 * m2) % n
             } else if x < 0 && y >= 0 {
                 // x negative, need inverse of c1
@@ -76,8 +76,8 @@ impl Attack for CommonModulusAttack {
                     Ok(inv) => inv,
                     Err(_) => return Err(Error::NotFound),
                 };
-                let m1 = c1_inv.pow_mod(&(-x).clone().into(), n).unwrap();
-                let m2 = c2.clone().pow_mod(&y.clone().into(), n).unwrap();
+                let m1 = c1_inv.pow_mod(&(-x).clone(), n).unwrap();
+                let m2 = c2.clone().pow_mod(&y.clone(), n).unwrap();
                 (m1 * m2) % n
             } else if x >= 0 && y < 0 {
                 // y negative, need inverse of c2
@@ -85,8 +85,8 @@ impl Attack for CommonModulusAttack {
                     Ok(inv) => inv,
                     Err(_) => return Err(Error::NotFound),
                 };
-                let m1 = c1.clone().pow_mod(&x.clone().into(), n).unwrap();
-                let m2 = c2_inv.pow_mod(&(-y).clone().into(), n).unwrap();
+                let m1 = c1.clone().pow_mod(&x.clone(), n).unwrap();
+                let m2 = c2_inv.pow_mod(&(-y).clone(), n).unwrap();
                 (m1 * m2) % n
             } else {
                 // Both negative
@@ -98,8 +98,8 @@ impl Attack for CommonModulusAttack {
                     Ok(inv) => inv,
                     Err(_) => return Err(Error::NotFound),
                 };
-                let m1 = c1_inv.pow_mod(&(-x).clone().into(), n).unwrap();
-                let m2 = c2_inv.pow_mod(&(-y).clone().into(), n).unwrap();
+                let m1 = c1_inv.pow_mod(&(-x).clone(), n).unwrap();
+                let m2 = c2_inv.pow_mod(&(-y).clone(), n).unwrap();
                 (m1 * m2) % n
             };
 

@@ -402,7 +402,7 @@ impl Parameters {
     /// e: 0x1
     /// C 0x00
     /// phi: 0x1
-    /// 
+    ///
     /// // Multi-key support
     /// n1 = 123
     /// e1 = 65537
@@ -413,7 +413,8 @@ impl Parameters {
     /// ```
     pub fn from_raw(raw: &str) -> Self {
         let mut params = Self::default();
-        let mut key_entries: std::collections::HashMap<usize, KeyEntry> = std::collections::HashMap::new();
+        let mut key_entries: std::collections::HashMap<usize, KeyEntry> =
+            std::collections::HashMap::new();
 
         for line in raw.lines() {
             let line = line.trim();
@@ -460,7 +461,7 @@ impl Parameters {
                     e: 65537.into(),
                     c: None,
                 });
-                
+
                 match base_key.to_lowercase().as_str() {
                     "n" => entry.n = Some(value),
                     "e" => entry.e = value,
@@ -492,7 +493,10 @@ impl Parameters {
         if !key_entries.is_empty() {
             let mut indices: Vec<_> = key_entries.keys().copied().collect();
             indices.sort();
-            params.keys = indices.into_iter().filter_map(|i| key_entries.remove(&i)).collect();
+            params.keys = indices
+                .into_iter()
+                .filter_map(|i| key_entries.remove(&i))
+                .collect();
         }
 
         params

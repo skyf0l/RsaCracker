@@ -54,10 +54,10 @@ struct Args {
     /// Public exponent. Default: 65537
     #[clap(short, default_value = "65537")]
     e: IntegerArg,
-    /// Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
+    /// Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, 0x...C0FFEE, 0xDEADBEEF..., etc.)
     #[clap(short)]
     p: Option<PartialPrimeArg>,
-    /// Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
+    /// Prime number q (supports wildcards: 0x????C0FFEE, ??741827, 0x...C0FFEE, 0xDEADBEEF..., etc.)
     #[clap(short)]
     q: Option<PartialPrimeArg>,
     /// Private exponent.

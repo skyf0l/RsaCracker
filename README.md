@@ -185,6 +185,29 @@ rsacracker -n 123...789 --factors
 rsacracker --key public.pem -c 0xdeadbeef --dlog
 ```
 
+### Multi-key attacks
+
+RsaCracker supports attacks that require multiple RSA keys. You can provide multiple keys via a raw file:
+
+```console
+# Create a file with multiple keys (multikeys.txt)
+# Common factor attack - when two keys share a common prime
+n1 = 166162630914502531310583922419891282066165820974633135604215723500594369488785155668770814942798477925368262423257419073645831352835527789101770856835355683177962166057699839663569971312562086050531058716298108813024798653596850452010850976880829077654912494652271256054564920903881745267063001869548202922099
+e1 = 65537
+c1 = 123
+
+n2 = 148455898656074447797752378503069279028991863906908832057033693077681993859745690328279867444062926638337203683279627319119630089306918893030699950731547426066997479055479829293964341682216330844958953722765260947532634616964944677851975839768164255655099799121904635086103339949975609477039895462111764318783
+e2 = 65537
+
+# Run the attack
+rsacracker --raw multikeys.txt
+```
+
+Supported multi-key attacks include:
+- **Common Factor Attack**: When multiple RSA keys share a common prime factor, GCD reveals it
+- **Common Modulus Attack**: When the same modulus is used with different coprime exponents
+- **Hastad's Broadcast Attack**: When the same message is sent to multiple recipients with low public exponent
+
 ## Docker
 
 From dockerhub:

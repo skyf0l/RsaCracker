@@ -42,6 +42,7 @@ Options:
       --qinv <QINV>                qInv or iqmp CRT coefficient. (q^-1 mod p)
       --pinv <PINV>                pInv or ipmq CRT coefficient. (p^-1 mod q)
       --sum-pq <SUM_PQ>            The sum of the two primes p and q
+      --diff-pq <DIFF_PQ>          The difference of the two primes p and q
       --dlog                       Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
   -k, --key <KEY>                  Public or private key file. (RSA, X509, OPENSSH in PEM and DER formats.)
       --password <PASSWORD>        Private key password/passphrase if encrypted

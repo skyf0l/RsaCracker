@@ -275,6 +275,8 @@ pub struct Parameters {
     pub pinv: Option<Integer>,
     /// The sum of the two primes p and q.
     pub sum_pq: Option<Integer>,
+    /// The difference of the two primes p and q.
+    pub diff_pq: Option<Integer>,
     /// Partial prime p (with wildcards).
     pub partial_p: Option<PartialPrime>,
     /// Partial prime q (with wildcards).
@@ -296,6 +298,7 @@ impl Default for Parameters {
             qinv: None,
             pinv: None,
             sum_pq: None,
+            diff_pq: None,
             partial_p: None,
             partial_q: None,
         }
@@ -339,6 +342,9 @@ impl Display for Parameters {
         }
         if let Some(sum_pq) = &self.sum_pq {
             s += &format!("sum_pq = {sum_pq}\n");
+        }
+        if let Some(diff_pq) = &self.diff_pq {
+            s += &format!("diff_pq = {diff_pq}\n");
         }
         if let Some(partial_p) = &self.partial_p {
             s += &format!("partial_p = {:?}\n", partial_p);
@@ -411,6 +417,7 @@ impl Parameters {
                 "qinv" | "iqmp" => params.qinv = Some(value),
                 "pinv" | "ipmq" => params.pinv = Some(value),
                 "sumpq" => params.sum_pq = Some(value),
+                "diffpq" => params.diff_pq = Some(value),
                 _ => {}
             }
         }
@@ -641,6 +648,9 @@ impl AddAssign for Parameters {
         }
         if self.sum_pq.is_none() {
             self.sum_pq = rhs.sum_pq;
+        }
+        if self.diff_pq.is_none() {
+            self.diff_pq = rhs.diff_pq;
         }
         if self.partial_p.is_none() {
             self.partial_p = rhs.partial_p;

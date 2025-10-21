@@ -64,11 +64,6 @@ pub fn crt(residues: &[Integer], modulli: &[Integer]) -> Option<Integer> {
     Some(sum % prod)
 }
 
-/// Compute the integer n-th root
-pub fn nth_root(x: &Integer, n: u32) -> Integer {
-    x.clone().root(n)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

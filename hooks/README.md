@@ -16,7 +16,15 @@ Runs before each push as an additional safeguard to ensure:
 
 ## Installation
 
-To install these hooks in your local repository, run:
+### Automatic Installation
+
+**The hooks are automatically installed when you build the project** with `cargo build`, `cargo test`, or `cargo run`. No manual setup is required!
+
+The build script (`build.rs`) automatically detects if you're in a git repository and installs the hooks if they're not already present.
+
+### Manual Installation
+
+If needed, you can also manually install the hooks:
 
 ```bash
 ./hooks/install.sh

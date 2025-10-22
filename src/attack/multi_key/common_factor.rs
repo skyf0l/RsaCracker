@@ -52,12 +52,8 @@ impl Attack for CommonFactorAttack {
 
                 if p > 1 && p != moduli[i] && p != moduli[j] {
                     // Found a common factor!
-                    // Use the first modulus (could be the main one or from keys)
-                    let n = if i == 0 && params.n.is_some() {
-                        params.n.as_ref().unwrap()
-                    } else {
-                        &moduli[0]
-                    };
+                    // Use the modulus where we found the factor
+                    let n = &moduli[i];
 
                     let q = n.clone() / &p;
 

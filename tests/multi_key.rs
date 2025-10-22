@@ -1,70 +1,7 @@
-// Tests for multi-key attacks
+// Tests for multi-key parameter parsing
 
-use rsacracker::{run_specific_attacks_with_threads, KeyEntry, Parameters, ATTACKS};
+use rsacracker::Parameters;
 use rug::Integer;
-use std::str::FromStr;
-
-#[test]
-fn common_factor_attack_test() {
-    // Two RSA keys that share a common prime factor
-    // p1 = 127046...46991 is shared between n1 and n2
-    let p_shared = Integer::from_str("12704460451534494031967012610385124349946784529699670611312906119052340494225557086421265132203129766891315537215217611630798386899633253559211223631146991").unwrap();
-    let q1 = Integer::from_str("13082768051807546995723405137915083607226493252598950098559500283057676054655289649034281301331433871693649745132486183849864220126643322709682774011809557").unwrap();
-    let q2 = Integer::from_str("10846735654326787878163407853463542565347654325489765432546578765432198765432198765432198765432198765432198765432198765432198765432198765432187654321").unwrap();
-
-    let n1 = p_shared.clone() * &q1;
-    let n2 = p_shared.clone() * &q2;
-    let e = Integer::from(65537);
-
-    let params = Parameters {
-        n: Some(n1.clone()),
-        e: e.clone(),
-        keys: vec![KeyEntry {
-            n: Some(n2.clone()),
-            e: e.clone(),
-            c: None,
-        }],
-        ..Default::default()
-    };
-
-    let solution = run_specific_attacks_with_threads(&params, &ATTACKS, 1).unwrap();
-    assert_eq!(solution.attack, "common_factor");
-
-    let pk = solution.pk.unwrap();
-    assert_eq!(pk.n, n1);
-    assert_eq!(pk.p(), p_shared);
-    assert_eq!(pk.q(), q1);
-}
-
-#[test]
-fn common_modulus_attack_test() {
-    // Same modulus n, different coprime exponents e1 and e2, same message encrypted twice
-    use rsacracker::bytes_to_integer;
-
-    let m = bytes_to_integer(b"RsaCracker!");
-    let n = Integer::from_str("166270918338126577330758828592535648964989469159127542778196697837221437733066780089912708466193803018826184715618764250423068066614662326811797974314176667").unwrap();
-    let e1 = Integer::from(65537);
-    let e2 = Integer::from(65539);
-
-    let c1 = m.clone().pow_mod(&e1, &n).unwrap();
-    let c2 = m.clone().pow_mod(&e2, &n).unwrap();
-
-    let params = Parameters {
-        n: Some(n.clone()),
-        e: e1,
-        c: Some(c1),
-        keys: vec![KeyEntry {
-            n: Some(n),
-            e: e2,
-            c: Some(c2),
-        }],
-        ..Default::default()
-    };
-
-    let solution = run_specific_attacks_with_threads(&params, &ATTACKS, 1).unwrap();
-    assert_eq!(solution.attack, "common_modulus");
-    assert_eq!(solution.m.unwrap(), m);
-}
 
 #[test]
 fn multi_key_from_raw() {

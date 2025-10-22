@@ -433,7 +433,7 @@ impl Parameters {
             };
 
             // Clean up key and check for index suffix (e.g., n1, e2, c3)
-            let key_cleaned = key.replace("_", "").replace("-", "");
+            let key_cleaned = key.replace(['_', '-'], "");
             let (base_key, index) = if let Some(last_char) = key_cleaned.chars().last() {
                 if last_char.is_ascii_digit() {
                     let mut chars = key_cleaned.chars();

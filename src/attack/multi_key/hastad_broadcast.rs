@@ -87,11 +87,13 @@ impl Attack for HastadBroadcastAttack {
         // The root might not be exact due to truncation
         let m_pow = m.clone().pow(e_u32);
 
+        // Verify the solution by checking if m^e == m_to_e
         // For exact roots (typical in CTF challenges), m^e should equal m_to_e exactly
         if m_pow == m_to_e {
             Ok(Solution::new_m(self.name(), m))
         } else {
-            // Try m+1 in case of rounding errors
+            // Try m+1 in case of rounding errors from root extraction
+            // This handles edge cases where the integer root is slightly off
             let m_plus_1: Integer = m.clone() + 1;
             let m_pow_plus_1 = m_plus_1.clone().pow(e_u32);
             if m_pow_plus_1 == m_to_e {

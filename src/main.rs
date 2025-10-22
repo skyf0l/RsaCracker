@@ -265,12 +265,15 @@ fn main() -> Result<(), MainError> {
     };
 
     // Add additional keys from multiple N, E, and C parameters
-    // Determine the maximum number of keys to create
+    // This supports various multi-key attack scenarios:
+    // - Multiple N values: different moduli (e.g., common factor, Hastad's broadcast)
+    // - Single N, multiple E/C: same modulus, different exponents (e.g., common modulus)
+    // - Multiple of each: fully specified keys
     let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len());
 
     for i in 1..max_keys {
         let n = args.n.get(i).map(|n| n.0.clone()).or_else(|| {
-            // If there's only one N, use it for all keys (common modulus attack)
+            // If there's only one N, reuse it for all keys (common modulus attack scenario)
             if args.n.len() == 1 {
                 args.n.first().map(|n| n.0.clone())
             } else {

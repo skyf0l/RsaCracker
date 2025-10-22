@@ -14,7 +14,8 @@ use std::{
 };
 
 use rsacracker::{
-    integer_to_bytes, integer_to_string, Attack, IntegerArg, Parameters, PartialPrimeArg, ATTACKS,
+    integer_to_bytes, integer_to_string, Attack, IntegerArg, KeyEntry, Parameters, PartialPrimeArg,
+    ATTACKS,
 };
 use update_informer::{registry, Check};
 
@@ -39,21 +40,21 @@ struct Args {
     /// Retrieve values from raw file
     #[clap(short, long)]
     raw: Option<String>,
-    /// Cipher: the message to uncipher.
+    /// Cipher: the message to uncipher. Can be specified multiple times for multi-key attacks.
     #[clap(short, long)]
-    cipher: Option<IntegerArg>,
+    cipher: Vec<IntegerArg>,
     /// Cipher file: the file to uncipher.
     #[clap(short = 'f', long)]
     cipherfile: Option<std::path::PathBuf>,
     /// Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
     #[clap(short = 'o', long)]
     outfile: Option<std::path::PathBuf>,
-    /// Modulus.
+    /// Modulus. Can be specified multiple times for multi-key attacks.
     #[clap(short)]
-    n: Option<IntegerArg>,
-    /// Public exponent. Default: 65537
-    #[clap(short, default_value = "65537")]
-    e: IntegerArg,
+    n: Vec<IntegerArg>,
+    /// Public exponent. Default: 65537. Can be specified multiple times for multi-key attacks.
+    #[clap(short)]
+    e: Vec<IntegerArg>,
     /// Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, 0x...C0FFEE, 0xDEADBEEF..., etc.)
     #[clap(short)]
     p: Option<PartialPrimeArg>,
@@ -87,9 +88,9 @@ struct Args {
     /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
     #[clap(long, alias = "dislog")]
     dlog: bool,
-    /// Public or private key file. (RSA, X509, OPENSSH in PEM and DER formats.)
+    /// Public or private key file(s). (RSA, X509, OPENSSH in PEM and DER formats.) Can be specified multiple times for multi-key attacks.
     #[clap(short, long)]
-    key: Option<String>,
+    key: Vec<String>,
     /// Private key password/passphrase if encrypted.
     #[clap(long)]
     password: Option<String>,
@@ -201,8 +202,8 @@ fn main() -> Result<(), MainError> {
     }
 
     // Read cipher
-    let c = if args.cipher.is_some() {
-        args.cipher.map(|n| n.0)
+    let c = if !args.cipher.is_empty() {
+        args.cipher.first().map(|n| n.0.clone())
     } else if let Some(cipher_path) = args.cipherfile.as_ref() {
         match std::fs::read(cipher_path) {
             Ok(bytes) => Some(Integer::from_digits(&bytes, Order::Msf)),
@@ -230,8 +231,12 @@ fn main() -> Result<(), MainError> {
     // Build parameters
     params += Parameters {
         c,
-        n: args.n.map(|n| n.0),
-        e: args.e.0,
+        n: args.n.first().map(|n| n.0.clone()),
+        e: args
+            .e
+            .first()
+            .map(|e| e.0.clone())
+            .unwrap_or_else(|| Integer::from(65537)),
         p: args.p.as_ref().and_then(|p| p.0.full().cloned()),
         q: args.q.as_ref().and_then(|q| q.0.full().cloned()),
         d: args.d.map(|n| n.0),
@@ -256,15 +261,65 @@ fn main() -> Result<(), MainError> {
                 None
             }
         }),
+        keys: Vec::new(),
     };
 
-    // Read public and private keys
-    if let Some(key) = args.key {
-        let bytes = std::fs::read(key)?;
+    // Add additional keys from multiple N, E, and C parameters
+    // This supports various multi-key attack scenarios:
+    // - Multiple N values: different moduli (e.g., common factor, Hastad's broadcast)
+    // - Single N, multiple E/C: same modulus, different exponents (e.g., common modulus)
+    // - Multiple of each: fully specified keys
+    let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len());
 
-        params += Parameters::from_private_key(&bytes, args.password.as_deref())
-            .or_else(|| Parameters::from_public_key(&bytes))
-            .ok_or("Invalid key")?;
+    for i in 1..max_keys {
+        let n = args.n.get(i).map(|n| n.0.clone()).or_else(|| {
+            // If there's only one N, reuse it for all keys (common modulus attack scenario)
+            if args.n.len() == 1 {
+                args.n.first().map(|n| n.0.clone())
+            } else {
+                None
+            }
+        });
+
+        let e = args.e.get(i).map(|e| e.0.clone()).unwrap_or_else(|| {
+            // Default to 65537 if not specified
+            Integer::from(65537)
+        });
+
+        let c = args.cipher.get(i).map(|c| c.0.clone());
+
+        // Only add if at least one of n, e, or c is different from the main key
+        if n.is_some() || c.is_some() || (i < args.e.len() && args.e.get(i).is_some()) {
+            params.keys.push(KeyEntry { n, e, c });
+        }
+    }
+
+    // Read public and private keys
+    if !args.key.is_empty() {
+        // First key becomes the main key
+        if let Some(first_key) = args.key.first() {
+            let bytes = std::fs::read(first_key)?;
+            params += Parameters::from_private_key(&bytes, args.password.as_deref())
+                .or_else(|| Parameters::from_public_key(&bytes))
+                .ok_or("Invalid key")?;
+        }
+
+        // Additional keys go into the keys vector for multi-key attacks
+        for key_path in args.key.iter().skip(1) {
+            let bytes = std::fs::read(key_path)?;
+
+            if let Some(key_params) = Parameters::from_private_key(&bytes, args.password.as_deref())
+                .or_else(|| Parameters::from_public_key(&bytes))
+            {
+                params.keys.push(KeyEntry {
+                    n: key_params.n,
+                    e: key_params.e,
+                    c: None,
+                });
+            } else {
+                return Err(format!("Invalid key: {}", key_path).into());
+            }
+        }
     };
 
     if args.showinputs {

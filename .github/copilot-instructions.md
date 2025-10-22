@@ -17,9 +17,10 @@ New attacks: required steps
 5) Tests: unit tests for logic; integration test for CLI if applicable; keep randomness deterministic.
 6) Docs: update README and examples (and ensure --help reflects changes).
 
-Quality gates (must pass)
-- cargo fmt --all; cargo clippy --all-targets --all-features with no warnings (or narrowly scoped #[allow] with justification).
-- cargo test --all --all-features (deterministic and passing).
+Quality gates (MUST pass before ANY commit/report_progress)
+- **ALWAYS** run `cargo fmt --all` before committing (no exceptions).
+- **ALWAYS** run `cargo clippy --all-targets --all-features` and fix ALL warnings before committing (or add narrowly scoped #[allow] with justification).
+- **ALWAYS** run `cargo test --all --all-features` and ensure all tests pass (deterministic and passing).
 - CLI --help and README match behavior and flags.
 - No regressions in output format without documentation.
 
@@ -47,5 +48,9 @@ Non-goals (open an issue first)
 Copilot coding agent workflow
 - Pre-flight: map the request to files/modules; choose a similar attack as a template.
 - Implement: follow “New attacks: required steps”.
-- Verify: run fmt, clippy, tests; manual CLI checks for common and edge cases.
+- **Verify (MANDATORY before every report_progress):**
+  1. Run `cargo fmt --all` (zero tolerance for unformatted code)
+  2. Run `cargo clippy --all-targets --all-features` (fix ALL warnings)
+  3. Run `cargo test --all --all-features` (all tests must pass)
+  4. Manual CLI checks for common and edge cases
 - Open PR: concise title, complete PR body checklist, link related issues.

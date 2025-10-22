@@ -13,6 +13,7 @@ mod leaked_crt_coefficient;
 mod leaked_crt_exponent;
 mod leaked_crt_exponents;
 mod leaked_pq;
+mod multi_key;
 mod non_coprime_exp;
 mod partial_d;
 mod partial_prime;
@@ -35,6 +36,7 @@ pub use leaked_crt_coefficient::LeakedCrtCoefficientAttack;
 pub use leaked_crt_exponent::LeakedCrtExponentAttack;
 pub use leaked_crt_exponents::LeakedCrtExponentsAttack;
 pub use leaked_pq::LeakedPQAttack;
+pub use multi_key::*;
 pub use non_coprime_exp::NonCoprimeExpAttack;
 pub use partial_d::PartialDAttack;
 pub use partial_prime::PartialPrimeAttack;
@@ -157,9 +159,12 @@ lazy_static! {
     static ref _ATTACKS: Vec<Arc<dyn Attack + Sync + Send>> = vec![
         Arc::new(CipollaAttack),
         Arc::new(ComfactCnAttack),
+        Arc::new(CommonFactorAttack),
+        Arc::new(CommonModulusAttack),
         Arc::new(CubeRootAttack),
         Arc::new(DiffPQAttack),
         Arc::new(GaaAttack),
+        Arc::new(HastadBroadcastAttack),
         Arc::new(KnownDAttack),
         Arc::new(KnownPhiAttack),
         Arc::new(LeakedCrtCoefficientAttack),

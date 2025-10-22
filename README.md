@@ -185,6 +185,56 @@ rsacracker -n 123...789 --factors
 rsacracker --key public.pem -c 0xdeadbeef --dlog
 ```
 
+### Multi-key attacks
+
+RsaCracker supports attacks that require multiple RSA keys. You can provide multiple keys in several ways:
+
+**Method 1: Via raw file with indexed notation**
+
+```console
+# Create a file with multiple keys (multikeys.txt)
+# Common factor attack - when two keys share a common prime
+n1 = 166162630914502531310583922419891282066165820974633135604215723500594369488785155668770814942798477925368262423257419073645831352835527789101770856835355683177962166057699839663569971312562086050531058716298108813024798653596850452010850976880829077654912494652271256054564920903881745267063001869548202922099
+e1 = 65537
+c1 = 123
+
+n2 = 148455898656074447797752378503069279028991863906908832057033693077681993859745690328279867444062926638337203683279627319119630089306918893030699950731547426066997479055479829293964341682216330844958953722765260947532634616964944677851975839768164255655099799121904635086103339949975609477039895462111764318783
+e2 = 65537
+
+# Run the attack
+rsacracker --raw multikeys.txt
+```
+
+**Method 2: Via multiple --key parameters**
+
+```console
+# Provide multiple key files directly via CLI
+rsacracker --key key1.pem --key key2.pem --dump
+
+# Works with any combination of key files
+rsacracker --key public1.pem --key public2.pem --key public3.pem
+```
+
+**Method 3: Via multiple -n parameters**
+
+```console
+# Provide multiple moduli directly for common factor attacks
+rsacracker -n 166209509310787961... -n 137801924148643799... --dump
+
+# Can combine with other parameters
+rsacracker -n 123456... -n 789012... -e 65537
+```
+
+**Method 4: Via multiple -c and -e parameters**
+
+```console
+# Common modulus attack with multiple ciphertexts and exponents
+rsacracker -n 166270918338126577... -e 65537 -e 65539 -c 136917880321258914... -c 46689866063983112...
+
+# Hastad's broadcast attack with multiple n, e, and c
+rsacracker -n 123... -n 456... -n 789... -e 3 -c 100... -c 200... -c 300...
+```
+
 ## Docker
 
 From dockerhub:

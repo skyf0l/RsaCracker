@@ -102,11 +102,31 @@ jobs:
           failed=0
           # Check all files except those with expected randomness
           for file in *.pem *.der *.cer *.csr *.p7b *.p7c; do
-            # Skip files that are expected to have random elements
-            if [[ "$file" == "private_openssl_passphrase.pem" ]] || \
-               [[ "$file" == "private_rsa_passphrase.pem" ]] || \
-               [[ "$file" == "pkcs12.p12" ]]; then
+            # PKCS#12 files have random salts - skip file comparison
+            if [[ "$file" == "pkcs12.p12" ]]; then
               echo "⚠️  Skipping $file (contains random salt)"
+              continue
+            fi
+            
+            # Passphrase-protected PEM files: verify key material instead of file
+            if [[ "$file" == "private_openssl_passphrase.pem" ]] || [[ "$file" == "private_rsa_passphrase.pem" ]]; then
+              # Extract and compare the actual key material (modulus)
+              if ! mod1=$(openssl rsa -in "/tmp/keys_first/$file" -passin pass:Skyf0l -noout -modulus 2>/dev/null); then
+                echo "✗ Failed to decrypt /tmp/keys_first/$file"
+                failed=1
+                continue
+              fi
+              if ! mod2=$(openssl rsa -in "$file" -passin pass:Skyf0l -noout -modulus 2>/dev/null); then
+                echo "✗ Failed to decrypt $file"
+                failed=1
+                continue
+              fi
+              if [ "$mod1" = "$mod2" ]; then
+                echo "✓ $file key material is deterministic"
+              else
+                echo "✗ $file key material differs"
+                failed=1
+              fi
               continue
             fi
             

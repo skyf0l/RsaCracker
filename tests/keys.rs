@@ -84,11 +84,12 @@ private_key_test!(private_rsa_pem, "private_rsa.pem");
 
 #[test]
 fn pkcs12() {
-    let params = Parameters {
-        c: Some(CIPHER.clone()),
-        ..Default::default()
-    } + Parameters::from_private_key(include_bytes!("keys/pkcs12.p12"), Some("test123"))
-        .unwrap();
+    let params =
+        Parameters {
+            c: Some(CIPHER.clone()),
+            ..Default::default()
+        } + Parameters::from_private_key(include_bytes!("keys/pkcs12.p12"), Some("test123"))
+            .unwrap();
 
     let solution = run_attacks(&params).unwrap();
     assert!(solution.pk.is_some());

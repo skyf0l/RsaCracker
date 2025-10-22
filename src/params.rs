@@ -610,10 +610,10 @@ impl Parameters {
 
         // Get signed data from PKCS7
         let signed = pkcs7.signed()?;
-        
+
         // Get certificates from signed data
         let certs = signed.certificates()?;
-        
+
         // Try to extract RSA public key from the first certificate
         let cert = certs.get(0)?;
         let rsa = cert.public_key().ok()?.rsa().ok()?;

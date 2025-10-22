@@ -1,0 +1,38 @@
+#!/bin/sh
+# Git pre-commit hook that runs cargo fmt and cargo clippy
+# to ensure code quality before committing.
+
+set -e
+
+echo "Running pre-commit hook..."
+
+# Check if cargo is available
+if ! command -v cargo > /dev/null 2>&1; then
+    echo "Error: cargo is not installed or not in PATH"
+    exit 1
+fi
+
+# Run cargo fmt to check formatting
+echo "Checking code formatting with cargo fmt..."
+if ! cargo fmt --all --check; then
+    echo ""
+    echo "❌ Code formatting check failed!"
+    echo "Please run 'cargo fmt --all' to fix formatting issues."
+    exit 1
+fi
+echo "✓ Code formatting check passed"
+
+# Run cargo clippy to check for lint warnings
+echo "Running clippy linter..."
+if ! cargo clippy --all-targets --all-features -- -D warnings; then
+    echo ""
+    echo "❌ Clippy linting failed!"
+    echo "Please fix all clippy warnings before committing."
+    echo "Run 'cargo clippy --all-targets --all-features' to see the issues."
+    exit 1
+fi
+echo "✓ Clippy linting passed"
+
+echo ""
+echo "✓ All pre-commit checks passed!"
+exit 0

@@ -260,6 +260,20 @@ Licensed under either of
 
 at your option.
 
+## Development
+
+### Git Hooks
+
+This repository includes git hooks to ensure code quality. To install them:
+
+```bash
+./hooks/install.sh
+```
+
+The hooks will automatically run `cargo fmt` and `cargo clippy` before commits and pushes to ensure code is properly formatted and free of linting warnings.
+
+See [hooks/README.md](hooks/README.md) for more details.
+
 ## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted

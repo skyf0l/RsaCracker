@@ -27,7 +27,7 @@ Usage: rsacracker [OPTIONS]
 Options:
   -r, --raw <RAW>                  Retrieve values from raw file
   -c, --cipher <CIPHER>            Cipher: the message to uncipher. Can be specified multiple times for multi-key attacks
-  -f, --cipherfile <CIPHERFILE>    Cipher file: the file to uncipher
+  -f, --cipherfile <CIPHERFILE>    Cipher file: the file to uncipher. Can be specified multiple times for multi-key attacks
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
   -n <N>                           Modulus. Can be specified multiple times for multi-key attacks
   -e <E>                           Public exponent. Default: 65537. Can be specified multiple times for multi-key attacks

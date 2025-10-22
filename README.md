@@ -7,17 +7,16 @@
 
 Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
 
-RsaCracker provides a simple interface to crack RSA keys and ciphers. With a collection of thousands of attacks, no key <!-- or at least that's what I hope --> can survive against RsaCracker!
+RsaCracker provides a simple, extensible interface to analyze and recover RSA private keys and to uncipher messages using a large collection of targeted attacks and heuristics.
 
-## Installation
+## TLDR - Quick start
+- Install: `cargo install rsacracker`
+- Crack a public key: `rsacracker --key public.pem --dump`
+- Uncipher a ciphertext: `rsacracker --key public.pem -c 0xdeadbeef`
+- Uncipher a file: `rsacracker --key public.pem -f 0xdeadbeef -o result.bin`
 
-From crates.io:
-
-```console
-cargo install rsacracker
-```
-
-Note: To build on windows, you need to use [MSYS2](https://www.msys2.org/). This is required because of the [rug](https://crates.io/crates/rug) dependency. See [building-on-windows](https://gitlab.com/tspiteri/gmp-mpfr-sys#building-on-windows) for more information.
+> [!NOTE]
+> To build on windows, you need to use [MSYS2](https://www.msys2.org/). This is required because of the [rug](https://crates.io/crates/rug) dependency. See [building-on-windows](https://gitlab.com/tspiteri/gmp-mpfr-sys#building-on-windows) for more information.
 
 ## Usage
 

@@ -15,13 +15,13 @@ New attacks: required steps
 3) Wiring: export in src/attacks/mod.rs and register in the attack list/dispatcher.
 4) CLI: add flags (short/long) and validate incompatible/required combinations.
 5) Tests: unit tests for logic; integration test for CLI if applicable; keep randomness deterministic.
-6) Docs: **CRITICAL** - update README Usage section to EXACTLY match --help output (run `./target/release/rsacracker --help` and copy the Options section verbatim). Add examples if applicable.
+6) Docs: **CRITICAL** - update README Usage section to EXACTLY match --help output (run `cargo run -- --help` and copy the Options section verbatim). Add examples if applicable.
 
 Quality gates (MUST pass before ANY commit/report_progress)
 - **ALWAYS** run `cargo fmt --all` before committing (no exceptions).
 - **ALWAYS** run `cargo clippy --all-targets --all-features` and fix ALL warnings before committing (or add narrowly scoped #[allow] with justification).
 - **ALWAYS** run `cargo test --all --all-features` and ensure all tests pass (deterministic and passing).
-- **CRITICAL**: CLI --help output and README Usage section MUST match exactly. After any CLI changes, run `./target/release/rsacracker --help` and update README.md to match.
+- **CRITICAL**: CLI --help output and README Usage section MUST match exactly. After any CLI changes, run `cargo run -- --help` and update README.md to match.
 - No regressions in output format without documentation.
 
 Coding standards
@@ -52,6 +52,6 @@ Copilot coding agent workflow
   1. Run `cargo fmt --all` (zero tolerance for unformatted code)
   2. Run `cargo clippy --all-targets --all-features` (fix ALL warnings)
   3. Run `cargo test --all --all-features` (all tests must pass)
-  4. **If CLI args changed**: run `./target/release/rsacracker --help` and update README Usage section to match EXACTLY
+  4. **If CLI args changed**: run `cargo run -- --help` and update README Usage section to match EXACTLY
   5. Manual CLI checks for common and edge cases
 - Open PR: concise title, complete PR body checklist, link related issues.

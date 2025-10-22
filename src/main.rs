@@ -270,7 +270,12 @@ fn main() -> Result<(), MainError> {
     // - Multiple N values: different moduli (e.g., common factor, Hastad's broadcast)
     // - Single N, multiple E/C: same modulus, different exponents (e.g., common modulus)
     // - Multiple of each: fully specified keys
-    let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len()).max(args.cipherfile.len());
+    let max_keys = args
+        .n
+        .len()
+        .max(args.e.len())
+        .max(args.cipher.len())
+        .max(args.cipherfile.len());
 
     for i in 1..max_keys {
         let n = args.n.get(i).map(|n| n.0.clone()).or_else(|| {

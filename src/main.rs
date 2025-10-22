@@ -204,21 +204,25 @@ fn main() -> Result<(), MainError> {
     }
 
     // Read all cipherfiles into a vector
-    let cipherfiles_data: Result<Vec<Integer>, MainError> = args.cipherfile.iter().map(|cipher_path| {
-        match std::fs::read(cipher_path) {
+    let cipherfiles_data: Result<Vec<Integer>, MainError> = args
+        .cipherfile
+        .iter()
+        .map(|cipher_path| match std::fs::read(cipher_path) {
             Ok(bytes) => Ok(Integer::from_digits(&bytes, Order::Msf)),
             Err(err) => Err(format!("{}: {err}", cipher_path.to_string_lossy()).into()),
-        }
-    }).collect();
+        })
+        .collect();
     let cipherfiles_data = cipherfiles_data?;
-    
+
     // Combine -c and -f parameters into a unified cipher list
     // -c parameters come first, then cipherfiles
-    let all_ciphers: Vec<Integer> = args.cipher.iter()
+    let all_ciphers: Vec<Integer> = args
+        .cipher
+        .iter()
         .map(|c| c.0.clone())
-        .chain(cipherfiles_data.into_iter())
+        .chain(cipherfiles_data)
         .collect();
-    
+
     // Read cipher (first from the combined list)
     let c = all_ciphers.first().cloned();
 

@@ -15,8 +15,7 @@ RsaCracker provides a simple, extensible interface to analyze and recover RSA pr
 - Uncipher a ciphertext: `rsacracker --key public.pem -c 0xdeadbeef`
 - Uncipher a file: `rsacracker --key public.pem -f 0xdeadbeef -o result.bin`
 
-> [!NOTE]
-> To build on windows, you need to use [MSYS2](https://www.msys2.org/). This is required because of the [rug](https://crates.io/crates/rug) dependency. See [building-on-windows](https://gitlab.com/tspiteri/gmp-mpfr-sys#building-on-windows) for more information.
+NOTE: To build on windows, you need to use [MSYS2](https://www.msys2.org/). This is required because of the [rug](https://crates.io/crates/rug) dependency. See [building-on-windows](https://gitlab.com/tspiteri/gmp-mpfr-sys#building-on-windows) for more information.
 
 ## Usage
 

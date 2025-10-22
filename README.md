@@ -171,24 +171,6 @@ rsacracker --key private.pem --password R54Cr4ck3R --private
 rsacracker --key private.pem --addpassword R54Cr4ck3R --private
 ```
 
-### Crack from PKCS#12 (.p12, .pfx) file
-
-```console
-rsacracker --key certificate.p12 --password mypassword --dump
-```
-
-### Extract public key from Certificate Signing Request (CSR)
-
-```console
-rsacracker --key request.csr --public
-```
-
-### Extract public key from PKCS#7 certificate chain (.p7b, .p7c)
-
-```console
-rsacracker --key certificate_chain.p7b --public
-```
-
 ### Show all factors of n
 
 ```console

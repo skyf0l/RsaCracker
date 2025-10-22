@@ -1,6 +1,6 @@
 use std::{fs, str::FromStr};
 
-use rand::rngs::OsRng;
+use rand::SeedableRng;
 use rug::{integer::Order, Integer};
 
 const KEY_PASSPHRASE: &[u8] = b"Skyf0l";
@@ -171,7 +171,9 @@ fn openssh_keys() {
     .unwrap();
 
     // Encrypted OpenSSH private key
-    let private_key = private_key.encrypt(&mut OsRng, KEY_PASSPHRASE).unwrap();
+    // Use a fixed seed for deterministic key generation
+    let mut rng = rand::rngs::StdRng::from_seed([42u8; 32]);
+    let private_key = private_key.encrypt(&mut rng, KEY_PASSPHRASE).unwrap();
     fs::write(
         format!("{OUT_PATH}/private_openssh_passphrase.pem"),
         private_key.to_openssh(ssh_key::LineEnding::LF).unwrap(),
@@ -184,9 +186,119 @@ fn openssh_keys() {
     .unwrap();
 }
 
-fn x509_cert(_pkey: openssl::pkey::PKey<openssl::pkey::Private>) {
-    // openssl req -new -x509 -key tests/keys/private_openssl.pem -out tests/keys/x509_certificate.cer -days 365
-    // sed -e '1d' -e '$d' tests/keys/x509_certificate.cer | base64 -d > tests/keys/x509_certificate.der
+fn x509_cert(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) -> openssl::x509::X509 {
+    // Create a self-signed X.509 certificate with deterministic values
+    let mut builder = openssl::x509::X509::builder().unwrap();
+    builder.set_version(2).unwrap();
+    
+    let serial_number = openssl::bn::BigNum::from_u32(1).unwrap();
+    let serial = openssl::asn1::Asn1Integer::from_bn(&serial_number).unwrap();
+    builder.set_serial_number(&serial).unwrap();
+    
+    let mut name = openssl::x509::X509Name::builder().unwrap();
+    name.append_entry_by_text("C", "AU").unwrap();
+    name.append_entry_by_text("ST", "Some-State").unwrap();
+    name.append_entry_by_text("O", "Internet Widgits Pty Ltd").unwrap();
+    let name = name.build();
+    
+    builder.set_subject_name(&name).unwrap();
+    builder.set_issuer_name(&name).unwrap();
+    
+    // Use fixed timestamps for deterministic generation
+    let not_before = openssl::asn1::Asn1Time::from_str("20250101000000Z").unwrap();
+    builder.set_not_before(&not_before).unwrap();
+    let not_after = openssl::asn1::Asn1Time::from_str("20260101000000Z").unwrap();
+    builder.set_not_after(&not_after).unwrap();
+    
+    builder.set_pubkey(pkey).unwrap();
+    builder.sign(pkey, openssl::hash::MessageDigest::sha256()).unwrap();
+    
+    let cert = builder.build();
+    
+    // Write X.509 certificate
+    fs::write(
+        format!("{OUT_PATH}/x509_certificate.cer"),
+        cert.to_pem().unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        format!("{OUT_PATH}/x509_certificate.der"),
+        cert.to_der().unwrap(),
+    )
+    .unwrap();
+    
+    cert
+}
+
+fn x509_csr(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) {
+    // Create a Certificate Signing Request
+    let mut builder = openssl::x509::X509Req::builder().unwrap();
+    
+    let mut name = openssl::x509::X509Name::builder().unwrap();
+    name.append_entry_by_text("CN", "Test").unwrap();
+    let name = name.build();
+    
+    builder.set_subject_name(&name).unwrap();
+    builder.set_pubkey(pkey).unwrap();
+    builder.sign(pkey, openssl::hash::MessageDigest::sha256()).unwrap();
+    
+    let req = builder.build();
+    
+    // Write CSR
+    fs::write(
+        format!("{OUT_PATH}/x509_csr.csr"),
+        req.to_pem().unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        format!("{OUT_PATH}/x509_csr.der"),
+        req.to_der().unwrap(),
+    )
+    .unwrap();
+}
+
+fn pkcs12(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, cert: &openssl::x509::X509) {
+    // Create PKCS#12 bundle using the new API
+    let pkcs12 = openssl::pkcs12::Pkcs12::builder()
+        .name("friendly_name")
+        .pkey(pkey)
+        .cert(cert)
+        .build2("test123")
+        .unwrap();
+    
+    // Write PKCS#12
+    fs::write(
+        format!("{OUT_PATH}/pkcs12.p12"),
+        pkcs12.to_der().unwrap(),
+    )
+    .unwrap();
+}
+
+fn pkcs7(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, cert: &openssl::x509::X509) {
+    // Create PKCS#7 certificate chain (signed data with certificates)
+    let mut certs = openssl::stack::Stack::new().unwrap();
+    certs.push(cert.clone()).unwrap();
+    
+    let pkcs7 = openssl::pkcs7::Pkcs7::sign(
+        cert,
+        pkey,
+        &certs,
+        b"",
+        openssl::pkcs7::Pkcs7Flags::NOATTR,
+    )
+    .unwrap();
+    
+    // Write PKCS#7
+    fs::write(
+        format!("{OUT_PATH}/pkcs7.p7b"),
+        pkcs7.to_pem().unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        format!("{OUT_PATH}/pkcs7.p7c"),
+        pkcs7.to_der().unwrap(),
+    )
+    .unwrap();
 }
 
 fn main() {
@@ -194,5 +306,16 @@ fn main() {
     let pkey = openssl_keys(rsa);
 
     openssh_keys();
-    x509_cert(pkey)
+    
+    // Generate X.509 certificate
+    let cert = x509_cert(&pkey);
+    
+    // Generate CSR
+    x509_csr(&pkey);
+    
+    // Generate PKCS#12
+    pkcs12(&pkey, &cert);
+    
+    // Generate PKCS#7
+    pkcs7(&pkey, &cert);
 }

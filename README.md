@@ -28,13 +28,13 @@ Usage: rsacracker [OPTIONS]
 
 Options:
   -r, --raw <RAW>                  Retrieve values from raw file
-  -c, --cipher <CIPHER>            Cipher: the message to uncipher
+  -c, --cipher <CIPHER>            Cipher: the message to uncipher. Can be specified multiple times for multi-key attacks
   -f, --cipherfile <CIPHERFILE>    Cipher file: the file to uncipher
   -o, --outfile <OUTFILE>          Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
-  -n <N>                           Modulus
-  -e <E>                           Public exponent. Default: 65537 [default: 65537]
-  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, etc.)
-  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, ??741827, etc.)
+  -n <N>                           Modulus. Can be specified multiple times for multi-key attacks
+  -e <E>                           Public exponent. Default: 65537. Can be specified multiple times for multi-key attacks
+  -p <P>                           Prime number p (supports wildcards: 0xDEADBEEF????, 10737418??, 0x...C0FFEE, 0xDEADBEEF..., etc.)
+  -q <Q>                           Prime number q (supports wildcards: 0x????C0FFEE, ??741827, 0x...C0FFEE, 0xDEADBEEF..., etc.)
   -d <D>                           Private exponent
       --phi <PHI>                  Phi or Euler's totient function of n. (p-1)(q-1)
       --dp <DP>                    dP or dmp1 CRT exponent. (d mod p-1)
@@ -44,7 +44,7 @@ Options:
       --sum-pq <SUM_PQ>            The sum of the two primes p and q
       --diff-pq <DIFF_PQ>          The difference of the two primes p and q
       --dlog                       Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
-  -k, --key <KEY>                  Public or private key file. (RSA, X509, OPENSSH in PEM and DER formats.)
+  -k, --key <KEY>                  Public or private key file(s). (RSA, X509, OPENSSH in PEM and DER formats.) Can be specified multiple times for multi-key attacks
       --password <PASSWORD>        Private key password/passphrase if encrypted
       --public                     Print the public key in PEM format
       --private                    Print the private key in PEM format
@@ -53,7 +53,7 @@ Options:
       --dump                       Print the private RSA key variables n, e, p, q and d
       --dumpext                    Print the extended RSA key variables n, e, p, q, d, dP, dQ, pInv and qInv
       --factors                    Print all factors of n
-  -t, --threads <THREADS>          Number of threads to use. Default: number of CPUs [default: 12]
+  -t, --threads <THREADS>          Number of threads to use. Default: number of CPUs
   -a, --attack <ATTACK>            Specify attacks to run. Default: all. (e.g. --attacks ecm,wiener,sparse)
       --exclude <EXCLUDE>          Specify attacks to exclude. Default: none. (e.g. --exclude ecm,wiener,sparse)
       --list                       List all available attacks

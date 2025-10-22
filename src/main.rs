@@ -36,6 +36,8 @@ impl std::str::FromStr for AttackArg {
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
+// IMPORTANT: When modifying CLI arguments, ALWAYS update the README.md Usage section
+// to match the --help output. The README should reflect the actual CLI behavior.
 struct Args {
     /// Retrieve values from raw file
     #[clap(short, long)]

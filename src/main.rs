@@ -43,9 +43,9 @@ struct Args {
     /// Cipher: the message to uncipher. Can be specified multiple times for multi-key attacks.
     #[clap(short, long)]
     cipher: Vec<IntegerArg>,
-    /// Cipher file: the file to uncipher.
+    /// Cipher file: the file to uncipher. Can be specified multiple times for multi-key attacks.
     #[clap(short = 'f', long)]
-    cipherfile: Option<std::path::PathBuf>,
+    cipherfile: Vec<std::path::PathBuf>,
     /// Write unciphered data to a file. If many unciphered data are found, they will be written to files suffixed with _1, _2, ...
     #[clap(short = 'o', long)]
     outfile: Option<std::path::PathBuf>,
@@ -204,7 +204,8 @@ fn main() -> Result<(), MainError> {
     // Read cipher
     let c = if !args.cipher.is_empty() {
         args.cipher.first().map(|n| n.0.clone())
-    } else if let Some(cipher_path) = args.cipherfile.as_ref() {
+    } else if !args.cipherfile.is_empty() {
+        let cipher_path = &args.cipherfile[0];
         match std::fs::read(cipher_path) {
             Ok(bytes) => Some(Integer::from_digits(&bytes, Order::Msf)),
             Err(err) => return Err(format!("{}: {err}", cipher_path.to_string_lossy()).into()),
@@ -269,7 +270,7 @@ fn main() -> Result<(), MainError> {
     // - Multiple N values: different moduli (e.g., common factor, Hastad's broadcast)
     // - Single N, multiple E/C: same modulus, different exponents (e.g., common modulus)
     // - Multiple of each: fully specified keys
-    let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len());
+    let max_keys = args.n.len().max(args.e.len()).max(args.cipher.len()).max(args.cipherfile.len());
 
     for i in 1..max_keys {
         let n = args.n.get(i).map(|n| n.0.clone()).or_else(|| {
@@ -286,7 +287,17 @@ fn main() -> Result<(), MainError> {
             Integer::from(65537)
         });
 
-        let c = args.cipher.get(i).map(|c| c.0.clone());
+        // Get cipher from either cipher parameter or cipherfile parameter
+        let c = if let Some(cipher_arg) = args.cipher.get(i) {
+            Some(cipher_arg.0.clone())
+        } else if let Some(cipher_path) = args.cipherfile.get(i) {
+            match std::fs::read(cipher_path) {
+                Ok(bytes) => Some(Integer::from_digits(&bytes, Order::Msf)),
+                Err(err) => return Err(format!("{}: {err}", cipher_path.to_string_lossy()).into()),
+            }
+        } else {
+            None
+        };
 
         // Only add if at least one of n, e, or c is different from the main key
         if n.is_some() || c.is_some() || (i < args.e.len() && args.e.get(i).is_some()) {

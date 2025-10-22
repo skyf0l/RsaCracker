@@ -60,3 +60,43 @@ c2 = 200
     assert_eq!(key2.e, Integer::from(3));
     assert_eq!(key2.c, Some(Integer::from(200)));
 }
+
+#[test]
+fn multi_key_multi_digit_indices() {
+    // Test parsing keys with multi-digit indices (n10, e15, c20, etc.)
+    let raw = r#"
+# Test multi-digit indices
+n10 = 111111111
+e10 = 3
+c10 = 100
+
+n15 = 222222222
+e15 = 5
+c15 = 200
+
+n20 = 333333333
+e20 = 7
+c20 = 300
+"#;
+
+    let params = Parameters::from_raw(raw);
+
+    // Should have 3 keys at indices 10, 15, and 20
+    assert_eq!(params.keys.len(), 3);
+
+    // Check that keys are stored at correct indices and sorted
+    let key0 = &params.keys[0];
+    assert_eq!(key0.n, Some(Integer::from(111111111)));
+    assert_eq!(key0.e, Integer::from(3));
+    assert_eq!(key0.c, Some(Integer::from(100)));
+
+    let key1 = &params.keys[1];
+    assert_eq!(key1.n, Some(Integer::from(222222222)));
+    assert_eq!(key1.e, Integer::from(5));
+    assert_eq!(key1.c, Some(Integer::from(200)));
+
+    let key2 = &params.keys[2];
+    assert_eq!(key2.n, Some(Integer::from(333333333)));
+    assert_eq!(key2.e, Integer::from(7));
+    assert_eq!(key2.c, Some(Integer::from(300)));
+}

@@ -432,14 +432,26 @@ impl Parameters {
                 continue;
             };
 
-            // Clean up key and check for index suffix (e.g., n1, e2, c3)
+            // Clean up key and check for index suffix (e.g., n1, e2, c10)
             let key_cleaned = key.replace(['_', '-'], "");
-            let (base_key, index) = if let Some(last_char) = key_cleaned.chars().last() {
-                if last_char.is_ascii_digit() {
-                    let mut chars = key_cleaned.chars();
-                    let digit = chars.next_back().unwrap();
-                    let base = chars.as_str().to_string();
-                    (base, Some(digit.to_digit(10).unwrap() as usize))
+            // Parse full numeric suffix at the end of the key
+            let mut chars = key_cleaned.chars().rev().peekable();
+            let mut digit_str = String::new();
+            while let Some(&c) = chars.peek() {
+                if c.is_ascii_digit() {
+                    digit_str.push(c);
+                    chars.next();
+                } else {
+                    break;
+                }
+            }
+
+            let (base_key, index) = if !digit_str.is_empty() {
+                // digit_str is reversed, so reverse it back
+                let index_str: String = digit_str.chars().rev().collect();
+                let base: String = chars.rev().collect();
+                if let Ok(idx) = index_str.parse::<usize>() {
+                    (base, Some(idx))
                 } else {
                     (key_cleaned, None)
                 }

@@ -46,6 +46,8 @@ Non-goals (open an issue first)
 - Introducing new crypto primitives or nonstandard algorithms.
 
 Copilot coding agent workflow
+- **Setup (FIRST STEP - run once at start):**
+  1. Install git hooks: `./hooks/install.sh` (ensures automatic format/lint checks on commit/push)
 - Pre-flight: map the request to files/modules; choose a similar attack as a template.
 - Implement: follow “New attacks: required steps”.
 - **Verify (MANDATORY before every report_progress):**

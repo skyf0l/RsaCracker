@@ -39,6 +39,8 @@ public_key_test!(x509_certificate_cer, "x509_certificate.cer");
 public_key_test!(x509_certificate_der, "x509_certificate.der");
 public_key_test!(x509_csr, "x509_csr.csr");
 public_key_test!(x509_csr_der, "x509_csr.der");
+public_key_test!(pkcs7_p7b, "pkcs7.p7b");
+public_key_test!(pkcs7_p7c, "pkcs7.p7c");
 
 macro_rules! private_key_test {
     ($name:ident, $key:expr) => {

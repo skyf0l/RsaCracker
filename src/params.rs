@@ -520,6 +520,7 @@ impl Parameters {
             .or_else(|| Self::from_x509_cert(key))
             .or_else(|| Self::from_openssh_public_key(key))
             .or_else(|| Self::from_x509_csr(key))
+            .or_else(|| Self::from_pkcs7(key))
     }
 
     /// Create parameters from rsa public key
@@ -590,6 +591,32 @@ impl Parameters {
             .or_else(|_| openssl::x509::X509Req::from_der(key))
             .ok()?;
         let rsa = req.public_key().ok()?.rsa().ok()?;
+
+        Some(Self {
+            n: Some(Integer::from_digits(
+                &rsa.n().to_vec(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
+            ..Default::default()
+        })
+    }
+
+    /// Create parameters from pkcs7 (.p7b, .p7c) certificate chain
+    pub fn from_pkcs7(key: &[u8]) -> Option<Self> {
+        let pkcs7 = openssl::pkcs7::Pkcs7::from_pem(key)
+            .or_else(|_| openssl::pkcs7::Pkcs7::from_der(key))
+            .ok()?;
+
+        // Get signed data from PKCS7
+        let signed = pkcs7.signed()?;
+        
+        // Get certificates from signed data
+        let certs = signed.certificates()?;
+        
+        // Try to extract RSA public key from the first certificate
+        let cert = certs.get(0)?;
+        let rsa = cert.public_key().ok()?.rsa().ok()?;
 
         Some(Self {
             n: Some(Integer::from_digits(

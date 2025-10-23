@@ -90,9 +90,9 @@ jobs:
       - name: Verify keys match committed keys
         run: |
           failed=0
-          # Check all files except those with expected randomness
-          for file in /tmp/keys_generated/*.pem /tmp/keys_generated/*.der /tmp/keys_generated/*.cer /tmp/keys_generated/*.csr /tmp/keys_generated/*.p7b /tmp/keys_generated/*.p7c; do
-            [ -e "$file" ] || continue
+          # Check all files in generated directory
+          for file in /tmp/keys_generated/*; do
+            [ -f "$file" ] || continue
             filename=$(basename "$file")
             
             # Skip files with non-deterministic encryption (random salts)

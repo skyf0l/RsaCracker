@@ -91,7 +91,7 @@ jobs:
       - name: Regenerate keys
         run: |
           cd tools/gen_keys
-          cargo run --quiet
+          cargo run --quiet -- ../../tests/keys
 
       - name: Verify keys match originals
         run: |

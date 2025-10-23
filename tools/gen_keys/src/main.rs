@@ -1,10 +1,9 @@
-use std::{fs, str::FromStr};
+use std::{env, fs, path::PathBuf, str::FromStr};
 
 use rand::SeedableRng;
 use rug::{integer::Order, Integer};
 
 const KEY_PASSPHRASE: &[u8] = b"Skyf0l";
-const OUT_PATH: &str = "../../tests/keys";
 
 lazy_static::lazy_static!(
     static ref EXPONENT: Integer = 65537.into();
@@ -18,7 +17,7 @@ lazy_static::lazy_static!(
     static ref QINV: Integer = Integer::from(PRIME_Q.invert_ref(&PRIME_P).unwrap());
 );
 
-fn rsa_keys() -> openssl::rsa::Rsa<openssl::pkey::Private> {
+fn rsa_keys(out_path: &str) -> openssl::rsa::Rsa<openssl::pkey::Private> {
     let rsa = openssl::rsa::RsaPrivateKeyBuilder::new(
         openssl::bn::BigNum::from_slice(&MODULUS.to_digits(Order::Msf)).unwrap(),
         openssl::bn::BigNum::from_slice(&EXPONENT.to_digits(Order::Msf)).unwrap(),
@@ -43,41 +42,41 @@ fn rsa_keys() -> openssl::rsa::Rsa<openssl::pkey::Private> {
 
     // RSA public key
     fs::write(
-        format!("{OUT_PATH}/public_rsa.pem"),
+        format!("{out_path}/public_rsa.pem"),
         rsa.public_key_to_pem().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/public_rsa_pkcs1.pem"),
+        format!("{out_path}/public_rsa_pkcs1.pem"),
         rsa.public_key_to_pem_pkcs1().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/public_rsa.der"),
+        format!("{out_path}/public_rsa.der"),
         rsa.public_key_to_der().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/public_rsa_pkcs1.der"),
+        format!("{out_path}/public_rsa_pkcs1.der"),
         rsa.public_key_to_der_pkcs1().unwrap(),
     )
     .unwrap();
 
     // RSA private key
     fs::write(
-        format!("{OUT_PATH}/private_rsa.pem"),
+        format!("{out_path}/private_rsa.pem"),
         rsa.private_key_to_pem().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/private_rsa.der"),
+        format!("{out_path}/private_rsa.der"),
         rsa.private_key_to_der().unwrap(),
     )
     .unwrap();
 
     // Encrypted RSA private key
     fs::write(
-        format!("{OUT_PATH}/private_rsa_passphrase.pem"),
+        format!("{out_path}/private_rsa_passphrase.pem"),
         rsa.private_key_to_pem_passphrase(openssl::symm::Cipher::aes_256_cbc(), KEY_PASSPHRASE)
             .unwrap(),
     )
@@ -88,34 +87,35 @@ fn rsa_keys() -> openssl::rsa::Rsa<openssl::pkey::Private> {
 
 fn openssl_keys(
     rsa: openssl::rsa::Rsa<openssl::pkey::Private>,
+    out_path: &str,
 ) -> openssl::pkey::PKey<openssl::pkey::Private> {
     let pkey = openssl::pkey::PKey::from_rsa(rsa).unwrap();
 
     // OpenSSL public key
     fs::write(
-        format!("{OUT_PATH}/public_openssl.pem"),
+        format!("{out_path}/public_openssl.pem"),
         pkey.public_key_to_pem().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/public_openssl.der"),
+        format!("{out_path}/public_openssl.der"),
         pkey.public_key_to_der().unwrap(),
     )
     .unwrap();
 
     // OpenSSL private key
     fs::write(
-        format!("{OUT_PATH}/private_openssl.pem"),
+        format!("{out_path}/private_openssl.pem"),
         pkey.private_key_to_pem_pkcs8().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/private_openssl.der"),
+        format!("{out_path}/private_openssl.der"),
         pkey.private_key_to_der().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/private_openssl_passphrase.pem"),
+        format!("{out_path}/private_openssl_passphrase.pem"),
         pkey.private_key_to_pem_pkcs8_passphrase(
             openssl::symm::Cipher::aes_256_cbc(),
             KEY_PASSPHRASE,
@@ -127,7 +127,7 @@ fn openssl_keys(
     pkey
 }
 
-fn openssh_keys() {
+fn openssh_keys(out_path: &str) {
     let public_data = ssh_key::public::RsaPublicKey {
         e: ssh_key::Mpint::from_bytes(&EXPONENT.to_digits(rug::integer::Order::Msf)).unwrap(),
         n: ssh_key::Mpint::from_bytes(&MODULUS.to_digits(rug::integer::Order::Msf)).unwrap(),
@@ -148,24 +148,24 @@ fn openssh_keys() {
 
     // OpenSSH public key
     fs::write(
-        format!("{OUT_PATH}/public_openssh.pem"),
+        format!("{out_path}/public_openssh.pem"),
         public_key.to_openssh().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/public_openssh.der"),
+        format!("{out_path}/public_openssh.der"),
         public_key.to_bytes().unwrap(),
     )
     .unwrap();
 
     // OpenSSH private key
     fs::write(
-        format!("{OUT_PATH}/private_openssh.pem"),
+        format!("{out_path}/private_openssh.pem"),
         private_key.to_openssh(ssh_key::LineEnding::LF).unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/private_openssh.der"),
+        format!("{out_path}/private_openssh.der"),
         private_key.to_bytes().unwrap(),
     )
     .unwrap();
@@ -175,18 +175,21 @@ fn openssh_keys() {
     let mut rng = rand::rngs::StdRng::from_seed([42u8; 32]);
     let private_key = private_key.encrypt(&mut rng, KEY_PASSPHRASE).unwrap();
     fs::write(
-        format!("{OUT_PATH}/private_openssh_passphrase.pem"),
+        format!("{out_path}/private_openssh_passphrase.pem"),
         private_key.to_openssh(ssh_key::LineEnding::LF).unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/private_openssh_passphrase.der"),
+        format!("{out_path}/private_openssh_passphrase.der"),
         private_key.to_bytes().unwrap(),
     )
     .unwrap();
 }
 
-fn x509_cert(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) -> openssl::x509::X509 {
+fn x509_cert(
+    pkey: &openssl::pkey::PKey<openssl::pkey::Private>,
+    out_path: &str,
+) -> openssl::x509::X509 {
     // Create a self-signed X.509 certificate with deterministic values
     let mut builder = openssl::x509::X509::builder().unwrap();
     builder.set_version(2).unwrap();
@@ -196,10 +199,10 @@ fn x509_cert(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) -> openssl::x50
     builder.set_serial_number(&serial).unwrap();
 
     let mut name = openssl::x509::X509Name::builder().unwrap();
-    name.append_entry_by_text("C", "AU").unwrap();
-    name.append_entry_by_text("ST", "Some-State").unwrap();
-    name.append_entry_by_text("O", "Internet Widgits Pty Ltd")
+    name.append_entry_by_text("CN", "RsaCracker").unwrap();
+    name.append_entry_by_text("O", "RsaCracker Test Suite")
         .unwrap();
+    name.append_entry_by_text("OU", "Testing").unwrap();
     let name = name.build();
 
     builder.set_subject_name(&name).unwrap();
@@ -220,12 +223,12 @@ fn x509_cert(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) -> openssl::x50
 
     // Write X.509 certificate
     fs::write(
-        format!("{OUT_PATH}/x509_certificate.cer"),
+        format!("{out_path}/x509_certificate.cer"),
         cert.to_pem().unwrap(),
     )
     .unwrap();
     fs::write(
-        format!("{OUT_PATH}/x509_certificate.der"),
+        format!("{out_path}/x509_certificate.der"),
         cert.to_der().unwrap(),
     )
     .unwrap();
@@ -233,12 +236,12 @@ fn x509_cert(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) -> openssl::x50
     cert
 }
 
-fn x509_csr(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) {
+fn x509_csr(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, out_path: &str) {
     // Create a Certificate Signing Request
     let mut builder = openssl::x509::X509Req::builder().unwrap();
 
     let mut name = openssl::x509::X509Name::builder().unwrap();
-    name.append_entry_by_text("CN", "Test").unwrap();
+    name.append_entry_by_text("CN", "RsaCracker").unwrap();
     let name = name.build();
 
     builder.set_subject_name(&name).unwrap();
@@ -250,11 +253,15 @@ fn x509_csr(pkey: &openssl::pkey::PKey<openssl::pkey::Private>) {
     let req = builder.build();
 
     // Write CSR
-    fs::write(format!("{OUT_PATH}/x509_csr.csr"), req.to_pem().unwrap()).unwrap();
-    fs::write(format!("{OUT_PATH}/x509_csr.der"), req.to_der().unwrap()).unwrap();
+    fs::write(format!("{out_path}/x509_csr.csr"), req.to_pem().unwrap()).unwrap();
+    fs::write(format!("{out_path}/x509_csr.der"), req.to_der().unwrap()).unwrap();
 }
 
-fn pkcs12(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, cert: &openssl::x509::X509) {
+fn pkcs12(
+    pkey: &openssl::pkey::PKey<openssl::pkey::Private>,
+    cert: &openssl::x509::X509,
+    out_path: &str,
+) {
     // Create PKCS#12 bundle using the new API
     let pkcs12 = openssl::pkcs12::Pkcs12::builder()
         .name("friendly_name")
@@ -264,10 +271,14 @@ fn pkcs12(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, cert: &openssl::x5
         .unwrap();
 
     // Write PKCS#12
-    fs::write(format!("{OUT_PATH}/pkcs12.p12"), pkcs12.to_der().unwrap()).unwrap();
+    fs::write(format!("{out_path}/pkcs12.p12"), pkcs12.to_der().unwrap()).unwrap();
 }
 
-fn pkcs7(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, cert: &openssl::x509::X509) {
+fn pkcs7(
+    pkey: &openssl::pkey::PKey<openssl::pkey::Private>,
+    cert: &openssl::x509::X509,
+    out_path: &str,
+) {
     // Create PKCS#7 certificate chain (signed data with certificates)
     let mut certs = openssl::stack::Stack::new().unwrap();
     certs.push(cert.clone()).unwrap();
@@ -277,25 +288,36 @@ fn pkcs7(pkey: &openssl::pkey::PKey<openssl::pkey::Private>, cert: &openssl::x50
             .unwrap();
 
     // Write PKCS#7
-    fs::write(format!("{OUT_PATH}/pkcs7.p7b"), pkcs7.to_pem().unwrap()).unwrap();
-    fs::write(format!("{OUT_PATH}/pkcs7.p7c"), pkcs7.to_der().unwrap()).unwrap();
+    fs::write(format!("{out_path}/pkcs7.p7b"), pkcs7.to_pem().unwrap()).unwrap();
+    fs::write(format!("{out_path}/pkcs7.p7c"), pkcs7.to_der().unwrap()).unwrap();
 }
 
 fn main() {
-    let rsa = rsa_keys();
-    let pkey = openssl_keys(rsa);
+    // Get output path from command line arguments, default to ../../tests/keys
+    let out_path = env::args()
+        .nth(1)
+        .unwrap_or_else(|| "../../tests/keys".to_string());
 
-    openssh_keys();
+    // Create output directory if it doesn't exist
+    let out_path_buf = PathBuf::from(&out_path);
+    if !out_path_buf.exists() {
+        fs::create_dir_all(&out_path_buf).expect("Failed to create output directory");
+    }
+
+    let rsa = rsa_keys(&out_path);
+    let pkey = openssl_keys(rsa, &out_path);
+
+    openssh_keys(&out_path);
 
     // Generate X.509 certificate
-    let cert = x509_cert(&pkey);
+    let cert = x509_cert(&pkey, &out_path);
 
     // Generate CSR
-    x509_csr(&pkey);
+    x509_csr(&pkey, &out_path);
 
     // Generate PKCS#12
-    pkcs12(&pkey, &cert);
+    pkcs12(&pkey, &cert, &out_path);
 
     // Generate PKCS#7
-    pkcs7(&pkey, &cert);
+    pkcs7(&pkey, &cert, &out_path);
 }

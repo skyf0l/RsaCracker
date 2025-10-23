@@ -82,50 +82,46 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: swatinem/rust-cache@v2
 
-      - name: Backup existing keys
-        run: |
-          cd tests/keys
-          mkdir -p /tmp/keys_original
-          cp *.pem *.der *.cer *.csr *.p7b *.p7c *.p12 /tmp/keys_original/ 2>/dev/null || true
-
-      - name: Regenerate keys
+      - name: Generate keys to temporary directory
         run: |
           cd tools/gen_keys
-          cargo run --quiet -- ../../tests/keys
+          cargo run --quiet -- /tmp/keys_generated
 
-      - name: Verify keys match originals
+      - name: Verify keys match committed keys
         run: |
-          cd tests/keys
           failed=0
           # Check all files except those with expected randomness
-          for file in *.pem *.der *.cer *.csr *.p7b *.p7c; do
+          for file in /tmp/keys_generated/*.pem /tmp/keys_generated/*.der /tmp/keys_generated/*.cer /tmp/keys_generated/*.csr /tmp/keys_generated/*.p7b /tmp/keys_generated/*.p7c; do
+            [ -e "$file" ] || continue
+            filename=$(basename "$file")
+            
             # Skip files with non-deterministic encryption (random salts)
-            if [[ "$file" == "pkcs12.p12" ]] || \
-               [[ "$file" == "private_openssl_passphrase.pem" ]] || \
-               [[ "$file" == "private_rsa_passphrase.pem" ]]; then
-              echo "⚠️  Skipping $file (contains random salt)"
+            if [[ "$filename" == "pkcs12.p12" ]] || \
+               [[ "$filename" == "private_openssl_passphrase.pem" ]] || \
+               [[ "$filename" == "private_rsa_passphrase.pem" ]]; then
+              echo "⚠️  Skipping $filename (contains random salt)"
               continue
             fi
             
             # Compare raw files byte-for-byte
-            if [ -f "$file" ] && [ -f "/tmp/keys_original/$file" ]; then
-              if diff -q "$file" "/tmp/keys_original/$file" > /dev/null 2>&1; then
-                echo "✓ $file matches original"
+            if [ -f "tests/keys/$filename" ]; then
+              if diff -q "$file" "tests/keys/$filename" > /dev/null 2>&1; then
+                echo "✓ $filename matches committed version"
               else
-                echo "✗ $file differs from original"
+                echo "✗ $filename differs from committed version"
                 failed=1
               fi
             else
-              echo "⚠️  $file not found in original or regenerated"
+              echo "⚠️  $filename not found in committed keys"
             fi
           done
           
           if [ $failed -eq 1 ]; then
-            echo "Error: Regenerated keys don't match committed keys"
+            echo "Error: Generated keys don't match committed keys"
             exit 1
           fi
           
-          echo "✓ All keys are deterministically generated"
+          echo "✓ All deterministic keys match committed versions"
 
   ctf-challenges:
     name: CTF challenges

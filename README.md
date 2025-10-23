@@ -5,7 +5,7 @@
 [![Docker Image Version](https://img.shields.io/docker/v/skyf0l/rsacracker?logo=docker)](https://hub.docker.com/r/skyf0l/rsacracker)
 [![codecov](https://codecov.io/gh/skyf0l/rsacracker/branch/main/graph/badge.svg)](https://codecov.io/gh/skyf0l/rsacracker)
 
-Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
+Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH, PKCS#12, PKCS#7, and CSR in PEM and DER formats.
 
 RsaCracker provides a simple, extensible interface to analyze and recover RSA private keys and to uncipher messages using a large collection of targeted attacks and heuristics.
 
@@ -20,7 +20,7 @@ NOTE: To build on windows, you need to use [MSYS2](https://www.msys2.org/). This
 ## Usage
 
 ```text
-Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
+Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH, PKCS#12, PKCS#7, and CSR in PEM and DER formats.
 
 Usage: rsacracker [OPTIONS]
 
@@ -42,7 +42,7 @@ Options:
       --sum-pq <SUM_PQ>            The sum of the two primes p and q
       --diff-pq <DIFF_PQ>          The difference of the two primes p and q
       --dlog                       Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
-  -k, --key <KEY>                  Public or private key file(s). (RSA, X509, OPENSSH in PEM and DER formats.) Can be specified multiple times for multi-key attacks
+  -k, --key <KEY>                  Public or private key file(s). (RSA, X509, OPENSSH, PKCS#12, PKCS#7, CSR in PEM and DER formats.) Can be specified multiple times for multi-key attacks
       --password <PASSWORD>        Private key password/passphrase if encrypted
       --public                     Print the public key in PEM format
       --private                    Print the private key in PEM format

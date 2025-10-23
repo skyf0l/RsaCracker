@@ -822,7 +822,6 @@ dependencies = [
  "lazy_static",
  "openssl",
  "rand 0.8.5",
- "rand_core 0.9.3",
  "rug",
  "ssh-key",
 ]
@@ -1925,7 +1924,7 @@ dependencies = [
  "once_cell",
  "socket2 0.6.1",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]

@@ -72,6 +72,57 @@ jobs:
       - name: Test
         run: cargo nextest run --all-features --lib --bins --test keys
 
+  key-generation:
+    name: Verify deterministic key generation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+
+      - name: Generate keys to temporary directory
+        run: |
+          cd tools/gen_keys
+          cargo run --quiet -- /tmp/keys_generated
+
+      - name: Verify keys match committed keys
+        run: |
+          failed=0
+          # Check all files in generated directory
+          for file in /tmp/keys_generated/*; do
+            [ -f "$file" ] || continue
+            filename=$(basename "$file")
+            
+            # Skip files with non-deterministic encryption (random salts)
+            if [[ "$filename" == "pkcs12.p12" ]] || \
+               [[ "$filename" == "private_openssl_passphrase.pem" ]] || \
+               [[ "$filename" == "private_rsa_passphrase.pem" ]]; then
+              echo "⚠️  Skipping $filename (contains random salt)"
+              continue
+            fi
+            
+            # Compare raw files byte-for-byte
+            if [ -f "tests/keys/$filename" ]; then
+              if diff -q "$file" "tests/keys/$filename" > /dev/null 2>&1; then
+                echo "✓ $filename matches committed version"
+              else
+                echo "✗ $filename differs from committed version"
+                failed=1
+              fi
+            else
+              echo "⚠️  $filename not found in committed keys"
+            fi
+          done
+          
+          if [ $failed -eq 1 ]; then
+            echo "Error: Generated keys don't match committed keys"
+            exit 1
+          fi
+          
+          echo "✓ All deterministic keys match committed versions"
+
   ctf-challenges:
     name: CTF challenges
     runs-on: ubuntu-latest
@@ -195,7 +246,7 @@ jobs:
     timeout-minutes: 30
 
     needs:
-      [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
+      [fmt, clippy, docs, tests, key-generation, ctf-challenges, coverage, build, docker-build]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     steps:
@@ -214,7 +265,7 @@ jobs:
     timeout-minutes: 120
 
     needs:
-      [fmt, clippy, docs, tests, ctf-challenges, coverage, build, docker-build]
+      [fmt, clippy, docs, tests, key-generation, ctf-challenges, coverage, build, docker-build]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     env:

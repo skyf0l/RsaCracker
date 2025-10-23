@@ -519,6 +519,8 @@ impl Parameters {
         Self::from_rsa_public_key(key)
             .or_else(|| Self::from_x509_cert(key))
             .or_else(|| Self::from_openssh_public_key(key))
+            .or_else(|| Self::from_x509_csr(key))
+            .or_else(|| Self::from_pkcs7(key))
     }
 
     /// Create parameters from rsa public key
@@ -583,10 +585,54 @@ impl Parameters {
         })
     }
 
+    /// Create parameters from x509 certificate signing request (CSR)
+    pub fn from_x509_csr(key: &[u8]) -> Option<Self> {
+        let req = openssl::x509::X509Req::from_pem(key)
+            .or_else(|_| openssl::x509::X509Req::from_der(key))
+            .ok()?;
+        let rsa = req.public_key().ok()?.rsa().ok()?;
+
+        Some(Self {
+            n: Some(Integer::from_digits(
+                &rsa.n().to_vec(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
+            ..Default::default()
+        })
+    }
+
+    /// Create parameters from pkcs7 (.p7b, .p7c) certificate chain
+    pub fn from_pkcs7(key: &[u8]) -> Option<Self> {
+        let pkcs7 = openssl::pkcs7::Pkcs7::from_pem(key)
+            .or_else(|_| openssl::pkcs7::Pkcs7::from_der(key))
+            .ok()?;
+
+        // Get signed data from PKCS7
+        let signed = pkcs7.signed()?;
+
+        // Get certificates from signed data
+        let certs = signed.certificates()?;
+
+        // Try to extract RSA public key from the first certificate
+        let cert = certs.get(0)?;
+        let rsa = cert.public_key().ok()?.rsa().ok()?;
+
+        Some(Self {
+            n: Some(Integer::from_digits(
+                &rsa.n().to_vec(),
+                rug::integer::Order::Msf,
+            )),
+            e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
+            ..Default::default()
+        })
+    }
+
     /// Create parameters from private key
     pub fn from_private_key(key: &[u8], passphrase: Option<&str>) -> Option<Self> {
         Self::from_rsa_private_key(key, passphrase)
             .or_else(|| Self::from_openssh_private_key(key, passphrase))
+            .or_else(|| Self::from_pkcs12(key, passphrase))
     }
 
     /// Create parameters from rsa private key
@@ -678,6 +724,60 @@ impl Parameters {
             )),
             ..Default::default()
         })
+    }
+
+    /// Create parameters from pkcs12 (.p12, .pfx) format
+    pub fn from_pkcs12(key: &[u8], passphrase: Option<&str>) -> Option<Self> {
+        let pkcs12 = openssl::pkcs12::Pkcs12::from_der(key).ok()?;
+        let parsed = pkcs12
+            .parse2(passphrase.unwrap_or(""))
+            .map_err(|e| {
+                e.errors().first().map(|e| {
+                    if e.reason() == Some("bad decrypt") || e.reason() == Some("mac verify failure")
+                    {
+                        panic!("Failed to decrypt PKCS#12: incorrect password")
+                    }
+                })
+            })
+            .ok()?;
+
+        // Try to extract RSA key from private key
+        if let Some(pkey) = parsed.pkey {
+            if let Ok(rsa) = pkey.rsa() {
+                return Some(Self {
+                    n: Some(Integer::from_digits(
+                        &rsa.n().to_vec(),
+                        rug::integer::Order::Msf,
+                    )),
+                    e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
+                    p: rsa
+                        .p()
+                        .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
+                    q: rsa
+                        .q()
+                        .map(|n| Integer::from_digits(&n.to_vec(), rug::integer::Order::Msf)),
+                    ..Default::default()
+                });
+            }
+        }
+
+        // If private key is not available, try to extract public key from certificate
+        if let Some(cert) = parsed.cert {
+            if let Ok(pkey) = cert.public_key() {
+                if let Ok(rsa) = pkey.rsa() {
+                    return Some(Self {
+                        n: Some(Integer::from_digits(
+                            &rsa.n().to_vec(),
+                            rug::integer::Order::Msf,
+                        )),
+                        e: Integer::from_digits(&rsa.e().to_vec(), rug::integer::Order::Msf),
+                        ..Default::default()
+                    });
+                }
+            }
+        }
+
+        None
     }
 }
 

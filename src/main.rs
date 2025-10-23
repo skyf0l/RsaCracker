@@ -90,7 +90,7 @@ struct Args {
     /// Discrete logarithm attack. When c and e are swapped in the RSA encryption formula. (e^c mod n)
     #[clap(long, alias = "dislog")]
     dlog: bool,
-    /// Public or private key file(s). (RSA, X509, OPENSSH in PEM and DER formats.) Can be specified multiple times for multi-key attacks.
+    /// Public or private key file(s). (RSA, X509, OPENSSH, PKCS#12, PKCS#7, CSR in PEM and DER formats.) Can be specified multiple times for multi-key attacks.
     #[clap(short, long)]
     key: Vec<String>,
     /// Private key password/passphrase if encrypted.

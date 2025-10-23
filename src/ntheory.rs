@@ -21,20 +21,16 @@ pub fn contfrac_to_rational(frac: &[Integer]) -> (Integer, Integer) {
     } else if frac.len() == 1 {
         (frac[0].clone(), 1.into())
     } else {
-        let remainder = frac[1..frac.len()].to_vec();
-        let (num, denom) = contfrac_to_rational(&remainder);
+        let (num, denom) = contfrac_to_rational(&frac[1..]);
         (frac[0].clone() * num.clone() + denom, num)
     }
 }
 
 #[allow(dead_code)]
 pub fn convergents_from_contfrac(frac: &[Integer]) -> Vec<(Integer, Integer)> {
-    let mut convs = Vec::new();
-
-    for i in 0..frac.len() {
-        convs.push(contfrac_to_rational(&frac[0..i]));
-    }
-    convs
+    (0..=frac.len())
+        .map(|i| contfrac_to_rational(&frac[0..i]))
+        .collect()
 }
 
 pub fn trivial_factorization_with_n_phi(n: &Integer, phi: &Integer) -> Option<(Integer, Integer)> {

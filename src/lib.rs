@@ -145,7 +145,7 @@ pub fn run_specific_attacks_with_threads(
         return Err(None);
     }
 
-    // User for key build from partial factors
+    // Used for key build from partial factors
     let param_e = params.e.clone();
 
     // Create channel for sending result

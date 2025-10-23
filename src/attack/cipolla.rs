@@ -10,12 +10,12 @@ const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 // Inspired by https://github.com/TheAlgorithms/Rust/blob/master/src/math/quadratic_residue.rs
 
 #[derive(Debug)]
-struct CustomFiniteFiled {
+struct CustomFiniteField {
     modulus: Integer,
     i_square: Integer,
 }
 
-impl CustomFiniteFiled {
+impl CustomFiniteField {
     pub fn new(modulus: Integer, i_square: Integer) -> Self {
         Self { modulus, i_square }
     }
@@ -25,11 +25,11 @@ impl CustomFiniteFiled {
 struct CustomComplexNumber {
     real: Integer,
     imag: Integer,
-    f: Rc<CustomFiniteFiled>,
+    f: Rc<CustomFiniteField>,
 }
 
 impl CustomComplexNumber {
-    pub fn new(real: Integer, imag: Integer, f: Rc<CustomFiniteFiled>) -> Self {
+    pub fn new(real: Integer, imag: Integer, f: Rc<CustomFiniteField>) -> Self {
         Self { real, imag, f }
     }
 
@@ -98,11 +98,11 @@ pub fn cipolla(a: &Integer, p: &Integer, pb: Option<&ProgressBar>) -> Option<(In
         }
     }
 
-    let filed = Rc::new(CustomFiniteFiled::new(
+    let field = Rc::new(CustomFiniteField::new(
         p.clone(),
         (p.clone() + r * r - &a) % p,
     ));
-    let comp = CustomComplexNumber::new(r.into(), Integer::from(1), filed);
+    let comp = CustomComplexNumber::new(r.into(), Integer::from(1), field);
     let power = (p.clone() + 1) >> 1;
     let x0 = CustomComplexNumber::fast_power(comp, power).real;
     let x1 = p.clone() - &x0;

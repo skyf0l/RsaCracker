@@ -94,17 +94,21 @@ impl Attack for NonCoprimeExpAttack {
                     .pow_mod(&e.clone().invert(&pm1).unwrap(), &p)
                     .unwrap()]
             } else {
-                // TODO: Compute: list(rth_roots(GF(p), cp, e)
+                // TODO: Implement Adleman-Manders-Miller algorithm for r-th roots in GF(p)
+                // This would compute: list(rth_roots(GF(p), cp, e))
+                // For now, returns empty when e^(tp+1) divides p-1
                 Vec::new()
             };
-            // Compute e-th roots mod p and q
+            // Compute e-th roots mod q
             let mqs = if tq == 0 {
                 vec![cq
                     .clone()
                     .pow_mod(&e.clone().invert(&qm1).unwrap(), &q)
                     .unwrap()]
             } else {
-                // TODO: Compute: list(rth_roots(GF(q), cq, e))
+                // TODO: Implement Adleman-Manders-Miller algorithm for r-th roots in GF(q)
+                // This would compute: list(rth_roots(GF(q), cq, e))
+                // For now, returns empty when e^(tq+1) divides q-1
                 Vec::new()
             };
 

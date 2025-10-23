@@ -85,8 +85,6 @@ impl Factors {
         }
 
         for other_factor in other.0.keys().rev() {
-            // let mut apply = None;
-
             for origin_factor in self.0.keys() {
                 // Skip if the divisor is greater than the dividend.
                 if origin_factor <= other_factor {

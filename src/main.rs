@@ -171,13 +171,14 @@ fn display_or_output(
 /// Add a suffix to the file path, before the extension.
 fn suffix_path(path: &std::path::Path, suffix: &str) -> std::path::PathBuf {
     let mut path = path.to_path_buf();
-    if let Some(ext) = path.extension() {
-        let ext = ext.to_str().unwrap();
-        let stem = path.file_stem().unwrap().to_str().unwrap();
-        path.set_file_name(format!("{stem}{suffix}.{ext}"));
-    } else {
-        path.set_file_name(format!("{}{}", path.to_string_lossy(), suffix));
+    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+        if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+            path.set_file_name(format!("{stem}{suffix}.{ext}"));
+            return path;
+        }
     }
+    // Fallback: append suffix to the entire path
+    path.set_file_name(format!("{}{suffix}", path.to_string_lossy()));
     path
 }
 

@@ -1,5 +1,5 @@
 use indicatif::ProgressBar;
-use rug::Integer;
+use rug::{ops::Pow, Integer};
 
 use crate::{key::PrivateKey, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
 
@@ -28,16 +28,22 @@ impl Attack for CommonFactorAttack {
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         // Need at least 2 keys (including the main one if n is present)
         let mut moduli = Vec::new();
+        let mut exponents = Vec::new();
+        let mut ciphertexts = Vec::new();
 
         // Add the main modulus if present
         if let Some(n) = &params.n {
             moduli.push(n.clone());
+            exponents.push(params.e.clone());
+            ciphertexts.push(params.c.clone());
         }
 
         // Add all additional key moduli
         for key in &params.keys {
             if let Some(n) = &key.n {
                 moduli.push(n.clone());
+                exponents.push(key.e.clone());
+                ciphertexts.push(key.c.clone());
             }
         }
 
@@ -54,13 +60,80 @@ impl Attack for CommonFactorAttack {
                     // Found a common factor!
                     // Use the modulus where we found the factor
                     let n = &moduli[i];
+                    let e = &exponents[i];
+                    let c = &ciphertexts[i];
 
                     let q = n.clone() / &p;
+                    let phi = (p.clone() - 1) * (q.clone() - 1);
 
-                    return Ok(Solution::new_pk(
-                        self.name(),
-                        PrivateKey::from_p_q(p, q, &params.e)?,
-                    ));
+                    // Check if e and phi are coprime
+                    let gcd_e_phi = e.clone().gcd(&phi);
+
+                    if gcd_e_phi == 1 {
+                        // Standard case: e and phi are coprime
+                        return Ok(Solution::new_pk(
+                            self.name(),
+                            PrivateKey::from_p_q(p, q, e)?,
+                        ));
+                    } else if c.is_some() {
+                        // Non-coprime exponent case: need to handle specially
+                        // Factor e = e1 * e2 where e1 = gcd(e, phi)
+                        let e1 = gcd_e_phi;
+                        let e2 = e.clone() / &e1;
+
+                        // Check if e2 and phi/e1 are coprime
+                        let phi_reduced = phi.clone() / &e1;
+                        if e2.clone().gcd(&phi_reduced) != 1 {
+                            // Can't handle this case, try next pair
+                            continue;
+                        }
+
+                        // Compute d using e2 instead of e
+                        let d = match e2.clone().invert(&phi_reduced) {
+                            Ok(d) => d,
+                            Err(_) => continue, // Try next pair
+                        };
+
+                        // Decrypt: m^e1 = c^d mod n
+                        let c = c.as_ref().unwrap();
+                        let m_to_e1 = match c.clone().pow_mod(&d, n) {
+                            Ok(val) => val,
+                            Err(_) => continue, // Try next pair
+                        };
+
+                        // Take the e1-th root of m_to_e1 to get m
+                        // For e1 = 2, we can use integer square root
+                        // (works when m^2 < n, which is usually the case for messages)
+                        if e1 == 2 {
+                            let m = m_to_e1.clone().sqrt();
+                            // Verify it's correct
+                            if m.clone() * &m == m_to_e1 {
+                                return Ok(Solution::new_m(self.name(), m));
+                            }
+                        } else if e1 == 3 {
+                            // For cube root
+                            let m = m_to_e1.clone().root(3);
+                            // Verify it's correct
+                            if m.clone().pow(3) == m_to_e1 {
+                                return Ok(Solution::new_m(self.name(), m));
+                            }
+                        } else {
+                            // For other roots, try integer root
+                            if let Some(e1_u32) = e1.to_u32() {
+                                let m = m_to_e1.clone().root(e1_u32);
+                                // Verify it's correct
+                                if m.clone().pow(e1_u32) == m_to_e1 {
+                                    return Ok(Solution::new_m(self.name(), m));
+                                }
+                            }
+                        }
+                    }
+
+                    // If we get here, we found the factors but couldn't decrypt
+                    // Try to return the private key anyway (might fail)
+                    if let Ok(pk) = PrivateKey::from_p_q(p, q, e) {
+                        return Ok(Solution::new_pk(self.name(), pk));
+                    }
                 }
             }
         }

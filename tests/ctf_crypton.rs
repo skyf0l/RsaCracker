@@ -74,10 +74,10 @@ caqlsRPzNDC+9+m3AgED
 }
 
 #[test]
-#[ignore = "Test times out - requires optimization of common_factor attack with non-coprime exponents"]
 fn crypton_intro_challenge_3() {
     // From Crypton/RSA-encryption/Intro-Challenges/Challenge-3
     // This is a common factor attack where multiple moduli share a common prime
+    // The exponents are even (non-coprime with phi), requiring special handling
 
     let n1 = Integer::from_str("143786356117385195355522728814418684024129402954309769186869633376407480449846714776247533950484109173163811708549269029920405450237443197994941951104068001708682945191370596050916441792714228818475059839352105948003874426539429621408867171203559281132589926504992702401428910240117807627890055235377744541913").unwrap();
     let e1 = Integer::from(114194);
@@ -121,12 +121,47 @@ fn crypton_intro_challenge_3() {
 
     let solution = run_attacks(&params).unwrap();
 
-    assert!(solution.pk.is_some() || solution.m.is_some());
+    assert_eq!(solution.attack, "common_factor");
+    assert!(solution.m.is_some());
 
-    if let Some(m) = solution.m {
-        let plaintext = integer_to_string(&m).unwrap();
-        assert!(plaintext.contains("crypton"));
-    }
+    let plaintext = integer_to_string(&solution.m.unwrap()).unwrap();
+    assert!(plaintext.contains("crypton{"));
+}
+
+#[test]
+fn test_common_factor_noncoprime_direct() {
+    // Direct test of common_factor attack with non-coprime exponent
+    use rsacracker::{Attack, CommonFactorAttack};
+
+    let n1 = Integer::from_str("143786356117385195355522728814418684024129402954309769186869633376407480449846714776247533950484109173163811708549269029920405450237443197994941951104068001708682945191370596050916441792714228818475059839352105948003874426539429621408867171203559281132589926504992702401428910240117807627890055235377744541913").unwrap();
+    let e1 = Integer::from(114194);
+    let c1 = Integer::from_str_radix("31c2fbff33dec7b070cf737c57393c8ab9982ae51b87b64d001a00aa74264254159e81e13b82ac5bc4d7f38aead06fabbf5b21ee668700a44673fac75bc09b084e79513ada3d11b248ae5fca74ba0c2f807e73052f3090ee61a3bd226e14f4b0544f952449623b8cbd01cc42ff5462c4904d0c28af6dbce73596de45279461fd", 16).unwrap();
+
+    let n4 = Integer::from_str("119235191922699211973494433973985286182951917872084464216722572875998345005104112625024274855529546680909781406076412741844254205002739352725207590519921992295941563460138887173402493503653397592300336588721082590464192875253265214253650991510709511154297580284525736720396804660126786258245028204861220690641").unwrap();
+    let e4 = Integer::from(79874);
+    let c4 = Integer::from_str_radix("6488452ed101d5261f29924c5f5a6d3c5ecde3ea7e7ed235aa9c5f62b95dcadaaf2918a9085477d01536478fa747e2ab953b5ae4b56d1e8c074748e98db8fe2672c99720dcd0c968e31ceab02a532715c7f11b8c25384c406202b654d9ccaedcc0a2b017cee63285ae7d22a0c8a0da527e175b1dd042031eb6f9c1ef7dfd5e04", 16).unwrap();
+
+    let params = Parameters {
+        n: Some(n1),
+        e: e1,
+        c: Some(c1),
+        keys: vec![KeyEntry {
+            n: Some(n4),
+            e: e4,
+            c: Some(c4),
+        }],
+        ..Default::default()
+    };
+
+    let attack = CommonFactorAttack;
+    let solution = attack.run(&params, None).unwrap();
+
+    assert_eq!(solution.attack, "common_factor");
+    assert!(solution.m.is_some());
+
+    let plaintext = integer_to_string(&solution.m.unwrap()).unwrap();
+    println!("Decrypted: {}", plaintext);
+    assert!(plaintext.contains("crypton{"));
 }
 
 #[test]

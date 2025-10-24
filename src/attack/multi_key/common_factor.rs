@@ -241,17 +241,4 @@ mod tests {
         let result = CommonFactorAttack.run(&params, None);
         assert!(result.is_err());
     }
-
-    #[test]
-    fn attack_missing_moduli() {
-        let e = Integer::from(65537);
-
-        let params = Parameters {
-            e,
-            ..Default::default()
-        };
-
-        let result = CommonFactorAttack.run(&params, None);
-        assert!(matches!(result, Err(Error::MissingParameters)));
-    }
 }

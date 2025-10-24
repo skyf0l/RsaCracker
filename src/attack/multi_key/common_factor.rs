@@ -254,4 +254,72 @@ mod tests {
         let result = CommonFactorAttack.run(&params, None);
         assert!(matches!(result, Err(Error::MissingParameters)));
     }
+
+    #[test]
+    fn attack_noncoprime_exponent_square_root() {
+        // Test with non-coprime exponent where gcd(e, phi) = 2
+        // Based on BSides Delhi 2018 challenge
+        let n1 = Integer::from_str("143786356117385195355522728814418684024129402954309769186869633376407480449846714776247533950484109173163811708549269029920405450237443197994941951104068001708682945191370596050916441792714228818475059839352105948003874426539429621408867171203559281132589926504992702401428910240117807627890055235377744541913").unwrap();
+        let e1 = Integer::from(114194); // e1 is even: 114194 = 2 * 57097
+        let c1 = Integer::from_str_radix("31c2fbff33dec7b070cf737c57393c8ab9982ae51b87b64d001a00aa74264254159e81e13b82ac5bc4d7f38aead06fabbf5b21ee668700a44673fac75bc09b084e79513ada3d11b248ae5fca74ba0c2f807e73052f3090ee61a3bd226e14f4b0544f952449623b8cbd01cc42ff5462c4904d0c28af6dbce73596de45279461fd", 16).unwrap();
+
+        let n4 = Integer::from_str("119235191922699211973494433973985286182951917872084464216722572875998345005104112625024274855529546680909781406076412741844254205002739352725207590519921992295941563460138887173402493503653397592300336588721082590464192875253265214253650991510709511154297580284525736720396804660126786258245028204861220690641").unwrap();
+        let e4 = Integer::from(79874); // e4 is even: 79874 = 2 * 39937
+
+        let params = Parameters {
+            n: Some(n1),
+            e: e1,
+            c: Some(c1),
+            keys: vec![KeyEntry {
+                n: Some(n4),
+                e: e4,
+                c: None,
+            }],
+            ..Default::default()
+        };
+
+        let solution = CommonFactorAttack.run(&params, None).unwrap();
+
+        // Should successfully decrypt using non-coprime exponent handling
+        assert_eq!(solution.attack, "common_factor");
+        assert!(solution.m.is_some());
+
+        // Verify the decrypted message is valid
+        let m = solution.m.unwrap();
+        assert!(m > 0);
+
+        // Convert to bytes and check it's a valid message
+        use crate::integer_to_string;
+        let plaintext = integer_to_string(&m).unwrap();
+        assert!(plaintext.contains("crypton{"));
+    }
+
+    #[test]
+    fn attack_coprime_still_works() {
+        // Verify that coprime exponents still work as before
+        let p1 = Integer::from_str("12704460451534494031967012610385124349946784529699670611312906119052340494225557086421265132203129766891315537215217611630798386899633253559211223631146991").unwrap();
+        let q1 = Integer::from_str("13082768051807546995723405137915083607226493252598950098559500283057676054655289649034281301331433871693649745132486183849864220126643322709682774011809557").unwrap();
+        let p2 = p1.clone();
+        let q2 = Integer::from_str("10846735654326787878163407853463542565347654325489765432546578765432198765432198765432198765432198765432198765432198765432198765432198765432187654321").unwrap();
+
+        let n1 = p1.clone() * &q1;
+        let n2 = p2.clone() * &q2;
+        let e = Integer::from(65537); // Standard coprime exponent
+
+        let params = Parameters {
+            n: Some(n1.clone()),
+            e: e.clone(),
+            keys: vec![KeyEntry {
+                n: Some(n2),
+                e: e.clone(),
+                c: None,
+            }],
+            ..Default::default()
+        };
+
+        let solution = CommonFactorAttack.run(&params, None).unwrap();
+        let pk = solution.pk.unwrap();
+
+        assert_eq!(pk.factors, Factors::from([p1, q1]));
+    }
 }

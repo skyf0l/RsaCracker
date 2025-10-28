@@ -106,8 +106,8 @@ impl Attack for CommonFactorAttack {
 /// compute d = e2^-1 mod (phi/e1), decrypt to get m^e1, then take the e1-th root.
 fn try_decrypt_noncoprime(e: &Integer, phi: &Integer, c: &Integer, n: &Integer) -> Option<Integer> {
     // Factor e = e1 * e2 where e1 = gcd(e, phi)
-    let e1 = e.clone().gcd(phi);
-    let e2 = e.clone() / &e1;
+    let e1 = e.gcd(phi);
+    let e2 = e / &e1;
 
     // Check if e2 and phi/e1 are coprime
     let phi_reduced = phi.clone() / &e1;

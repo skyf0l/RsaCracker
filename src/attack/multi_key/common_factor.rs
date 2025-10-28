@@ -119,7 +119,7 @@ fn try_decrypt_noncoprime(e: &Integer, phi: &Integer, c: &Integer, n: &Integer) 
     let d = e2.invert(&phi_reduced).ok()?;
 
     // Decrypt: m^e1 = c^d mod n
-    let m_to_e1 = c.clone().pow_mod(&d, n).ok()?;
+    let m_to_e1 = c.pow_mod(&d, n).ok()?;
 
     // Take the e1-th root to get m
     let e1_u32 = e1.to_u32()?;

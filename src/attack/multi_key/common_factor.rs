@@ -111,7 +111,7 @@ fn try_decrypt_noncoprime(e: &Integer, phi: &Integer, c: &Integer, n: &Integer) 
 
     // Check if e2 and phi/e1 are coprime
     let phi_reduced = phi.clone() / &e1;
-    if e2.clone().gcd(&phi_reduced) != 1 {
+    if e2.gcd(&phi_reduced) != 1 {
         return None;
     }
 

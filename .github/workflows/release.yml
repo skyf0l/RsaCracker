@@ -1,0 +1,170 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_call: {}
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  # publish-crates_io:
+  #   name: Publish to crates.io
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 30
+
+  #   needs: [ci]
+
+  #   steps:
+  #     - name: Checkout sources
+  #       uses: actions/checkout@v5
+
+  #     - uses: dtolnay/rust-toolchain@stable
+
+  #     - run: cargo publish --token ${CRATES_TOKEN}
+  #       env:
+  #         CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+  # publish-docker_hub:
+  #   name: Publish to hub.docker.com
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 120
+
+  #   needs: [ci]
+
+  #   env:
+  #     IMAGE_NAME: skyf0l/rsacracker
+
+  #   steps:
+  #     - uses: actions/checkout@v5
+
+  #     - name: Install yq
+  #       run: |
+  #         sudo wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq
+  #         sudo chmod +x /usr/bin/yq
+  #       env:
+  #         VERSION: v4.40.5
+  #         BINARY: yq_linux_amd64
+
+  #     - name: Get package version
+  #       id: get_version
+  #       run: echo VERSION=$(yq ".package.version" Cargo.toml) >> $GITHUB_OUTPUT
+
+  #     - name: Setup Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+
+  #     - name: Setup multi-platform
+  #       uses: docker/setup-qemu-action@v3
+
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v6
+  #       with:
+  #         push: true
+  #         tags: ${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.VERSION }},${{ env.IMAGE_NAME }}:latest
+  #         platforms: linux/amd64,linux/arm64
+
+  release-binstall:
+    name: release (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    needs: [ci]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tgz
+            ext: tar.gz
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            archive: tgz
+            ext: tar.gz
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            archive: tgz
+            ext: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: tgz
+            ext: tar.gz
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: tgz
+            ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+            ext: zip
+          # - os: windows-latest
+          #   target: aarch64-pc-windows-msvc
+          #   archive: zip
+          #   ext: zip
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build (release)
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # Create a single-file archive with the binary at the root.
+      # We auto-detect the binary name via cargo metadata + jq.
+      - name: Package artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          CRATE_NAME=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].name')
+          BIN_NAME=$(cargo metadata --no-deps --format-version=1 | jq -r '.packages[0].targets[] | select(.kind[]=="bin") | .name')
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          BIN_DIR="target/${{ matrix.target }}/release"
+          EXE=""
+          if [ "${{ runner.os }}" = "Windows" ]; then EXE=".exe"; fi
+
+          mkdir -p dist
+          cp "$BIN_DIR/$BIN_NAME$EXE" "dist/$BIN_NAME$EXE"
+
+          ASSET="${CRATE_NAME}-${VERSION}-${{ matrix.target }}.${{ matrix.ext }}"
+          if [ "${{ matrix.archive }}" = "tgz" ]; then
+            tar -C dist -czf "$ASSET" "$BIN_NAME$EXE"
+          else
+            powershell -NoProfile -Command "Compress-Archive -Path dist\\$BIN_NAME$EXE -DestinationPath $ASSET"
+          fi
+
+          echo "ASSET=$ASSET" >> $GITHUB_ENV
+
+      - name: Upload asset to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ASSET }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    needs: [release-binstall]
+
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: "true"

@@ -106,12 +106,12 @@ impl Attack for CommonFactorAttack {
 /// compute d = e2^-1 mod (phi/e1), decrypt to get m^e1, then take the e1-th root.
 fn try_decrypt_noncoprime(e: &Integer, phi: &Integer, c: &Integer, n: &Integer) -> Option<Integer> {
     // Factor e = e1 * e2 where e1 = gcd(e, phi)
-    let e1 = e.gcd(phi);
-    let e2 = e / &e1;
+    let e1 = e.clone().gcd(phi);
+    let e2 = Integer::from(e / &e1);
 
     // Check if e2 and phi/e1 are coprime
-    let phi_reduced = phi.clone() / &e1;
-    if e2.gcd(&phi_reduced) != 1 {
+    let phi_reduced = Integer::from(phi / &e1);
+    if e2.clone().gcd(&phi_reduced) != 1 {
         return None;
     }
 
@@ -119,7 +119,7 @@ fn try_decrypt_noncoprime(e: &Integer, phi: &Integer, c: &Integer, n: &Integer) 
     let d = e2.invert(&phi_reduced).ok()?;
 
     // Decrypt: m^e1 = c^d mod n
-    let m_to_e1 = c.pow_mod(&d, n).ok()?;
+    let m_to_e1 = c.clone().pow_mod(&d, n).ok()?;
 
     // Take the e1-th root to get m
     let e1_u32 = e1.to_u32()?;

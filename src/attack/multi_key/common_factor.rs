@@ -34,11 +34,11 @@ impl Attack for CommonFactorAttack {
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {
         // Need at least 2 keys (including the main one if n is present)
-        let mut keys = Vec::new();
+        let mut moduli = Vec::new();
 
         // Add the main modulus if present
         if let Some(n) = &params.n {
-            keys.push(KeyData {
+            moduli.push(KeyData {
                 n: n.clone(),
                 e: params.e.clone(),
                 c: params.c.clone(),
@@ -48,7 +48,7 @@ impl Attack for CommonFactorAttack {
         // Add all additional key moduli
         for key in &params.keys {
             if let Some(n) = &key.n {
-                keys.push(KeyData {
+                moduli.push(KeyData {
                     n: n.clone(),
                     e: key.e.clone(),
                     c: key.c.clone(),
@@ -56,18 +56,18 @@ impl Attack for CommonFactorAttack {
             }
         }
 
-        if keys.len() < 2 {
+        if moduli.len() < 2 {
             return Err(Error::MissingParameters);
         }
 
         // Try all pairs of moduli
-        for i in 0..keys.len() {
-            for j in (i + 1)..keys.len() {
-                let p = Integer::from(keys[i].n.gcd_ref(&keys[j].n));
+        for i in 0..moduli.len() {
+            for j in (i + 1)..moduli.len() {
+                let p = Integer::from(moduli[i].n.gcd_ref(&moduli[j].n));
 
-                if p > 1 && p != keys[i].n && p != keys[j].n {
+                if p > 1 && p != moduli[i].n && p != moduli[j].n {
                     // Found a common factor!
-                    let key = &keys[i];
+                    let key = &moduli[i];
                     let q = key.n.clone() / &p;
                     let phi = (p.clone() - 1) * (q.clone() - 1);
 

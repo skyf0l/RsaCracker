@@ -10,6 +10,7 @@ on:
 env:
   RUST_BACKTRACE: 1
   NO_FACTORDB: 1
+  BINARY_NAME: rsacracker
 
 jobs:
   fmt:
@@ -240,6 +241,105 @@ jobs:
       - name: Test the Docker image
         run: docker run --rm -v $PWD:/data rsacracker:test -n 323 --attack small_prime --factors
 
+  release-binaries:
+    name: Release Binaries
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+
+    needs:
+      [fmt, clippy, docs, tests, key-generation, ctf-challenges, coverage, build, docker-build]
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+
+    strategy:
+      matrix:
+        include:
+          # GNU Linux (x86_64)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: tar.gz
+          # MUSL Linux (x86_64) - static linking for broader compatibility
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            archive: tar.gz
+          # macOS (x86_64)
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: tar.gz
+          # macOS (aarch64)
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: tar.gz
+          # Windows (x86_64)
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # Install musl tools for musl target
+      - name: Install musl tools
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      # msys2 required by rug on windows
+      - name: Setup msys2 (windows)
+        uses: msys2/setup-msys2@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          install: base-devel pacman-mirrors diffutils m4 make pkgconf openssl openssl-devel
+          pacboy: gcc:p rust:p
+
+      # Build for Windows using msys2
+      - name: Build (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: msys2 {0}
+        run: |
+          rustup target add ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
+
+      # Build for non-Windows
+      - name: Build (Unix/macOS)
+        if: matrix.os != 'windows-latest'
+        run: cargo build --release --target ${{ matrix.target }}
+
+      # Package for Unix/macOS (tar.gz)
+      - name: Package (Unix/macOS)
+        if: matrix.archive == 'tar.gz'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ${{ env.BINARY_NAME }}-${{ matrix.target }}.tar.gz ${{ env.BINARY_NAME }}
+          shasum -a 256 ${{ env.BINARY_NAME }}-${{ matrix.target }}.tar.gz > ${{ env.BINARY_NAME }}-${{ matrix.target }}.tar.gz.sha256
+
+      # Package for Windows (zip)
+      - name: Package (Windows)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          cd target/${{ matrix.target }}/release
+          Compress-Archive -Path "${{ env.BINARY_NAME }}.exe" -DestinationPath "${{ env.BINARY_NAME }}-${{ matrix.target }}.zip"
+          $hash = (Get-FileHash -Algorithm SHA256 "${{ env.BINARY_NAME }}-${{ matrix.target }}.zip").Hash.ToLower()
+          "$hash  ${{ env.BINARY_NAME }}-${{ matrix.target }}.zip" | Out-File -Encoding ASCII "${{ env.BINARY_NAME }}-${{ matrix.target }}.zip.sha256"
+
+      # Upload to GitHub Release
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}-${{ matrix.target }}.${{ matrix.archive }}
+            target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}-${{ matrix.target }}.${{ matrix.archive }}.sha256
+
   publish-crates_io:
     name: Publish to crates.io
     runs-on: ubuntu-latest
@@ -310,7 +410,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    needs: [publish-crates_io, publish-docker_hub]
+    needs: [release-binaries, publish-crates_io, publish-docker_hub]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     steps:

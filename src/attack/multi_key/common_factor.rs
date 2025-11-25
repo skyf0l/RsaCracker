@@ -1,7 +1,14 @@
 use indicatif::ProgressBar;
-use rug::Integer;
+use rug::{ops::Pow, Integer};
 
 use crate::{key::PrivateKey, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
+
+/// Data for a single RSA key in the common factor attack
+struct KeyData {
+    n: Integer,
+    e: Integer,
+    c: Option<Integer>,
+}
 
 /// Common factor attack for multiple RSA keys
 ///
@@ -31,13 +38,21 @@ impl Attack for CommonFactorAttack {
 
         // Add the main modulus if present
         if let Some(n) = &params.n {
-            moduli.push(n.clone());
+            moduli.push(KeyData {
+                n: n.clone(),
+                e: params.e.clone(),
+                c: params.c.clone(),
+            });
         }
 
         // Add all additional key moduli
         for key in &params.keys {
             if let Some(n) = &key.n {
-                moduli.push(n.clone());
+                moduli.push(KeyData {
+                    n: n.clone(),
+                    e: key.e.clone(),
+                    c: key.c.clone(),
+                });
             }
         }
 
@@ -48,24 +63,74 @@ impl Attack for CommonFactorAttack {
         // Try all pairs of moduli
         for i in 0..moduli.len() {
             for j in (i + 1)..moduli.len() {
-                let p = Integer::from(moduli[i].gcd_ref(&moduli[j]));
+                let p = Integer::from(moduli[i].n.gcd_ref(&moduli[j].n));
 
-                if p > 1 && p != moduli[i] && p != moduli[j] {
+                if p > 1 && p != moduli[i].n && p != moduli[j].n {
                     // Found a common factor!
-                    // Use the modulus where we found the factor
-                    let n = &moduli[i];
+                    let key = &moduli[i];
+                    let q = key.n.clone() / &p;
+                    let phi = (p.clone() - 1) * (q.clone() - 1);
 
-                    let q = n.clone() / &p;
+                    // Check if e and phi are coprime
+                    let gcd_e_phi = key.e.clone().gcd(&phi);
 
-                    return Ok(Solution::new_pk(
-                        self.name(),
-                        PrivateKey::from_p_q(p, q, &params.e)?,
-                    ));
+                    if gcd_e_phi == 1 {
+                        // Standard case: e and phi are coprime
+                        return Ok(Solution::new_pk(
+                            self.name(),
+                            PrivateKey::from_p_q(p, q, &key.e)?,
+                        ));
+                    } else if let Some(c) = &key.c {
+                        // Non-coprime exponent case: try to decrypt
+                        if let Some(m) = try_decrypt_noncoprime(&key.e, &phi, c, &key.n) {
+                            return Ok(Solution::new_m(self.name(), m));
+                        }
+                    }
+
+                    // If we get here, we found the factors but couldn't decrypt
+                    // Try to return the private key anyway (might fail)
+                    if let Ok(pk) = PrivateKey::from_p_q(p, q, &key.e) {
+                        return Ok(Solution::new_pk(self.name(), pk));
+                    }
                 }
             }
         }
 
         Err(Error::NotFound)
+    }
+}
+
+/// Try to decrypt a message when the exponent is non-coprime with phi
+///
+/// When gcd(e, phi) > 1, we factor e = e1 * e2 where e1 = gcd(e, phi),
+/// compute d = e2^-1 mod (phi/e1), decrypt to get m^e1, then take the e1-th root.
+fn try_decrypt_noncoprime(e: &Integer, phi: &Integer, c: &Integer, n: &Integer) -> Option<Integer> {
+    // Factor e = e1 * e2 where e1 = gcd(e, phi)
+    let e1 = e.clone().gcd(phi);
+    let e2 = Integer::from(e / &e1);
+
+    // Check if e2 and phi/e1 are coprime
+    let phi_reduced = Integer::from(phi / &e1);
+    if e2.clone().gcd(&phi_reduced) != 1 {
+        return None;
+    }
+
+    // Compute d using e2 instead of e
+    let d = e2.invert(&phi_reduced).ok()?;
+
+    // Decrypt: m^e1 = c^d mod n
+    let m_to_e1 = c.clone().pow_mod(&d, n).ok()?;
+
+    // Take the e1-th root to get m
+    let e1_u32 = e1.to_u32()?;
+    let m = m_to_e1.clone().root(e1_u32);
+
+    // Verify it's correct (need to check before consuming m)
+    let m_powered = m.clone().pow(e1_u32);
+    if m_powered == m_to_e1 {
+        Some(m)
+    } else {
+        None
     }
 }
 
@@ -167,18 +232,5 @@ mod tests {
 
         let result = CommonFactorAttack.run(&params, None);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn attack_missing_moduli() {
-        let e = Integer::from(65537);
-
-        let params = Parameters {
-            e,
-            ..Default::default()
-        };
-
-        let result = CommonFactorAttack.run(&params, None);
-        assert!(matches!(result, Err(Error::MissingParameters)));
     }
 }

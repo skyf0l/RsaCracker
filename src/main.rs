@@ -1,4 +1,4 @@
-use clap::{command, Parser};
+use clap::Parser;
 use discrete_logarithm::discrete_log_with_factors;
 use display_bytes::display_bytes;
 use itertools::Itertools;

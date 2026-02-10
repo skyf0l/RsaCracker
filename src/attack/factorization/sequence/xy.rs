@@ -2,7 +2,7 @@ use indicatif::ProgressBar;
 use primal::Primes;
 use rug::{ops::Pow, Integer};
 
-use crate::{key::PrivateKey, utils::log_base_ceil, Attack, Error, Parameters, Solution};
+use crate::{key::PrivateKey, math::algebra::log_base_ceil, Attack, Error, Parameters, Solution};
 
 const MAX_ITERATIONS: u64 = 100_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;

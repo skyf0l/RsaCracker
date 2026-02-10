@@ -1,3 +1,5 @@
+//! Mathematical utilities for number theory and related algorithms.
+
 use rug::{
     ops::{DivRounding, Pow},
     Integer,

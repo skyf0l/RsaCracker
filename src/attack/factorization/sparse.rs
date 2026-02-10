@@ -4,7 +4,7 @@ use rug::Integer;
 
 use crate::{
     key::PrivateKey,
-    utils::{log_base_ceil, solve_quadratic},
+    math::algebra::{log_base_ceil, solve_quadratic},
     Attack, Error, Parameters, Solution,
 };
 

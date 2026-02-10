@@ -1,7 +1,11 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, ops::Pow, Integer};
 
-use crate::{ntheory::crt, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
+use crate::{
+    math::field::{rth_roots, PrimeField},
+    math::number_theory::crt,
+    Attack, AttackKind, AttackSpeed, Error, Parameters, Solution,
+};
 
 use super::known_phi::factorize as factorize_from_phi;
 
@@ -89,27 +93,28 @@ impl Attack for NonCoprimeExpAttack {
 
             // Compute e-th roots mod p and q
             let mps = if tp == 0 {
+                // Simple case: e doesn't divide p-1 multiple times
                 vec![cp
                     .clone()
                     .pow_mod(&e.clone().invert(&pm1).unwrap(), &p)
                     .unwrap()]
             } else {
-                // TODO: Implement Adleman-Manders-Miller algorithm for r-th roots in GF(p)
-                // This would compute: list(rth_roots(GF(p), cp, e))
-                // For now, returns empty when e^(tp+1) divides p-1
-                Vec::new()
+                // Complex case: use Adleman-Manders-Miller algorithm
+                let p_field = PrimeField::new(p.clone());
+                rth_roots(&p_field, &cp, e_u32)
             };
+
             // Compute e-th roots mod q
             let mqs = if tq == 0 {
+                // Simple case: e doesn't divide q-1 multiple times
                 vec![cq
                     .clone()
                     .pow_mod(&e.clone().invert(&qm1).unwrap(), &q)
                     .unwrap()]
             } else {
-                // TODO: Implement Adleman-Manders-Miller algorithm for r-th roots in GF(q)
-                // This would compute: list(rth_roots(GF(q), cq, e))
-                // For now, returns empty when e^(tq+1) divides q-1
-                Vec::new()
+                // Complex case: use Adleman-Manders-Miller algorithm
+                let q_field = PrimeField::new(q.clone());
+                rth_roots(&q_field, &cq, e_u32)
             };
 
             // Compute all combinations of e-th roots mod p and q using CRT
@@ -185,8 +190,7 @@ mod tests {
         let solution = NonCoprimeExpAttack.run(&params, None).unwrap();
 
         let ms = solution.ms;
-        assert_eq!(ms.len(), 0);
-        // assert_eq!(ms.len(), 97);
-        // assert!(ms.iter().any(|m_| m_ == &m));
+        assert_eq!(ms.len(), 97);
+        assert!(ms.iter().any(|m_| m_ == &m));
     }
 }

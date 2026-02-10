@@ -1,7 +1,9 @@
 use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
-use crate::{ntheory::crt, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution};
+use crate::{
+    math::number_theory::crt, Attack, AttackKind, AttackSpeed, Error, Parameters, Solution,
+};
 
 /// Hastad's broadcast attack
 ///

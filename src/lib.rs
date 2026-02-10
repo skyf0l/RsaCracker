@@ -12,17 +12,18 @@ use std::sync::Arc;
 mod attack;
 mod factors;
 mod key;
-mod ntheory;
+mod math;
 mod params;
 mod solution;
-mod utils;
 
 pub use attack::*;
 pub use factors::*;
 pub use key::*;
+pub use math::conversion::{
+    bytes_to_integer, integer_to_bytes, integer_to_string, string_to_integer,
+};
 pub use params::*;
 pub use solution::*;
-pub use utils::{bytes_to_integer, integer_to_bytes, integer_to_string, string_to_integer};
 
 fn check_n_prime(n: &Option<Integer>) -> bool {
     if let Some(n) = &n {

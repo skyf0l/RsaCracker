@@ -8,7 +8,7 @@ use rug::{
     Integer,
 };
 
-use crate::{factors::Factors, ntheory::crt};
+use crate::{factors::Factors, math::number_theory::crt};
 
 /// Attack error
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]

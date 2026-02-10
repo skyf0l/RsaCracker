@@ -2,8 +2,8 @@ use indicatif::ProgressBar;
 use rug::{ops::Pow, rand::RandState, Integer};
 
 use crate::{
-    key::PrivateKey, utils::log_base_ceil, Attack, AttackKind, AttackSpeed, Error, Parameters,
-    Solution,
+    key::PrivateKey, math::algebra::log_base_ceil, Attack, AttackKind, AttackSpeed, Error,
+    Parameters, Solution,
 };
 
 /// Known phi attack

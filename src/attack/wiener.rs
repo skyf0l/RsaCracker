@@ -3,7 +3,9 @@ use rug::{ops::Pow, Integer};
 
 use crate::{
     key::PrivateKey,
-    ntheory::{contfrac_to_rational, rational_to_contfrac, trivial_factorization_with_n_phi},
+    math::number_theory::{
+        contfrac_to_rational, rational_to_contfrac, trivial_factorization_with_n_phi,
+    },
     Attack, AttackKind, Error, Parameters, Solution,
 };
 

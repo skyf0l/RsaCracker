@@ -4,7 +4,7 @@ use indicatif::ProgressBar;
 use rug::Integer;
 
 use crate::{
-    key::PrivateKey, utils::log_base_ceil, Attack, AttackSpeed, Error, Parameters, Solution,
+    key::PrivateKey, math::algebra::log_base_ceil, Attack, AttackSpeed, Error, Parameters, Solution,
 };
 
 /// Factorize n when n = p^k

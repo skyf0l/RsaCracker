@@ -4,7 +4,8 @@ use indicatif::ProgressBar;
 use rug::Integer;
 
 use crate::{
-    key::PrivateKey, utils::solve_quadratic, Attack, AttackSpeed, Error, Parameters, Solution,
+    key::PrivateKey, math::algebra::solve_quadratic, Attack, AttackSpeed, Error, Parameters,
+    Solution,
 };
 
 const LONDAHL_B: u64 = 10_000_000;

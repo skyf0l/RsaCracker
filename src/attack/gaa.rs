@@ -2,7 +2,8 @@ use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
 use crate::{
-    key::PrivateKey, utils::solve_quadratic, Attack, AttackKind, Error, Parameters, Solution,
+    key::PrivateKey, math::algebra::solve_quadratic, Attack, AttackKind, Error, Parameters,
+    Solution,
 };
 
 const MAX_ITERATIONS: u64 = 1_000_000;

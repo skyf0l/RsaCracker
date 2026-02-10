@@ -2,8 +2,8 @@ use indicatif::ProgressBar;
 use rug::{ops::Pow, Integer};
 
 use crate::{
-    key::PrivateKey, utils::solve_quadratic, Attack, AttackKind, AttackSpeed, Error, Parameters,
-    Solution,
+    key::PrivateKey, math::algebra::solve_quadratic, Attack, AttackKind, AttackSpeed, Error,
+    Parameters, Solution,
 };
 
 /// Leaked sum of p and q attack (0 = x^2 - xsum + n)

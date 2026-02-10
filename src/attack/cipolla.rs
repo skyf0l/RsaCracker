@@ -1,112 +1,101 @@
 use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Integer};
-use std::rc::Rc;
 
-use crate::{Attack, AttackKind, Error, Parameters, Solution};
+use crate::{
+    math::field::{PrimeField, QuadraticExtension},
+    Attack, AttackKind, Error, Parameters, Solution,
+};
 
 const MAX_ITERATIONS: u64 = 1_000_000;
 const TICK_SIZE: u64 = MAX_ITERATIONS / 100;
 
-// Inspired by https://github.com/TheAlgorithms/Rust/blob/master/src/math/quadratic_residue.rs
-
-#[derive(Debug)]
-struct CustomFiniteField {
-    modulus: Integer,
-    i_square: Integer,
+/// Check if x is a quadratic residue modulo p using Euler's criterion
+/// Returns true if x^((p-1)/2) ≡ 1 (mod p)
+fn is_quadratic_residue(x: &Integer, p: &Integer) -> bool {
+    if x == &0 {
+        return true;
+    }
+    let exp = (p.clone() - 1) >> 1;
+    x.clone().pow_mod(&exp, p).unwrap() == 1
 }
 
-impl CustomFiniteField {
-    pub fn new(modulus: Integer, i_square: Integer) -> Self {
-        Self { modulus, i_square }
-    }
-}
-
-#[derive(Clone, Debug)]
-struct CustomComplexNumber {
-    real: Integer,
-    imag: Integer,
-    f: Rc<CustomFiniteField>,
-}
-
-impl CustomComplexNumber {
-    pub fn new(real: Integer, imag: Integer, f: Rc<CustomFiniteField>) -> Self {
-        Self { real, imag, f }
-    }
-
-    pub fn mult_other(&mut self, rhs: &Self) {
-        let tmp = (self.imag.clone() * &rhs.real + &self.real * &rhs.imag) % &self.f.modulus;
-        self.real = (self.real.clone() * &rhs.real
-            + ((self.imag.clone() * &rhs.imag) % &self.f.modulus) * &self.f.i_square)
-            % &self.f.modulus;
-        self.imag = tmp;
-    }
-
-    pub fn mult_self(&mut self) {
-        let tmp = (self.imag.clone() * &self.real + &self.real * &self.imag) % &self.f.modulus;
-        self.real = (self.real.clone() * &self.real
-            + ((self.imag.clone() * &self.imag) % &self.f.modulus) * &self.f.i_square)
-            % &self.f.modulus;
-        self.imag = tmp;
-    }
-
-    pub fn fast_power(mut base: Self, mut power: Integer) -> Self {
-        let mut result = CustomComplexNumber::new(Integer::from(1), Integer::ZERO, base.f.clone());
-        while power != Integer::ZERO {
-            if power.is_odd() {
-                result.mult_other(&base); // result *= base;
-            }
-            base.mult_self(); // base *= base;
-            power >>= 1;
-        }
-        result
-    }
-}
-
-fn is_residue(x: &Integer, modulus: &Integer) -> bool {
-    let power = Integer::from(modulus - 1) >> 1;
-    *x != 0 && Integer::from(x.pow_mod_ref(&power, modulus).unwrap()) == 1
-}
-
-// Returns two solutions (x1, x2) for Quadratic Residue problem x^2 = a (mod p), where p is an odd prime
-// Returns None if no solution are found
+/// Cipolla's algorithm for finding square roots modulo a prime.
+///
+/// Uses the shared PrimeField and QuadraticExtension abstractions for clean,
+/// maintainable field arithmetic.
+///
+/// Given a and p (odd prime), finds x such that x^2 ≡ a (mod p)
+/// Returns both solutions (x, p-x) if they exist, None if a is not a quadratic residue
+///
+/// Algorithm:
+/// 1. Find r such that r^2 - a is a quadratic non-residue mod p
+/// 2. Work in the extension field F_p[x]/(x^2 - omega) where omega = r^2 - a
+/// 3. Compute (r + x)^((p+1)/2) to obtain the square root
+///
+/// Time complexity: O(log p) field operations in the extension
+/// Reference: Cipolla (1903)
 pub fn cipolla(a: &Integer, p: &Integer, pb: Option<&ProgressBar>) -> Option<(Integer, Integer)> {
     let a = a.clone() % p;
+
+    // Special cases
     if a == 0 || a == 1 {
-        return Some((a.clone(), (-a % p + p) % p));
+        return Some((a.clone(), (p.clone() - &a) % p));
     }
-    if !is_residue(&a, p) {
+
+    // Check if a is a quadratic residue using Euler's criterion
+    if !is_quadratic_residue(&a, p) {
         return None;
     }
 
     if let Some(pb) = pb {
         pb.set_length(MAX_ITERATIONS);
     }
-    let mut r = 1;
+
+    // Find r such that omega = r^2 - a is a non-residue
+    let mut r = Integer::from(1);
+    let omega_int;
     loop {
-        if r == 0 || !is_residue(&((p.clone() + r * r - &a) % p), p) {
+        let r_squared = r.clone() * &r;
+        let mut candidate = (r_squared - &a) % p;
+        if candidate < 0 {
+            candidate += p;
+        }
+
+        if !is_quadratic_residue(&candidate, p) {
+            omega_int = candidate;
             break;
         }
+
         r += 1;
-        if r % TICK_SIZE == 0 {
+
+        let r_mod = Integer::from(&r % TICK_SIZE);
+        if r_mod == 0 {
             if let Some(pb) = pb {
                 pb.inc(TICK_SIZE);
             }
         }
+
         if r > MAX_ITERATIONS {
-            // Limit to 1 million iterations
+            // Failed to find non-residue (extremely rare for random search)
             return None;
         }
     }
 
-    let field = Rc::new(CustomFiniteField::new(
-        p.clone(),
-        (p.clone() + r * r - &a) % p,
-    ));
-    let comp = CustomComplexNumber::new(r.into(), Integer::from(1), field);
-    let power = (p.clone() + 1) >> 1;
-    let x0 = CustomComplexNumber::fast_power(comp, power).real;
-    let x1 = p.clone() - &x0;
+    // Create base field and extension field
+    let field = PrimeField::new(p.clone());
 
+    // Construct element (r + x) in F_p[x]/(x^2 - omega)
+    let element = QuadraticExtension::new(&field, r, Integer::from(1), omega_int);
+
+    // Compute (r + x)^((p+1)/2) using fast exponentiation
+    let exp = (p.clone() + 1) >> 1;
+    let result = element.pow(&exp);
+
+    // Extract result - the imaginary part should be 0 for a valid square root
+    let x0 = result.real().clone();
+    let x1 = (p.clone() - &x0) % p;
+
+    // Return in sorted order (smaller first)
     if x0 < x1 {
         Some((x0, x1))
     } else {

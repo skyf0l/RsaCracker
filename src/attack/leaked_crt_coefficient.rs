@@ -2,7 +2,8 @@ use indicatif::ProgressBar;
 use rug::{integer::IsPrime, Integer};
 
 use crate::{
-    key::PrivateKey, utils::solve_quadratic, Attack, AttackKind, Error, Parameters, Solution,
+    key::PrivateKey, math::algebra::solve_quadratic, Attack, AttackKind, Error, Parameters,
+    Solution,
 };
 
 fn find_phi(e: &Integer, d: &Integer) -> impl Iterator<Item = Integer> {

@@ -117,6 +117,9 @@ struct Args {
     /// Print all factors of n.
     #[clap(long)]
     factors: bool,
+    /// Show bit length for all displayed values.
+    #[clap(long)]
+    bits: bool,
     /// Number of threads to use. Default: number of CPUs
     #[clap(short, long, default_value_t = num_cpus::get())]
     threads: usize,
@@ -135,6 +138,14 @@ struct Args {
     /// List all available attacks.
     #[clap(long)]
     list: bool,
+}
+
+fn display_value(label: &str, value: &Integer, show_bits: bool) {
+    if show_bits {
+        println!("{} = {} ({} bits)", label, value, value.significant_bits());
+    } else {
+        println!("{} = {}", label, value);
+    }
 }
 
 fn display_unciphered_data(uncipher: &Integer) {
@@ -427,11 +438,11 @@ fn main() -> Result<(), MainError> {
         if let Some(private_key) = &solution.pk {
             println!("Factors of n:");
             if private_key.factors.len() == 2 {
-                println!("p = {}", private_key.p());
-                println!("q = {}", private_key.q());
+                display_value("p", &private_key.p(), args.bits);
+                display_value("q", &private_key.q(), args.bits);
             } else {
                 for (i, p) in private_key.factors.as_vec().into_iter().enumerate() {
-                    println!("p{} = {}", i + 1, p);
+                    display_value(&format!("p{}", i + 1), &p, args.bits);
                 }
             }
         } else {
@@ -448,27 +459,27 @@ fn main() -> Result<(), MainError> {
             }
             if args.dump || args.dumpext {
                 println!("Private key:");
-                println!("n = {}", private_key.n);
-                println!("e = {}", private_key.e);
+                display_value("n", &private_key.n, args.bits);
+                display_value("e", &private_key.e, args.bits);
 
                 // Print factors
                 if private_key.factors.len() == 2 {
-                    println!("p = {}", private_key.p());
-                    println!("q = {}", private_key.q());
+                    display_value("p", &private_key.p(), args.bits);
+                    display_value("q", &private_key.q(), args.bits);
                 } else {
                     for (i, p) in private_key.factors.as_vec().into_iter().enumerate() {
-                        println!("p{} = {}", i + 1, p);
+                        display_value(&format!("p{}", i + 1), &p, args.bits);
                     }
                 }
-                println!("d = {}", private_key.d);
+                display_value("d", &private_key.d, args.bits);
             }
             if args.dumpext {
                 println!("Extended private key:");
-                println!("phi = {}", private_key.phi());
-                println!("dP = {}", private_key.dp());
-                println!("dQ = {}", private_key.dq());
-                println!("pInv = {}", private_key.pinv());
-                println!("qInv = {}", private_key.qinv());
+                display_value("phi", &private_key.phi(), args.bits);
+                display_value("dP", &private_key.dp(), args.bits);
+                display_value("dQ", &private_key.dq(), args.bits);
+                display_value("pInv", &private_key.pinv(), args.bits);
+                display_value("qInv", &private_key.qinv(), args.bits);
             }
         } else {
             return Err("No private key found".into());

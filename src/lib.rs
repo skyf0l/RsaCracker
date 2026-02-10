@@ -204,7 +204,6 @@ pub fn run_specific_attacks_with_threads(
 
     // Shut down runtime
     r.shutdown_background();
-    eprintln!("Elapsed time: {:?}", pb_main.elapsed());
 
     if let Some(solution) = solution {
         Ok(solution)

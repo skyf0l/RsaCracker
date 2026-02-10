@@ -389,7 +389,10 @@ fn main() -> Result<(), MainError> {
         .collect::<Vec<_>>();
 
     // Run attacks
+    let start = std::time::Instant::now();
     let res = rsacracker::run_specific_attacks_with_threads(&params, &attacks, args.threads);
+    let elapsed = start.elapsed();
+
     let solution = match res {
         Ok(solution) => solution,
         Err(partial_factors) => {
@@ -404,10 +407,20 @@ fn main() -> Result<(), MainError> {
                     println!();
                 }
             }
-            return Err("No attack succeeded".into());
+            return Err(format!(
+                "No attack succeeded in {:.2}s. Consider:\n  \
+                 - Adding more known parameters if available (--phi, --dp, --dq, etc.)\n  \
+                 - The modulus might be cryptographically secure",
+                elapsed.as_secs_f64()
+            )
+            .into());
         }
     };
-    println!("Succeeded with attack: {}", solution.attack);
+    println!(
+        "Success: {} attack completed in {:.2}s",
+        solution.attack,
+        elapsed.as_secs_f64()
+    );
 
     // Show factors if explicitly requested, or by default when no ciphertext and no other display mode
     if args.factors || (all_ciphers.is_empty() && !args.private && !args.dump && !args.dumpext) {

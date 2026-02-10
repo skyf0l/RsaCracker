@@ -113,6 +113,8 @@ pub enum AttackKind {
     Factorization,
     /// Attack depending on knowing extra information (e.g. d, phi, p, q, etc.)
     KnownExtraInformation,
+    /// Attack requiring multiple keys/moduli
+    MultiKey,
 }
 
 impl PartialOrd for AttackKind {
@@ -123,15 +125,17 @@ impl PartialOrd for AttackKind {
 
 impl Ord for AttackKind {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        use crate::AttackKind::{Factorization, KnownExtraInformation};
+        use crate::AttackKind::{Factorization, KnownExtraInformation, MultiKey};
         use std::cmp::Ordering::*;
 
         match (self, other) {
-            (Factorization, Factorization) | (KnownExtraInformation, KnownExtraInformation) => {
-                Equal
-            }
-            (KnownExtraInformation, _) => Less,
-            (_, KnownExtraInformation) => Greater,
+            (Factorization, Factorization)
+            | (KnownExtraInformation, KnownExtraInformation)
+            | (MultiKey, MultiKey) => Equal,
+            (Factorization, _) => Less,
+            (_, Factorization) => Greater,
+            (KnownExtraInformation, MultiKey) => Less,
+            (MultiKey, KnownExtraInformation) => Greater,
         }
     }
 }
@@ -159,12 +163,9 @@ lazy_static! {
     static ref _ATTACKS: Vec<Arc<dyn Attack + Sync + Send>> = vec![
         Arc::new(CipollaAttack),
         Arc::new(ComfactCnAttack),
-        Arc::new(CommonFactorAttack),
-        Arc::new(CommonModulusAttack),
         Arc::new(CubeRootAttack),
         Arc::new(DiffPQAttack),
         Arc::new(GaaAttack),
-        Arc::new(HastadBroadcastAttack),
         Arc::new(KnownDAttack),
         Arc::new(KnownPhiAttack),
         Arc::new(LeakedCrtCoefficientAttack),
@@ -184,6 +185,7 @@ lazy_static! {
     pub static ref ATTACKS: Vec<Arc<dyn Attack + Sync + Send>> = {
         let mut attacks = _ATTACKS.to_vec();
         attacks.extend_from_slice(&FACTORIZATION_ATTACKS);
+        attacks.extend_from_slice(&MULTI_KEY_ATTACKS);
         attacks
     };
 }

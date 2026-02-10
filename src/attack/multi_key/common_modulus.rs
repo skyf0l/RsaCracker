@@ -30,7 +30,7 @@ impl Attack for CommonModulusAttack {
     }
 
     fn kind(&self) -> AttackKind {
-        AttackKind::KnownExtraInformation
+        AttackKind::MultiKey
     }
 
     fn run(&self, params: &Parameters, _pb: Option<&ProgressBar>) -> Result<Solution, Error> {

@@ -409,8 +409,8 @@ fn main() -> Result<(), MainError> {
     };
     println!("Succeeded with attack: {}", solution.attack);
 
-    // Print factors
-    if args.factors {
+    // Show factors if explicitly requested, or by default when no ciphertext and no other display mode
+    if args.factors || (all_ciphers.is_empty() && !args.private && !args.dump && !args.dumpext) {
         if let Some(private_key) = &solution.pk {
             println!("Factors of n:");
             if private_key.factors.len() == 2 {

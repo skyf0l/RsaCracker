@@ -46,7 +46,7 @@ tokio = { version = "1.40", features = ["rt", "rt-multi-thread"] }
 mpsc = { version = "0.2", default-features = false }
 num_cpus = "1.15"
 update-informer = "1.1"
-indicatif = "0.17"
+indicatif = "0.18"
 itertools = "0.14"
 discrete-logarithm = "1.0"
 base64 = "0.22"

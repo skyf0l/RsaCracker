@@ -442,7 +442,7 @@ fn main() -> Result<(), MainError> {
                 display_value("q", &private_key.q(), args.bits);
             } else {
                 for (i, p) in private_key.factors.as_vec().into_iter().enumerate() {
-                    display_value(&format!("p{}", i + 1), &p, args.bits);
+                    display_value(&format!("p{}", i + 1), p, args.bits);
                 }
             }
         } else {
@@ -468,7 +468,7 @@ fn main() -> Result<(), MainError> {
                     display_value("q", &private_key.q(), args.bits);
                 } else {
                     for (i, p) in private_key.factors.as_vec().into_iter().enumerate() {
-                        display_value(&format!("p{}", i + 1), &p, args.bits);
+                        display_value(&format!("p{}", i + 1), p, args.bits);
                     }
                 }
                 display_value("d", &private_key.d, args.bits);

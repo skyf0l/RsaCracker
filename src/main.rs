@@ -240,14 +240,14 @@ fn main() -> Result<(), MainError> {
 
     // Parse raw
     let mut stdin = io::stdin();
-    let mut params = if !stdin.is_terminal() {
+    let mut params = if let Some(raw) = args.raw.as_ref() {
+        // rsacracker --raw
+        let raw = std::fs::read_to_string(raw)?;
+        Parameters::from_raw(&raw)
+    } else if !stdin.is_terminal() {
         // Piped input
         let mut raw = String::new();
         stdin.read_to_string(&mut raw)?;
-        Parameters::from_raw(&raw)
-    } else if let Some(raw) = args.raw.as_ref() {
-        // rsacracker --raw
-        let raw = std::fs::read_to_string(raw)?;
         Parameters::from_raw(&raw)
     } else {
         Parameters::default()
@@ -433,8 +433,8 @@ fn main() -> Result<(), MainError> {
         elapsed.as_secs_f64()
     );
 
-    // Show factors if explicitly requested, or by default when no ciphertext and no other display mode
-    if args.factors || (all_ciphers.is_empty() && !args.private && !args.dump && !args.dumpext) {
+    // Show factors if explicitly requested, or by default when no ciphertext present in all input sources, and no other display mode
+    if args.factors || (params.c.is_none() && !args.private && !args.dump && !args.dumpext) {
         if let Some(private_key) = &solution.pk {
             println!("Factors of n:");
             if private_key.factors.len() == 2 {

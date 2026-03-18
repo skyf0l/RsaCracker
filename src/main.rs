@@ -196,11 +196,17 @@ fn suffix_path(path: &std::path::Path, suffix: &str) -> std::path::PathBuf {
 fn main() -> Result<(), MainError> {
     let pkg_name = env!("CARGO_PKG_NAME");
     let current_version = env!("CARGO_PKG_VERSION");
-    let informer = update_informer::new(registry::Crates, pkg_name, current_version)
-        .interval(Duration::from_secs(60 * 60));
-    if let Ok(Some(new_version)) = informer.check_version() {
-        eprintln!("A new release of {pkg_name} is available: v{current_version} -> {new_version}");
-        eprintln!("You can update by running: cargo install {pkg_name}\n");
+
+    // Check for updates unless disabled via environment variable
+    if std::env::var("RSACRACKER_DISABLE_UPDATE").is_err() {
+        let informer = update_informer::new(registry::Crates, pkg_name, current_version)
+            .interval(Duration::from_secs(60 * 60));
+        if let Ok(Some(new_version)) = informer.check_version() {
+            eprintln!(
+                "A new release of {pkg_name} is available: v{current_version} -> {new_version}"
+            );
+            eprintln!("You can update by running: cargo install {pkg_name}\n");
+        }
     }
 
     // Parse command line arguments
@@ -240,14 +246,14 @@ fn main() -> Result<(), MainError> {
 
     // Parse raw
     let mut stdin = io::stdin();
-    let mut params = if !stdin.is_terminal() {
+    let mut params = if let Some(raw) = args.raw.as_ref() {
+        // rsacracker --raw
+        let raw = std::fs::read_to_string(raw)?;
+        Parameters::from_raw(&raw)
+    } else if !stdin.is_terminal() {
         // Piped input
         let mut raw = String::new();
         stdin.read_to_string(&mut raw)?;
-        Parameters::from_raw(&raw)
-    } else if let Some(raw) = args.raw.as_ref() {
-        // rsacracker --raw
-        let raw = std::fs::read_to_string(raw)?;
         Parameters::from_raw(&raw)
     } else {
         Parameters::default()
@@ -433,8 +439,9 @@ fn main() -> Result<(), MainError> {
         elapsed.as_secs_f64()
     );
 
-    // Show factors if explicitly requested, or by default when no ciphertext and no other display mode
-    if args.factors || (all_ciphers.is_empty() && !args.private && !args.dump && !args.dumpext) {
+    // Show factors if explicitly requested, or by default when no ciphertext present in all input sources, and no other display mode
+    let has_any_ciphertext = params.c.is_some() || params.keys.iter().any(|k| k.c.is_some());
+    if args.factors || (!has_any_ciphertext && !args.private && !args.dump && !args.dumpext) {
         if let Some(private_key) = &solution.pk {
             println!("Factors of n:");
             if private_key.factors.len() == 2 {

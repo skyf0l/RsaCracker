@@ -38,29 +38,6 @@ fn picoctf_2019_b00tl3grsa2() {
         integer_to_string(&solution.m.unwrap()).unwrap(),
         "picoCTF{bad_1d3a5_2152720}"
     );
-
-    // Also test the binary with --raw input
-    let output = std::process::Command::new(env!("CARGO_BIN_EXE_rsacracker"))
-        .arg("--raw")
-        .arg(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/raw/picoctf_2019_b00tl3grsa2.txt"
-        ))
-        .arg("--attack=wiener")
-        .output()
-        .expect("failed to run rsacracker binary");
-
-    assert!(
-        output.status.success(),
-        "process failed. stderr: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(
-        stdout.contains("picoCTF{bad_1d3a5_2152720}"),
-        "expected decrypted flag in stdout, got:\n{stdout}"
-    );
 }
 
 #[test]

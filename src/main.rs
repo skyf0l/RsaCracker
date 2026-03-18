@@ -434,7 +434,8 @@ fn main() -> Result<(), MainError> {
     );
 
     // Show factors if explicitly requested, or by default when no ciphertext present in all input sources, and no other display mode
-    if args.factors || (params.c.is_none() && !args.private && !args.dump && !args.dumpext) {
+    let has_any_ciphertext = params.c.is_some() || params.keys.iter().any(|k| k.c.is_some());
+    if args.factors || (!has_any_ciphertext && !args.private && !args.dump && !args.dumpext) {
         if let Some(private_key) = &solution.pk {
             println!("Factors of n:");
             if private_key.factors.len() == 2 {

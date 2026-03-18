@@ -69,7 +69,7 @@ fn raw_file_without_cipher_shows_factors() {
         "expected p and q in factor output, got:\n{stdout}"
     );
     assert!(
-        !stdout.contains("m ="),
+        !stdout.contains("Unciphered data:"),
         "must not print decryption output when no cipher is present, got:\n{stdout}"
     );
 }

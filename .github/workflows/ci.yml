@@ -70,7 +70,7 @@ jobs:
       - uses: taiki-e/install-action@cargo-nextest
 
       - name: Test
-        run: cargo nextest run --all-features --lib --bins --test keys
+        run: cargo nextest run --all-features -E 'not binary(~ctf_)'
 
   key-generation:
     name: Verify deterministic key generation

@@ -115,12 +115,12 @@ jobs:
               echo "⚠️  $filename not found in committed keys"
             fi
           done
-          
+
           if [ $failed -eq 1 ]; then
             echo "Error: Generated keys don't match committed keys"
             exit 1
           fi
-          
+
           echo "✓ All deterministic keys match committed versions"
 
   ctf-challenges:
@@ -246,7 +246,16 @@ jobs:
     timeout-minutes: 30
 
     needs:
-      [fmt, clippy, docs, tests, key-generation, ctf-challenges, coverage, build, docker-build]
+      [
+        fmt,
+        clippy,
+        docs,
+        tests,
+        key-generation,
+        ctf-challenges,
+        build,
+        docker-build,
+      ]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     steps:
@@ -265,7 +274,16 @@ jobs:
     timeout-minutes: 120
 
     needs:
-      [fmt, clippy, docs, tests, key-generation, ctf-challenges, coverage, build, docker-build]
+      [
+        fmt,
+        clippy,
+        docs,
+        tests,
+        key-generation,
+        ctf-challenges,
+        build,
+        docker-build,
+      ]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
 
     env:

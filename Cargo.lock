@@ -490,9 +490,9 @@ dependencies = [
 
 [[package]]
 name = "dequemap"
-version = "0.2.2"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9a8b815f6a66eb3d70d9af06b9b6a664d947d5ea4cb3374c63941b9bfc7ca24"
+checksum = "b2d408ffcf19fae467d674f7af5afe4bfe6f4c41d5e6fa05da8ce97c3bc01807"
 dependencies = [
  "hashbrown 0.15.5",
 ]
@@ -1451,9 +1451,9 @@ dependencies = [
 
 [[package]]
 name = "mpsc"
-version = "0.2.6"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09063ffbeb8d9545183d05bd5097ec8f0c7a0d6f81638bbbddfadee10ec0229f"
+checksum = "481ec99f296b0765f0a15346a26073c23e23cc34fb47129db151242acf2e7568"
 dependencies = [
  "ahash",
  "dashmap",
@@ -2548,9 +2548,9 @@ checksum = "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596"
 
 [[package]]
 name = "std-ext"
-version = "0.3.2"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a1842963116222c15799928d092cbd4db7f4e471e20c41b966ee35b1c72b71a"
+checksum = "b06524cd47624c13d5ee0c2e770b264b1970a48f68564065f24d5ab081bf94c3"
 dependencies = [
  "dequemap",
 ]

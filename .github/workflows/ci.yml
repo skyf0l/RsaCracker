@@ -209,7 +209,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache
         with:
           path: |

@@ -49,7 +49,7 @@ update-informer = "1.1"
 indicatif = "0.18"
 itertools = "0.15"
 discrete-logarithm = "1.0"
-base64 = "0.22"
+base64 = "0.23"
 factordb = { version = "0.3.0", features = ["blocking"] }
 rayon = "1.10.0"
 

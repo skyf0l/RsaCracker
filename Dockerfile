@@ -1,4 +1,4 @@
-FROM rust:1.97 AS builder
+FROM rust:1.98 AS builder
 WORKDIR /usr/src/rsacracker
 COPY . .
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

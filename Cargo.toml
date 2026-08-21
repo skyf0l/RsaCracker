@@ -39,7 +39,7 @@ main_error = "0.1"
 primal = "0.3"
 ecm = { version = "1.0", features = ["progress-bar"] }
 openssl = "0.10"
-base-x = "0.2"
+base-x = "0.3"
 display_bytes = "0.2"
 ssh-key = { version = "0.6", features = ["encryption"] }
 tokio = { version = "1.40", features = ["rt", "rt-multi-thread"] }

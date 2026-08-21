@@ -126,9 +126,9 @@ checksum = "be5eb007b7cacc6c660343e96f650fedf4b5a77512399eb952ca6642cf8d13f7"
 
 [[package]]
 name = "base-x"
-version = "0.2.11"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cbbc9d0964165b47557570cce6c952866c2678457aca742aafc9fb771d30270"
+checksum = "c88e1890b4717f1cce48d42b0836d6b9c6c96136f5ab8922ae4626f4eaf69638"
 
 [[package]]
 name = "base16ct"

@@ -7,4 +7,11 @@
     ":automergeMajor",
     ":maintainLockFilesWeekly",
   ],
+  packageRules: [
+    {
+      matchManagers: ["cargo"],
+      groupName: "rust dependencies",
+      schedule: ["* 0-3 * * 1"],
+    },
+  ],
 }

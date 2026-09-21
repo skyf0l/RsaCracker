@@ -2213,7 +2213,7 @@ dependencies = [
 
 [[package]]
 name = "rsacracker"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "base-x",
  "base64 0.23.1",
